@@ -6,7 +6,7 @@
     <meta name="description" content="Snake: das Klassiker-Minigame direkt im Browser spielen, kostenlos und ohne Installation." />
     <meta name="theme-color" content="#fff6ea" />
     <link rel="canonical" href="https://ddmeer321.github.io/snake.html" />
-    <link rel="stylesheet" href="library.css?v=2" />
+    <link rel="stylesheet" href="library.css?v=3" />
     <title>Snake – Spielebibliothek</title>
   </head>
   <body>
@@ -18,35 +18,67 @@
     </header>
 
     <main>
-      <section class="mini-hero">
+      <section id="view-intro" class="mini-view mini-hero">
         <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
         <h1>Snake</h1>
-        <p>Der Klassiker: Steuere die Schlange zum Futter, ohne die Wand oder dich selbst zu berühren. Mit jedem Apfel wirst du länger und das Tempo steigt leicht an.</p>
+        <p>Der Klassiker: Steuere die Schlange zum Futter, ohne die Wand oder dich selbst zu berühren. Wische auf dem Spielfeld oder nutze Pfeiltasten/WASD. Mit Punkten verdienst du Münzen für neue Skins im Shop.</p>
+        <button class="mini-btn" id="open-menu-button">Spiel öffnen</button>
       </section>
 
-      <section class="mini-stage">
+      <section id="view-menu" class="mini-view mini-menu hidden">
+        <h1>Snake</h1>
+        <span class="coin-pill" id="menu-coins">🪙 0 Münzen</span>
+        <button class="menu-btn primary" id="start-button"><span>▶ Start</span></button>
+        <button class="menu-btn" id="settings-button"><span>⚙ Einstellungen</span></button>
+        <button class="menu-btn" id="shop-button"><span>🛒 Shop</span></button>
+        <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
+      </section>
+
+      <section id="view-settings" class="mini-view mini-panel hidden">
+        <div class="mini-panel-head">
+          <h1>Einstellungen</h1>
+          <button class="mini-btn mini-btn-ghost" data-back-to-menu style="color:var(--purple);background:none;">← Menü</button>
+        </div>
+        <div class="settings-row">
+          <span><strong>Wände umlaufen</strong><br /><span>Am Rand erscheint die Schlange auf der Gegenseite statt zu sterben.</span></span>
+          <button class="toggle" id="wrap-toggle" aria-label="Wände umlaufen"></button>
+        </div>
+        <div class="settings-row">
+          <span><strong>Rekord zurücksetzen</strong><br /><span>Setzt deinen lokal gespeicherten Highscore auf 0.</span></span>
+          <button class="mini-btn" id="reset-highscore-button">Zurücksetzen</button>
+        </div>
+        <p class="mini-help" style="margin-top:18px;">Steuerung: Wischen auf dem Spielfeld (Handy) oder Pfeiltasten/<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> (Desktop).</p>
+      </section>
+
+      <section id="view-shop" class="mini-view mini-panel hidden">
+        <div class="mini-panel-head">
+          <h1>Shop</h1>
+          <button class="mini-btn mini-btn-ghost" data-back-to-menu style="color:var(--purple);background:none;">← Menü</button>
+        </div>
+        <span class="coin-pill" id="shop-coins">🪙 0 Münzen</span>
+        <div class="shop-grid" id="shop-grid" style="margin-top:20px;"></div>
+      </section>
+
+      <section id="view-game" class="mini-view hidden mini-stage">
         <div class="mini-hud">
           <span><span class="label">Punkte</span><span id="score">0</span></span>
           <span><span class="label">Rekord</span><span id="highscore">0</span></span>
+          <span><span class="label">Münzen</span><span id="game-coins">0</span></span>
         </div>
 
-        <div class="mini-board-wrap">
-          <canvas id="snake-board" width="400" height="400"></canvas>
-          <div class="mini-overlay" id="overlay">
-            <h2 id="overlay-title">Bereit?</h2>
-            <p id="overlay-text">Pfeiltasten, WASD oder die Buttons unten steuern die Schlange.</p>
-            <button class="mini-btn" id="overlay-button">Spiel starten</button>
+        <div class="mini-board-wrap" id="board-wrap">
+          <canvas id="snake-board"></canvas>
+          <div class="mini-overlay hidden" id="overlay">
+            <h2 id="overlay-title">Game Over</h2>
+            <p id="overlay-text">Du hast 0 Punkte erreicht.</p>
+            <div class="mini-overlay-actions">
+              <button class="mini-btn" id="retry-button">Nochmal spielen</button>
+              <button class="mini-btn mini-btn-ghost" id="game-menu-button">Hauptmenü</button>
+            </div>
           </div>
         </div>
 
-        <div class="mini-dpad" aria-label="Steuerung">
-          <button class="dpad-up" data-dir="up" aria-label="Hoch">↑</button>
-          <button class="dpad-left" data-dir="left" aria-label="Links">←</button>
-          <button class="dpad-right" data-dir="right" aria-label="Rechts">→</button>
-          <button class="dpad-down" data-dir="down" aria-label="Runter">↓</button>
-        </div>
-
-        <p class="mini-help">Steuerung: <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> oder <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>. Auf dem Handy die Pfeil-Buttons antippen.</p>
+        <p class="mini-help">Wische auf dem Feld oder nutze Pfeiltasten/WASD.</p>
       </section>
     </main>
 
@@ -62,24 +94,131 @@
 
     <script>
       (function () {
+        var SKINS = {
+          classic: { name: "Classic", cost: 0, head: "#7c5cff", body: "#ff5fa2" },
+          feuer: { name: "Feuer", cost: 20, head: "#ff7a3d", body: "#ffcf3d" },
+          ozean: { name: "Ozean", cost: 20, head: "#2fd6c0", body: "#4a8cff" },
+          gold: { name: "Gold", cost: 35, head: "#f4c430", body: "#fff1b8" },
+        };
+        var KEYS = {
+          highscore: "snakeHighscore",
+          coins: "snakeCoins",
+          owned: "snakeOwnedSkins",
+          skin: "snakeSkin",
+          wrap: "snakeWrap",
+        };
+
+        var highscore = Number(localStorage.getItem(KEYS.highscore)) || 0;
+        var coins = Number(localStorage.getItem(KEYS.coins)) || 0;
+        var owned = JSON.parse(localStorage.getItem(KEYS.owned) || '["classic"]');
+        var skin = localStorage.getItem(KEYS.skin) || "classic";
+        var wrapEnabled = localStorage.getItem(KEYS.wrap) === "1";
+
+        var views = {};
+        document.querySelectorAll(".mini-view").forEach(function (el) { views[el.id] = el; });
+
+        function showView(id) {
+          Object.keys(views).forEach(function (key) {
+            views[key].classList.toggle("hidden", key !== id);
+          });
+          document.body.classList.toggle("in-game", id !== "view-intro");
+        }
+
+        document.getElementById("open-menu-button").addEventListener("click", function () { showView("view-menu"); });
+        document.querySelectorAll("[data-back-to-menu]").forEach(function (btn) {
+          btn.addEventListener("click", function () { showView("view-menu"); });
+        });
+        document.getElementById("settings-button").addEventListener("click", function () { showView("view-settings"); renderSettings(); });
+        document.getElementById("shop-button").addEventListener("click", function () { showView("view-shop"); renderShop(); });
+        document.getElementById("game-menu-button").addEventListener("click", function () {
+          clearInterval(timer);
+          running = false;
+          showView("view-menu");
+          renderCoins();
+        });
+
+        function renderCoins() {
+          var text = "🪙 " + coins + " Münzen";
+          document.getElementById("menu-coins").textContent = text;
+          document.getElementById("shop-coins").textContent = text;
+          document.getElementById("game-coins").textContent = coins;
+        }
+
+        function renderSettings() {
+          var toggle = document.getElementById("wrap-toggle");
+          toggle.classList.toggle("on", wrapEnabled);
+        }
+        document.getElementById("wrap-toggle").addEventListener("click", function () {
+          wrapEnabled = !wrapEnabled;
+          localStorage.setItem(KEYS.wrap, wrapEnabled ? "1" : "0");
+          renderSettings();
+        });
+        document.getElementById("reset-highscore-button").addEventListener("click", function () {
+          highscore = 0;
+          localStorage.setItem(KEYS.highscore, "0");
+          document.getElementById("highscore").textContent = "0";
+        });
+
+        function renderShop() {
+          var grid = document.getElementById("shop-grid");
+          grid.innerHTML = "";
+          Object.keys(SKINS).forEach(function (id) {
+            var s = SKINS[id];
+            var isOwned = owned.indexOf(id) !== -1;
+            var isSelected = skin === id;
+            var card = document.createElement("div");
+            card.className = "shop-card" + (isSelected ? " selected" : "");
+            var canAfford = isOwned || coins >= s.cost;
+            var btnLabel = isSelected ? "Ausgewählt" : isOwned ? "Auswählen" : "Kaufen (" + s.cost + " 🪙)";
+            card.innerHTML =
+              '<div class="shop-swatch" style="background:linear-gradient(145deg,' + s.head + "," + s.body + ')"></div>' +
+              "<h3>" + s.name + "</h3>" +
+              "<p>" + (isOwned ? "Freigeschaltet" : s.cost + " Münzen") + "</p>" +
+              '<button class="mini-btn"' + (isSelected || !canAfford ? " disabled" : "") + ">" + btnLabel + "</button>";
+            card.querySelector("button").addEventListener("click", function () {
+              if (isSelected || !canAfford) return;
+              if (!isOwned) {
+                if (coins < s.cost) return;
+                coins -= s.cost;
+                owned.push(id);
+                localStorage.setItem(KEYS.owned, JSON.stringify(owned));
+                localStorage.setItem(KEYS.coins, String(coins));
+              }
+              skin = id;
+              localStorage.setItem(KEYS.skin, id);
+              renderCoins();
+              renderShop();
+            });
+            grid.appendChild(card);
+          });
+        }
+
         var canvas = document.getElementById("snake-board");
         var ctx = canvas.getContext("2d");
-        var cell = 20;
-        var cols = canvas.width / cell;
-        var rows = canvas.height / cell;
+        var boardWrap = document.getElementById("board-wrap");
+        var gridCount = 22;
+        var cell, cols, rows;
 
         var scoreEl = document.getElementById("score");
         var highscoreEl = document.getElementById("highscore");
+        highscoreEl.textContent = highscore;
         var overlay = document.getElementById("overlay");
         var overlayTitle = document.getElementById("overlay-title");
         var overlayText = document.getElementById("overlay-text");
-        var overlayButton = document.getElementById("overlay-button");
-
-        var HIGHSCORE_KEY = "snakeHighscore";
-        var highscore = Number(localStorage.getItem(HIGHSCORE_KEY)) || 0;
-        highscoreEl.textContent = highscore;
 
         var snake, direction, nextDirection, food, score, speed, timer, running;
+
+        function sizeBoard() {
+          var available = Math.min(window.innerWidth - 40, 560, window.innerHeight - 260);
+          var size = Math.max(240, Math.floor(available / gridCount) * gridCount);
+          cell = size / gridCount;
+          cols = gridCount;
+          rows = gridCount;
+          boardWrap.style.width = size + "px";
+          boardWrap.style.height = size + "px";
+          canvas.width = size;
+          canvas.height = size;
+        }
 
         function resetState() {
           snake = [
@@ -106,7 +245,18 @@
           food = options[Math.floor(Math.random() * options.length)];
         }
 
+        function roundRect(x, y, w, h, r) {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.arcTo(x + w, y, x + w, y + h, r);
+          ctx.arcTo(x + w, y + h, x, y + h, r);
+          ctx.arcTo(x, y + h, x, y, r);
+          ctx.arcTo(x, y, x + w, y, r);
+          ctx.closePath();
+        }
+
         function draw() {
+          var colors = SKINS[skin];
           ctx.fillStyle = "#241c3d";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -125,24 +275,14 @@
           }
 
           ctx.fillStyle = "#ffc247";
-          roundRect(food.x * cell + 3, food.y * cell + 3, cell - 6, cell - 6, 6);
+          roundRect(food.x * cell + cell * 0.15, food.y * cell + cell * 0.15, cell * 0.7, cell * 0.7, cell * 0.3);
           ctx.fill();
 
           snake.forEach(function (segment, i) {
-            ctx.fillStyle = i === 0 ? "#7c5cff" : "#ff5fa2";
-            roundRect(segment.x * cell + 2, segment.y * cell + 2, cell - 4, cell - 4, 6);
+            ctx.fillStyle = i === 0 ? colors.head : colors.body;
+            roundRect(segment.x * cell + cell * 0.1, segment.y * cell + cell * 0.1, cell * 0.8, cell * 0.8, cell * 0.3);
             ctx.fill();
           });
-        }
-
-        function roundRect(x, y, w, h, r) {
-          ctx.beginPath();
-          ctx.moveTo(x + r, y);
-          ctx.arcTo(x + w, y, x + w, y + h, r);
-          ctx.arcTo(x + w, y + h, x, y + h, r);
-          ctx.arcTo(x, y + h, x, y, r);
-          ctx.arcTo(x, y, x + w, y, r);
-          ctx.closePath();
         }
 
         function step() {
@@ -152,6 +292,11 @@
           if (direction === "down") head.y += 1;
           if (direction === "left") head.x -= 1;
           if (direction === "right") head.x += 1;
+
+          if (wrapEnabled) {
+            head.x = (head.x + cols) % cols;
+            head.y = (head.y + rows) % rows;
+          }
 
           var hitsWall = head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows;
           var hitsSelf = snake.some(function (s) { return s.x === head.x && s.y === head.y; });
@@ -186,16 +331,22 @@
           clearInterval(timer);
           if (score > highscore) {
             highscore = score;
-            localStorage.setItem(HIGHSCORE_KEY, String(highscore));
+            localStorage.setItem(KEYS.highscore, String(highscore));
             highscoreEl.textContent = highscore;
           }
+          var earned = Math.floor(score / 10);
+          if (earned > 0) {
+            coins += earned;
+            localStorage.setItem(KEYS.coins, String(coins));
+            renderCoins();
+          }
           overlayTitle.textContent = "Game Over";
-          overlayText.textContent = "Du hast " + score + " Punkte erreicht.";
-          overlayButton.textContent = "Nochmal spielen";
+          overlayText.textContent = "Du hast " + score + " Punkte erreicht" + (earned > 0 ? " und " + earned + " Münzen verdient." : ".");
           overlay.classList.remove("hidden");
         }
 
         function startGame() {
+          sizeBoard();
           resetState();
           draw();
           running = true;
@@ -215,7 +366,6 @@
           w: "up", s: "down", a: "left", d: "right",
           W: "up", S: "down", A: "left", D: "right",
         };
-
         document.addEventListener("keydown", function (e) {
           var dir = keyMap[e.key];
           if (dir) {
@@ -224,16 +374,32 @@
           }
         });
 
-        document.querySelectorAll(".mini-dpad button").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            setDirection(btn.getAttribute("data-dir"));
-          });
+        var touchStart = null;
+        boardWrap.addEventListener("touchstart", function (e) {
+          var t = e.changedTouches[0];
+          touchStart = { x: t.clientX, y: t.clientY };
+        }, { passive: true });
+        boardWrap.addEventListener("touchend", function (e) {
+          if (!touchStart) return;
+          var t = e.changedTouches[0];
+          var dx = t.clientX - touchStart.x;
+          var dy = t.clientY - touchStart.y;
+          touchStart = null;
+          if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            setDirection(dx > 0 ? "right" : "left");
+          } else {
+            setDirection(dy > 0 ? "down" : "up");
+          }
+        }, { passive: true });
+
+        document.getElementById("start-button").addEventListener("click", function () {
+          showView("view-game");
+          startGame();
         });
+        document.getElementById("retry-button").addEventListener("click", startGame);
 
-        overlayButton.addEventListener("click", startGame);
-
-        resetState();
-        draw();
+        renderCoins();
       })();
     </script>
   </body>
