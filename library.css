@@ -242,3 +242,23 @@ a { color: inherit; }
   .lib-topbar nav { display: none; }
   .lib-footer { flex-direction: column; align-items: flex-start; gap: 18px; }
 }
+
+.lib-legal {
+  width: min(760px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 60px 0 100px;
+}
+
+.lib-legal-back {
+  display: inline-flex;
+  margin-bottom: 32px;
+  color: var(--purple);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.lib-legal h1 { margin: 0 0 32px; font-size: clamp(2.2rem, 5vw, 3rem); letter-spacing: -0.02em; }
+.lib-legal h2 { margin: 40px 0 10px; font-size: 1.2rem; letter-spacing: -0.01em; }
+.lib-legal p, .lib-legal address, .lib-legal li { color: var(--muted); }
+.lib-legal address { font-style: normal; }
+.lib-legal a { color: var(--purple); }
