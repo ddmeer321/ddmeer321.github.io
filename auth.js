@@ -3,7 +3,7 @@
   if (!el || !window.supabaseClient) return;
 
   function renderLoggedOut() {
-    el.innerHTML = '<a class="mini-btn auth-login-btn" href="login.html">Login</a>';
+    el.innerHTML = '<a class="mini-btn auth-login-btn" href="/login.html">Login</a>';
   }
 
   function renderLoggedIn(username) {
