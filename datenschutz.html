@@ -4,34 +4,134 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="index,follow" />
-    <link rel="stylesheet" href="style.css?v=1" />
-    <title>Datenschutz – Neon Bot Arena</title>
+    <link rel="stylesheet" href="datenschutz.css?v=1" />
+    <title>Datenschutz – Spielebibliothek</title>
   </head>
   <body>
-    <main class="legal-page">
-      <a class="legal-back" href="neon-bot-arena.html">← Zurück zu Neon Bot Arena</a>
-      <p class="eyebrow">Neon Bot Arena</p>
-      <h1>Datenschutz</h1>
-      <p>Diese Hinweise erklären, welche Daten beim Besuch der Projektseite und beim Spielen von Neon Bot Arena verarbeitet werden. Angaben zur verantwortlichen Stelle stehen im <a href="impressum.html">Impressum</a>.</p>
+    <main class="privacy-page">
+      <div class="privacy-card">
+        <p class="privacy-eyebrow">Spielebibliothek</p>
+        <h1>Datenschutz</h1>
+        <p class="privacy-intro">Diese Erklärung ist in drei Teile gegliedert: ein allgemeiner Teil für die gesamte Website sowie je ein eigener Teil für Snake und für Neon Bot Arena, weil beide Spiele unterschiedlich viel verarbeiten.</p>
+        <p class="privacy-responsible">Angaben zur verantwortlichen Stelle stehen im <a href="impressum.html">Impressum</a>.</p>
 
-      <h2>Hosting und technische Verbindungsdaten</h2>
-      <p>Die Website wird über GitHub Pages bereitgestellt. Beim Aufruf können insbesondere IP-Adresse, Zeitpunkt, angeforderte Datei, übertragene Datenmenge, Referrer, Browser und Betriebssystem verarbeitet werden. Dies dient der sicheren und zuverlässigen Auslieferung der Website. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO. Weitere Informationen enthält die <a href="https://docs.github.com/site-policy/privacy-policies/github-privacy-statement">Datenschutzerklärung von GitHub</a>.</p>
+        <ul class="privacy-nav">
+          <li><a class="dot-general" href="#allgemein"><i aria-hidden="true"></i>Allgemein</a></li>
+          <li><a class="dot-snake" href="#snake"><i aria-hidden="true"></i>Snake</a></li>
+          <li><a class="dot-nba" href="#neon-bot-arena"><i aria-hidden="true"></i>Neon Bot Arena</a></li>
+        </ul>
 
-      <h2>Lokale Speicherung</h2>
-      <p>Das Spiel speichert Fortschritt, Münzen, Einstellungen, lokale Rekorde, Hintergrundbilder und Löschschlüssel lokal im Browser. Diese Daten bleiben auf dem Gerät, bis sie dort gelöscht werden. Grundlage ist § 25 Abs. 2 Nr. 2 TDDDG, soweit die Speicherung für ausdrücklich gewünschte Spielfunktionen erforderlich ist.</p>
+        <section class="privacy-part" id="allgemein">
+          <div class="privacy-part-head">
+            <span class="privacy-badge general">Allgemein</span>
+            <h2>Für die ganze Website</h2>
+          </div>
+          <div class="privacy-topics">
+            <details class="privacy-topic" open>
+              <summary>Hosting und technische Verbindungsdaten</summary>
+              <div class="privacy-topic-content">
+                <p>Die Website wird über GitHub Pages bereitgestellt. Beim Aufruf können insbesondere IP-Adresse, Zeitpunkt, angeforderte Datei, übertragene Datenmenge, Referrer, Browser und Betriebssystem verarbeitet werden.</p>
+                <p>Dies dient der sicheren und zuverlässigen Auslieferung der Website. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO. Weitere Informationen enthält die <a href="https://docs.github.com/site-policy/privacy-policies/github-privacy-statement">Datenschutzerklärung von GitHub</a>.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Google AdSense und Werbung</summary>
+              <div class="privacy-topic-content">
+                <p>Auf der Startseite und auf der Neon-Bot-Arena-Seite ist der AdSense-Basiscode zur Bestätigung der Website eingebunden. Snake selbst bindet keinen AdSense-Code ein. Dadurch wird beim Aufruf der betroffenen Seiten eine Verbindung zu Google Ireland Limited hergestellt, wobei insbesondere IP-Adresse, Browser- und Gerätedaten sowie der Referrer verarbeitet werden können. Echte Anzeigenplätze sind derzeit noch nicht aktiviert.</p>
+                <p>Wenn AdSense für echte Werbung aktiviert wird, kann Google Cookies oder ähnliche Technologien einsetzen und zusätzlich Anzeigenaufrufe und Interaktionen verarbeiten. Vorher wird eine von Google zertifizierte Einwilligungsplattform eingerichtet. Personalisierte Werbung und nicht notwendige Speicherung erfolgen nur entsprechend der Auswahl auf Grundlage von Art. 6 Abs. 1 Buchstabe a DSGVO und § 25 Abs. 1 TDDDG. Eine Einwilligung kann mit Wirkung für die Zukunft geändert oder widerrufen werden.</p>
+                <p>Weitere Informationen: <a href="https://policies.google.com/technologies/partner-sites">Datennutzung durch Google bei Partner-Websites</a>, <a href="https://adssettings.google.com/">Google-Anzeigeneinstellungen</a> und <a href="https://policies.google.com/privacy">Google-Datenschutzerklärung</a>.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Speicherdauer und deine Rechte</summary>
+              <div class="privacy-topic-content">
+                <p>Technische Protokolle unterliegen den Speicherregeln der jeweiligen Anbieter. Im Rahmen der gesetzlichen Voraussetzungen hast du Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch sowie ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde.</p>
+              </div>
+            </details>
+          </div>
+        </section>
 
-      <h2>Multiplayer und Online-Rangliste</h2>
-      <p>Der freiwillig ausgewählte Multiplayer verarbeitet vorübergehend Verbindungsdaten, Spitzname, Lobby-Zuordnung und Spielzustände über Render. Die Online-Rangliste speichert bei Supabase Spitzname und Rundendaten. Bitte verwende keinen echten Namen. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO; die berechtigten Interessen sind der Spielbetrieb, eine faire Rangliste und Missbrauchsschutz. Weitere Hinweise und Löschmöglichkeiten befinden sich direkt im Spiel.</p>
+        <section class="privacy-part" id="snake">
+          <div class="privacy-part-head">
+            <span class="privacy-badge snake">Snake</span>
+            <h2>Nur für Snake</h2>
+          </div>
+          <div class="privacy-topics">
+            <details class="privacy-topic" open>
+              <summary>Lokale Speicherung auf deinem Gerät</summary>
+              <div class="privacy-topic-content">
+                <p>Snake läuft vollständig lokal im Browser und überträgt dabei keine Spieldaten an einen Server. Highscore, Münzen, freigeschaltete Skins, Einstellungen (Schwierigkeit, Hindernis-Modus, Ton) sowie deine lokale Bestenliste werden nur im lokalen Speicher (localStorage) deines Geräts abgelegt.</p>
+                <p>Diese Daten verlassen dein Gerät nicht und bleiben dort, bis du sie löschst. Grundlage ist § 25 Abs. 2 Nr. 2 TDDDG, soweit die Speicherung für ausdrücklich gewünschte Spielfunktionen erforderlich ist.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Soundeffekte</summary>
+              <div class="privacy-topic-content">
+                <p>Die optionalen Soundeffekte werden mit der Web-Audio-API direkt im Browser erzeugt. Dabei wird kein Mikrofon verwendet und kein Ton aufgezeichnet oder übertragen.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Kein Mehrspieler, keine Rangliste</summary>
+              <div class="privacy-topic-content">
+                <p>Snake enthält keinen Mehrspieler-Modus und keine Online-Rangliste. Es gibt daher keine Übertragung von Spitznamen, Verbindungsdaten oder Rundendaten an einen Server.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Daten löschen</summary>
+              <div class="privacy-topic-content">
+                <p>Über „Zurücksetzen“ in den Einstellungen kannst du Highscore und Bestenliste direkt im Spiel löschen. Um wirklich alle lokalen Daten von Snake zu entfernen, kannst du zusätzlich den lokalen Speicher dieser Seite in den Browser-Einstellungen leeren.</p>
+              </div>
+            </details>
+          </div>
+        </section>
 
-      <h2>Google AdSense und Werbung</h2>
-      <p>Auf der Startseite ist der AdSense-Basiscode zur Bestätigung der Website eingebunden. Dadurch wird beim Aufruf eine Verbindung zu Google Ireland Limited hergestellt. Dabei können insbesondere IP-Adresse, Browser- und Gerätedaten sowie der Referrer verarbeitet werden. Echte Anzeigenplätze sind derzeit noch nicht aktiviert. Die simulierte Testwerbung verändert nur lokale Spielmünzen.</p>
-      <p>Wenn Google AdSense für echte Werbung aktiviert wird, kann Google Cookies oder ähnliche Technologien einsetzen und zusätzlich Anzeigenaufrufe und Interaktionen verarbeiten. Vorher wird eine von Google zertifizierte Einwilligungsplattform eingerichtet. Personalisierte Werbung und nicht notwendige Speicherung erfolgen nur entsprechend der Auswahl auf Grundlage von Art. 6 Abs. 1 Buchstabe a DSGVO und § 25 Abs. 1 TDDDG. Eine Einwilligung kann mit Wirkung für die Zukunft geändert oder widerrufen werden.</p>
-      <p>Weitere Informationen: <a href="https://policies.google.com/technologies/partner-sites">Datennutzung durch Google bei Partner-Websites</a>, <a href="https://adssettings.google.com/">Google-Anzeigeneinstellungen</a> und <a href="https://policies.google.com/privacy">Google-Datenschutzerklärung</a>.</p>
+        <section class="privacy-part" id="neon-bot-arena">
+          <div class="privacy-part-head">
+            <span class="privacy-badge nba">Neon Bot Arena</span>
+            <h2>Nur für Neon Bot Arena</h2>
+          </div>
+          <div class="privacy-topics">
+            <details class="privacy-topic" open>
+              <summary>Lokale Speicherung auf deinem Gerät</summary>
+              <div class="privacy-topic-content">
+                <p>Fortschritt, Münzen, Einstellungen, lokale Rekorde, ein ausgewähltes Hintergrundbild und Löschschlüssel für die Rangliste werden lokal im Browser gespeichert, bis du sie löschst. Grundlage ist § 25 Abs. 2 Nr. 2 TDDDG, soweit die Speicherung für ausdrücklich gewünschte Spielfunktionen erforderlich ist.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Mehrspieler-Modus</summary>
+              <div class="privacy-topic-content">
+                <p>Der freiwillig ausgewählte Mehrspieler-Modus verbindet sich mit einem bei Render gehosteten Server. Dabei werden vorübergehend Verbindungsdaten, dein Spitzname, die Lobby-Zuordnung und Spielzustände verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO; das berechtigte Interesse ist der sichere Betrieb des Mehrspieler-Modus.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Online-Rangliste</summary>
+              <div class="privacy-topic-content">
+                <p>Die Online-Rangliste speichert bei Supabase deinen Spitznamen und Rundendaten wie Punktzahl und Schwierigkeit. Bitte verwende keinen echten Namen. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO; die berechtigten Interessen sind der Spielbetrieb, eine faire Rangliste und Missbrauchsschutz.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Eigene Scores löschen</summary>
+              <div class="privacy-topic-content">
+                <p>Für neue Ranglisteneinträge erhält dein Gerät einen zufälligen Löschschlüssel, der lokal gespeichert wird und mit dem du den Eintrag im Spiel wieder entfernen kannst. Ranglisteneinträge bleiben bestehen, bis sie mit diesem Schlüssel gelöscht werden.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Ausführliche Erklärung im Spiel</summary>
+              <div class="privacy-topic-content">
+                <p>Neon Bot Arena hat zusätzlich eine eigene, mehrsprachige Datenschutzerklärung direkt im Spiel, die Empfänger wie GitHub, Render und Supabase sowie Datenübermittlungen außerhalb der EU im Detail beschreibt: <a href="/neon-bot-arena/datenschutz.html">Datenschutz in Neon Bot Arena öffnen</a>.</p>
+              </div>
+            </details>
+          </div>
+        </section>
 
-      <h2>Speicherdauer und Rechte</h2>
-      <p>Technische Protokolle unterliegen den Speicherregeln der jeweiligen Anbieter. Lokale Daten bleiben bis zur Löschung im Browser. Ranglisteneinträge bleiben bestehen, bis sie mit dem zugehörigen Löschschlüssel entfernt werden. Im Rahmen der gesetzlichen Voraussetzungen bestehen Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch sowie ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde.</p>
-
-      <p>Stand: 11. Juli 2026</p>
+        <div class="privacy-footer">
+          <p class="privacy-updated">Stand: 2. August 2026</p>
+          <nav class="privacy-links" aria-label="Rechtliche Seiten">
+            <a href="index.html">← Zur Spielebibliothek</a>
+            <a href="impressum.html">Impressum</a>
+          </nav>
+        </div>
+      </div>
     </main>
   </body>
 </html>

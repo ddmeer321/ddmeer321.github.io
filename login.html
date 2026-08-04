@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="description" content="Melde dich in der Spielebibliothek an oder erstelle ein kostenloses Konto." />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="canonical" href="https://ddmeer321.github.io/login.html" />
+    <link rel="stylesheet" href="library.css?v=3" />
+    <link rel="stylesheet" href="auth.css?v=1" />
+    <link rel="stylesheet" href="login.css?v=1" />
+    <title>Login – Spielebibliothek</title>
+  </head>
+  <body>
+    <header class="lib-topbar">
+      <a class="lib-brand" href="index.html" aria-label="Zur Spielebibliothek">
+        <span class="lib-brand-mark" aria-hidden="true">D</span>
+        <span>Spielebibliothek</span>
+      </a>
+    </header>
+
+    <main>
+      <section class="login-page">
+        <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
+
+        <div class="login-card">
+          <div class="login-tabs" role="tablist">
+            <button class="login-tab active" id="tab-register" role="tab" aria-selected="true" type="button">Registrieren</button>
+            <button class="login-tab" id="tab-login" role="tab" aria-selected="false" type="button">Anmelden</button>
+          </div>
+
+          <form id="register-form" class="login-form" novalidate>
+            <label class="login-field">
+              <span>Benutzername</span>
+              <input type="text" id="reg-username" autocomplete="username" maxlength="12" required />
+              <span class="login-hint" id="reg-username-hint"></span>
+            </label>
+
+            <label class="login-field">
+              <span>Passwort</span>
+              <div class="login-password-wrap">
+                <input type="password" id="reg-password" autocomplete="new-password" required />
+                <button type="button" class="login-toggle-pw" data-target="reg-password" aria-label="Passwort anzeigen">👁</button>
+              </div>
+            </label>
+            <ul class="login-password-rules" id="reg-password-rules">
+              <li data-rule="length">mind. 8 Zeichen</li>
+              <li data-rule="upper">Großbuchstabe</li>
+              <li data-rule="lower">Kleinbuchstabe</li>
+              <li data-rule="digit">Zahl</li>
+              <li data-rule="special">Sonderzeichen</li>
+            </ul>
+
+            <label class="login-field">
+              <span>E-Mail <em>(optional)</em></span>
+              <input type="email" id="reg-email" autocomplete="email" />
+            </label>
+            <p class="login-hint-static">Ohne E-Mail kannst du dein Passwort bei Verlust <strong>nicht</strong> zurücksetzen. Mit E-Mail schicken wir dir eine Bestätigungsmail.</p>
+
+            <button type="submit" class="mini-btn login-submit">Konto erstellen</button>
+            <p class="login-message" id="register-message" role="alert"></p>
+          </form>
+
+          <form id="login-form" class="login-form hidden" novalidate>
+            <label class="login-field">
+              <span>Benutzername oder E-Mail</span>
+              <input type="text" id="login-identifier" autocomplete="username" required />
+            </label>
+
+            <label class="login-field">
+              <span>Passwort</span>
+              <div class="login-password-wrap">
+                <input type="password" id="login-password" autocomplete="current-password" required />
+                <button type="button" class="login-toggle-pw" data-target="login-password" aria-label="Passwort anzeigen">👁</button>
+              </div>
+            </label>
+
+            <button type="button" class="login-forgot-link" id="forgot-link">Passwort vergessen?</button>
+
+            <button type="submit" class="mini-btn login-submit">Anmelden</button>
+            <p class="login-message" id="login-message" role="alert"></p>
+          </form>
+
+          <form id="forgot-form" class="login-form hidden" novalidate>
+            <p class="login-hint-static">Gib deine bei der Registrierung hinterlegte E-Mail-Adresse ein. Ohne hinterlegte E-Mail ist ein Reset nicht möglich.</p>
+            <label class="login-field">
+              <span>E-Mail</span>
+              <input type="email" id="forgot-email" autocomplete="email" required />
+            </label>
+            <button type="submit" class="mini-btn login-submit">Link senden</button>
+            <button type="button" class="login-forgot-link" id="forgot-back">← Zurück zum Login</button>
+            <p class="login-message" id="forgot-message" role="alert"></p>
+          </form>
+
+          <form id="reset-form" class="login-form hidden" novalidate>
+            <p class="login-hint-static">Wähle ein neues Passwort für dein Konto.</p>
+            <label class="login-field">
+              <span>Neues Passwort</span>
+              <div class="login-password-wrap">
+                <input type="password" id="reset-password" autocomplete="new-password" required />
+                <button type="button" class="login-toggle-pw" data-target="reset-password" aria-label="Passwort anzeigen">👁</button>
+              </div>
+            </label>
+            <ul class="login-password-rules" id="reset-password-rules">
+              <li data-rule="length">mind. 8 Zeichen</li>
+              <li data-rule="upper">Großbuchstabe</li>
+              <li data-rule="lower">Kleinbuchstabe</li>
+              <li data-rule="digit">Zahl</li>
+              <li data-rule="special">Sonderzeichen</li>
+            </ul>
+            <button type="submit" class="mini-btn login-submit">Passwort speichern</button>
+            <p class="login-message" id="reset-message" role="alert"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="lib-footer">
+      <div>
+        <strong>Spielebibliothek</strong>
+      </div>
+      <nav aria-label="Rechtliche Informationen">
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="impressum.html">Impressum</a>
+        <a href="https://github.com/ddmeer321">GitHub</a>
+      </nav>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="login.js?v=1"></script>
+  </body>
+</html>

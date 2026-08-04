@@ -3,10 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Snake: das Klassiker-Minigame direkt im Browser spielen, kostenlos und ohne Installation." />
+    <meta name="description" content="Snake: der Klassiker im Browser mit Pause, Schwierigkeitsgraden, Hindernis-Modus, Bonus-Futter, Soundeffekten und lokaler Bestenliste. Kostenlos, ohne Installation." />
     <meta name="theme-color" content="#fff6ea" />
     <link rel="canonical" href="https://ddmeer321.github.io/snake.html" />
     <link rel="stylesheet" href="library.css?v=3" />
+    <link rel="stylesheet" href="snake.css?v=1" />
     <title>Snake – Spielebibliothek</title>
   </head>
   <body>
@@ -21,7 +22,7 @@
       <section id="view-intro" class="mini-view mini-hero">
         <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
         <h1>Snake</h1>
-        <p>Der Klassiker: Steuere die Schlange zum Futter, ohne die Wand oder dich selbst zu berühren. Wische auf dem Spielfeld oder nutze Pfeiltasten/WASD. Mit Punkten verdienst du Münzen für neue Skins im Shop.</p>
+        <p>Der Klassiker: Steuere die Schlange zum Futter, ohne die Wand, ein Hindernis oder dich selbst zu berühren. Sammle goldenes Bonus-Futter für Extrapunkte, wische auf dem Spielfeld oder nutze Pfeiltasten/WASD. Mit Punkten verdienst du Münzen für neue Skins im Shop.</p>
         <button class="mini-btn" id="open-menu-button">Spiel öffnen</button>
       </section>
 
@@ -31,6 +32,7 @@
         <button class="menu-btn primary" id="start-button"><span>▶ Start</span></button>
         <button class="menu-btn" id="settings-button"><span>⚙ Einstellungen</span></button>
         <button class="menu-btn" id="shop-button"><span>🛒 Shop</span></button>
+        <button class="menu-btn" id="records-button"><span>🏆 Bestenliste</span></button>
         <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
       </section>
 
@@ -40,14 +42,30 @@
           <button class="mini-btn mini-btn-ghost" data-back-to-menu style="color:var(--purple);background:none;">← Menü</button>
         </div>
         <div class="settings-row">
+          <span><strong>Schwierigkeit</strong><br /><span>Bestimmt Starttempo und wie schnell die Schlange wird.</span></span>
+          <select id="difficulty-select" aria-label="Schwierigkeit">
+            <option value="leicht">Leicht</option>
+            <option value="normal">Normal</option>
+            <option value="schwer">Schwer</option>
+          </select>
+        </div>
+        <div class="settings-row">
           <span><strong>Wände umlaufen</strong><br /><span>Am Rand erscheint die Schlange auf der Gegenseite statt zu sterben.</span></span>
           <button class="toggle" id="wrap-toggle" aria-label="Wände umlaufen"></button>
         </div>
         <div class="settings-row">
-          <span><strong>Rekord zurücksetzen</strong><br /><span>Setzt deinen lokal gespeicherten Highscore auf 0.</span></span>
+          <span><strong>Hindernisse</strong><br /><span>Zufällige Blöcke auf dem Feld sorgen für mehr Herausforderung.</span></span>
+          <button class="toggle" id="obstacles-toggle" aria-label="Hindernisse"></button>
+        </div>
+        <div class="settings-row">
+          <span><strong>Ton</strong><br /><span>Kurze Soundeffekte beim Fressen, Bonus und Game Over.</span></span>
+          <button class="toggle" id="sound-toggle" aria-label="Ton"></button>
+        </div>
+        <div class="settings-row">
+          <span><strong>Bestenliste &amp; Rekord zurücksetzen</strong><br /><span>Setzt deinen lokalen Highscore und die letzten Runden zurück.</span></span>
           <button class="mini-btn" id="reset-highscore-button">Zurücksetzen</button>
         </div>
-        <p class="mini-help" style="margin-top:18px;">Steuerung: Wischen auf dem Spielfeld (Handy) oder Pfeiltasten/<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> (Desktop).</p>
+        <p class="mini-help" style="margin-top:18px;">Steuerung: Wischen oder Steuerkreuz (Handy), Pfeiltasten/<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> (Desktop). <kbd>P</kbd> oder <kbd>Esc</kbd> pausiert die laufende Runde.</p>
       </section>
 
       <section id="view-shop" class="mini-view mini-panel hidden">
@@ -59,11 +77,21 @@
         <div class="shop-grid" id="shop-grid" style="margin-top:20px;"></div>
       </section>
 
+      <section id="view-records" class="mini-view mini-panel hidden">
+        <div class="mini-panel-head">
+          <h1>Bestenliste</h1>
+          <button class="mini-btn mini-btn-ghost" data-back-to-menu style="color:var(--purple);background:none;">← Menü</button>
+        </div>
+        <p class="mini-help" style="text-align:left;">Deine letzten 5 besten Runden, nur auf diesem Gerät gespeichert.</p>
+        <div class="records-list" id="records-list"></div>
+      </section>
+
       <section id="view-game" class="mini-view hidden mini-stage">
         <div class="mini-hud">
           <span><span class="label">Punkte</span><span id="score">0</span></span>
           <span><span class="label">Rekord</span><span id="highscore">0</span></span>
           <span><span class="label">Münzen</span><span id="game-coins">0</span></span>
+          <button class="pause-button" id="pause-button" aria-label="Pause">⏸</button>
         </div>
 
         <div class="mini-board-wrap" id="board-wrap">
@@ -76,9 +104,24 @@
               <button class="mini-btn mini-btn-ghost" id="game-menu-button">Hauptmenü</button>
             </div>
           </div>
+          <div class="mini-overlay hidden" id="pause-overlay">
+            <h2>Pause</h2>
+            <p>Die Runde wartet auf dich.</p>
+            <div class="mini-overlay-actions">
+              <button class="mini-btn" id="resume-button">Weiter</button>
+              <button class="mini-btn mini-btn-ghost" id="pause-menu-button">Hauptmenü</button>
+            </div>
+          </div>
         </div>
 
-        <p class="mini-help">Wische auf dem Feld oder nutze Pfeiltasten/WASD.</p>
+        <div class="dpad" aria-label="Steuerkreuz">
+          <button class="dpad-up" data-dir="up" aria-label="Nach oben">▲</button>
+          <button class="dpad-left" data-dir="left" aria-label="Nach links">◀</button>
+          <button class="dpad-down" data-dir="down" aria-label="Nach unten">▼</button>
+          <button class="dpad-right" data-dir="right" aria-label="Nach rechts">▶</button>
+        </div>
+
+        <p class="mini-help">Wische, nutze das Steuerkreuz oder Pfeiltasten/WASD. Goldenes Futter gibt Punkte, pinkes Bonus-Futter gibt mehr, verschwindet aber wieder.</p>
       </section>
     </main>
 
@@ -87,320 +130,12 @@
         <strong>Spielebibliothek</strong>
       </div>
       <nav aria-label="Rechtliche Informationen">
+        <a href="datenschutz.html">Datenschutz</a>
         <a href="impressum.html">Impressum</a>
         <a href="https://github.com/ddmeer321">GitHub</a>
       </nav>
     </footer>
 
-    <script>
-      (function () {
-        var SKINS = {
-          classic: { name: "Classic", cost: 0, head: "#7c5cff", body: "#ff5fa2" },
-          feuer: { name: "Feuer", cost: 20, head: "#ff7a3d", body: "#ffcf3d" },
-          ozean: { name: "Ozean", cost: 20, head: "#2fd6c0", body: "#4a8cff" },
-          gold: { name: "Gold", cost: 35, head: "#f4c430", body: "#fff1b8" },
-        };
-        var KEYS = {
-          highscore: "snakeHighscore",
-          coins: "snakeCoins",
-          owned: "snakeOwnedSkins",
-          skin: "snakeSkin",
-          wrap: "snakeWrap",
-        };
-
-        var highscore = Number(localStorage.getItem(KEYS.highscore)) || 0;
-        var coins = Number(localStorage.getItem(KEYS.coins)) || 0;
-        var owned = JSON.parse(localStorage.getItem(KEYS.owned) || '["classic"]');
-        var skin = localStorage.getItem(KEYS.skin) || "classic";
-        var wrapEnabled = localStorage.getItem(KEYS.wrap) === "1";
-
-        var views = {};
-        document.querySelectorAll(".mini-view").forEach(function (el) { views[el.id] = el; });
-
-        function showView(id) {
-          Object.keys(views).forEach(function (key) {
-            views[key].classList.toggle("hidden", key !== id);
-          });
-          document.body.classList.toggle("in-game", id !== "view-intro");
-        }
-
-        document.getElementById("open-menu-button").addEventListener("click", function () { showView("view-menu"); });
-        document.querySelectorAll("[data-back-to-menu]").forEach(function (btn) {
-          btn.addEventListener("click", function () { showView("view-menu"); });
-        });
-        document.getElementById("settings-button").addEventListener("click", function () { showView("view-settings"); renderSettings(); });
-        document.getElementById("shop-button").addEventListener("click", function () { showView("view-shop"); renderShop(); });
-        document.getElementById("game-menu-button").addEventListener("click", function () {
-          clearInterval(timer);
-          running = false;
-          showView("view-menu");
-          renderCoins();
-        });
-
-        function renderCoins() {
-          var text = "🪙 " + coins + " Münzen";
-          document.getElementById("menu-coins").textContent = text;
-          document.getElementById("shop-coins").textContent = text;
-          document.getElementById("game-coins").textContent = coins;
-        }
-
-        function renderSettings() {
-          var toggle = document.getElementById("wrap-toggle");
-          toggle.classList.toggle("on", wrapEnabled);
-        }
-        document.getElementById("wrap-toggle").addEventListener("click", function () {
-          wrapEnabled = !wrapEnabled;
-          localStorage.setItem(KEYS.wrap, wrapEnabled ? "1" : "0");
-          renderSettings();
-        });
-        document.getElementById("reset-highscore-button").addEventListener("click", function () {
-          highscore = 0;
-          localStorage.setItem(KEYS.highscore, "0");
-          document.getElementById("highscore").textContent = "0";
-        });
-
-        function renderShop() {
-          var grid = document.getElementById("shop-grid");
-          grid.innerHTML = "";
-          Object.keys(SKINS).forEach(function (id) {
-            var s = SKINS[id];
-            var isOwned = owned.indexOf(id) !== -1;
-            var isSelected = skin === id;
-            var card = document.createElement("div");
-            card.className = "shop-card" + (isSelected ? " selected" : "");
-            var canAfford = isOwned || coins >= s.cost;
-            var btnLabel = isSelected ? "Ausgewählt" : isOwned ? "Auswählen" : "Kaufen (" + s.cost + " 🪙)";
-            card.innerHTML =
-              '<div class="shop-swatch" style="background:linear-gradient(145deg,' + s.head + "," + s.body + ')"></div>' +
-              "<h3>" + s.name + "</h3>" +
-              "<p>" + (isOwned ? "Freigeschaltet" : s.cost + " Münzen") + "</p>" +
-              '<button class="mini-btn"' + (isSelected || !canAfford ? " disabled" : "") + ">" + btnLabel + "</button>";
-            card.querySelector("button").addEventListener("click", function () {
-              if (isSelected || !canAfford) return;
-              if (!isOwned) {
-                if (coins < s.cost) return;
-                coins -= s.cost;
-                owned.push(id);
-                localStorage.setItem(KEYS.owned, JSON.stringify(owned));
-                localStorage.setItem(KEYS.coins, String(coins));
-              }
-              skin = id;
-              localStorage.setItem(KEYS.skin, id);
-              renderCoins();
-              renderShop();
-            });
-            grid.appendChild(card);
-          });
-        }
-
-        var canvas = document.getElementById("snake-board");
-        var ctx = canvas.getContext("2d");
-        var boardWrap = document.getElementById("board-wrap");
-        var gridCount = 22;
-        var cell, cols, rows;
-
-        var scoreEl = document.getElementById("score");
-        var highscoreEl = document.getElementById("highscore");
-        highscoreEl.textContent = highscore;
-        var overlay = document.getElementById("overlay");
-        var overlayTitle = document.getElementById("overlay-title");
-        var overlayText = document.getElementById("overlay-text");
-
-        var snake, direction, nextDirection, food, score, speed, timer, running;
-
-        function sizeBoard() {
-          var available = Math.min(window.innerWidth - 40, 560, window.innerHeight - 260);
-          var size = Math.max(240, Math.floor(available / gridCount) * gridCount);
-          cell = size / gridCount;
-          cols = gridCount;
-          rows = gridCount;
-          boardWrap.style.width = size + "px";
-          boardWrap.style.height = size + "px";
-          canvas.width = size;
-          canvas.height = size;
-        }
-
-        function resetState() {
-          snake = [
-            { x: 8, y: 10 },
-            { x: 7, y: 10 },
-            { x: 6, y: 10 },
-          ];
-          direction = "right";
-          nextDirection = "right";
-          score = 0;
-          speed = 140;
-          scoreEl.textContent = "0";
-          placeFood();
-        }
-
-        function placeFood() {
-          var options = [];
-          for (var x = 0; x < cols; x++) {
-            for (var y = 0; y < rows; y++) {
-              var onSnake = snake.some(function (s) { return s.x === x && s.y === y; });
-              if (!onSnake) options.push({ x: x, y: y });
-            }
-          }
-          food = options[Math.floor(Math.random() * options.length)];
-        }
-
-        function roundRect(x, y, w, h, r) {
-          ctx.beginPath();
-          ctx.moveTo(x + r, y);
-          ctx.arcTo(x + w, y, x + w, y + h, r);
-          ctx.arcTo(x + w, y + h, x, y + h, r);
-          ctx.arcTo(x, y + h, x, y, r);
-          ctx.arcTo(x, y, x + w, y, r);
-          ctx.closePath();
-        }
-
-        function draw() {
-          var colors = SKINS[skin];
-          ctx.fillStyle = "#241c3d";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          ctx.strokeStyle = "rgba(255,255,255,0.04)";
-          for (var x = 0; x <= cols; x++) {
-            ctx.beginPath();
-            ctx.moveTo(x * cell, 0);
-            ctx.lineTo(x * cell, canvas.height);
-            ctx.stroke();
-          }
-          for (var y = 0; y <= rows; y++) {
-            ctx.beginPath();
-            ctx.moveTo(0, y * cell);
-            ctx.lineTo(canvas.width, y * cell);
-            ctx.stroke();
-          }
-
-          ctx.fillStyle = "#ffc247";
-          roundRect(food.x * cell + cell * 0.15, food.y * cell + cell * 0.15, cell * 0.7, cell * 0.7, cell * 0.3);
-          ctx.fill();
-
-          snake.forEach(function (segment, i) {
-            ctx.fillStyle = i === 0 ? colors.head : colors.body;
-            roundRect(segment.x * cell + cell * 0.1, segment.y * cell + cell * 0.1, cell * 0.8, cell * 0.8, cell * 0.3);
-            ctx.fill();
-          });
-        }
-
-        function step() {
-          direction = nextDirection;
-          var head = { x: snake[0].x, y: snake[0].y };
-          if (direction === "up") head.y -= 1;
-          if (direction === "down") head.y += 1;
-          if (direction === "left") head.x -= 1;
-          if (direction === "right") head.x += 1;
-
-          if (wrapEnabled) {
-            head.x = (head.x + cols) % cols;
-            head.y = (head.y + rows) % rows;
-          }
-
-          var hitsWall = head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows;
-          var hitsSelf = snake.some(function (s) { return s.x === head.x && s.y === head.y; });
-
-          if (hitsWall || hitsSelf) {
-            gameOver();
-            return;
-          }
-
-          snake.unshift(head);
-
-          if (head.x === food.x && head.y === food.y) {
-            score += 10;
-            scoreEl.textContent = score;
-            speed = Math.max(70, speed - 3);
-            placeFood();
-            restartTimer();
-          } else {
-            snake.pop();
-          }
-
-          draw();
-        }
-
-        function restartTimer() {
-          clearInterval(timer);
-          timer = setInterval(step, speed);
-        }
-
-        function gameOver() {
-          running = false;
-          clearInterval(timer);
-          if (score > highscore) {
-            highscore = score;
-            localStorage.setItem(KEYS.highscore, String(highscore));
-            highscoreEl.textContent = highscore;
-          }
-          var earned = Math.floor(score / 10);
-          if (earned > 0) {
-            coins += earned;
-            localStorage.setItem(KEYS.coins, String(coins));
-            renderCoins();
-          }
-          overlayTitle.textContent = "Game Over";
-          overlayText.textContent = "Du hast " + score + " Punkte erreicht" + (earned > 0 ? " und " + earned + " Münzen verdient." : ".");
-          overlay.classList.remove("hidden");
-        }
-
-        function startGame() {
-          sizeBoard();
-          resetState();
-          draw();
-          running = true;
-          overlay.classList.add("hidden");
-          restartTimer();
-        }
-
-        function setDirection(dir) {
-          if (!running) return;
-          var opposite = { up: "down", down: "up", left: "right", right: "left" };
-          if (opposite[dir] === direction) return;
-          nextDirection = dir;
-        }
-
-        var keyMap = {
-          ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
-          w: "up", s: "down", a: "left", d: "right",
-          W: "up", S: "down", A: "left", D: "right",
-        };
-        document.addEventListener("keydown", function (e) {
-          var dir = keyMap[e.key];
-          if (dir) {
-            e.preventDefault();
-            setDirection(dir);
-          }
-        });
-
-        var touchStart = null;
-        boardWrap.addEventListener("touchstart", function (e) {
-          var t = e.changedTouches[0];
-          touchStart = { x: t.clientX, y: t.clientY };
-        }, { passive: true });
-        boardWrap.addEventListener("touchend", function (e) {
-          if (!touchStart) return;
-          var t = e.changedTouches[0];
-          var dx = t.clientX - touchStart.x;
-          var dy = t.clientY - touchStart.y;
-          touchStart = null;
-          if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-          if (Math.abs(dx) > Math.abs(dy)) {
-            setDirection(dx > 0 ? "right" : "left");
-          } else {
-            setDirection(dy > 0 ? "down" : "up");
-          }
-        }, { passive: true });
-
-        document.getElementById("start-button").addEventListener("click", function () {
-          showView("view-game");
-          startGame();
-        });
-        document.getElementById("retry-button").addEventListener("click", startGame);
-
-        renderCoins();
-      })();
-    </script>
+    <script src="snake.js?v=1"></script>
   </body>
 </html>
