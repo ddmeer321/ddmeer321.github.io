@@ -8,6 +8,7 @@
     <link rel="canonical" href="https://ddmeer321.github.io/snake.html" />
     <link rel="stylesheet" href="library.css?v=3" />
     <link rel="stylesheet" href="snake.css?v=1" />
+    <link rel="stylesheet" href="auth.css?v=1" />
     <title>Snake – Spielebibliothek</title>
   </head>
   <body>
@@ -16,6 +17,7 @@
         <span class="lib-brand-mark" aria-hidden="true">D</span>
         <span>Spielebibliothek</span>
       </a>
+      <div id="auth-status"></div>
     </header>
 
     <main>
@@ -136,6 +138,9 @@
       </nav>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="auth.js?v=1"></script>
     <script src="snake.js?v=1"></script>
   </body>
 </html>
