@@ -3,14 +3,18 @@
   if (!el || !window.supabaseClient) return;
 
   function renderLoggedOut() {
+    if (!document.body.contains(el)) return;
     el.innerHTML = '<a class="mini-btn auth-login-btn" href="/login.html">Login</a>';
   }
 
   function renderLoggedIn(username) {
+    if (!document.body.contains(el)) return;
     el.innerHTML =
       '<span class="auth-user">Hallo, <strong>' + escapeHtml(username) + "</strong></span>" +
       '<button class="auth-logout-btn" id="auth-logout-btn">Abmelden</button>';
-    document.getElementById("auth-logout-btn").addEventListener("click", async function () {
+    var logoutBtn = document.getElementById("auth-logout-btn");
+    if (!logoutBtn) return;
+    logoutBtn.addEventListener("click", async function () {
       await window.supabaseClient.auth.signOut();
       renderLoggedOut();
     });

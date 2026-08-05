@@ -34,6 +34,14 @@
   var soundEnabled = localStorage.getItem(KEYS.sound) !== "0";
   var records = JSON.parse(localStorage.getItem(KEYS.records) || "[]");
 
+  // Testmodus: Fortschritt (Highscore, Münzen, Skins, Bestenliste) darf hier nicht persistiert werden.
+  var PROGRESS_KEYS = {};
+  [KEYS.highscore, KEYS.coins, KEYS.owned, KEYS.skin, KEYS.records].forEach(function (k) { PROGRESS_KEYS[k] = true; });
+  function persist(key, value) {
+    if (PROGRESS_KEYS[key]) return;
+    localStorage.setItem(key, value);
+  }
+
   var views = {};
   document.querySelectorAll(".mini-view").forEach(function (el) { views[el.id] = el; });
 
@@ -87,8 +95,8 @@
   document.getElementById("reset-highscore-button").addEventListener("click", function () {
     highscore = 0;
     records = [];
-    localStorage.setItem(KEYS.highscore, "0");
-    localStorage.setItem(KEYS.records, "[]");
+    persist(KEYS.highscore, "0");
+    persist(KEYS.records, "[]");
     document.getElementById("highscore").textContent = "0";
   });
 
@@ -114,11 +122,11 @@
           if (coins < s.cost) return;
           coins -= s.cost;
           owned.push(id);
-          localStorage.setItem(KEYS.owned, JSON.stringify(owned));
-          localStorage.setItem(KEYS.coins, String(coins));
+          persist(KEYS.owned, JSON.stringify(owned));
+          persist(KEYS.coins, String(coins));
         }
         skin = id;
-        localStorage.setItem(KEYS.skin, id);
+        persist(KEYS.skin, id);
         renderCoins();
         renderShop();
       });
@@ -148,7 +156,7 @@
     records.push({ score: finalScore, date: new Date().toLocaleDateString("de-DE") });
     records.sort(function (a, b) { return b.score - a.score; });
     records = records.slice(0, 5);
-    localStorage.setItem(KEYS.records, JSON.stringify(records));
+    persist(KEYS.records, JSON.stringify(records));
   }
 
   var audioCtx = null;
@@ -395,14 +403,14 @@
     beep(160, 0.3, "sawtooth");
     if (score > highscore) {
       highscore = score;
-      localStorage.setItem(KEYS.highscore, String(highscore));
+      persist(KEYS.highscore, String(highscore));
       highscoreEl.textContent = highscore;
     }
     addRecord(score);
     var earned = Math.floor(score / 10);
     if (earned > 0) {
       coins += earned;
-      localStorage.setItem(KEYS.coins, String(coins));
+      persist(KEYS.coins, String(coins));
       renderCoins();
     }
     overlayTitle.textContent = "Game Over";
