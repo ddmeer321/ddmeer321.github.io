@@ -29,7 +29,7 @@
       renderLoggedOut();
       return;
     }
-    var { data: profile } = await window.supabaseClient.from("profiles").select("username").maybeSingle();
+    var { data: profile } = await window.supabaseClient.from("profiles").select("username").eq("id", session.user.id).maybeSingle();
     renderLoggedIn(profile && profile.username ? profile.username : "Spieler");
   }
 
