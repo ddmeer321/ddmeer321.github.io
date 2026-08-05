@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="stylesheet" href="library.css?v=1" />
+    <link rel="stylesheet" href="auth.css?v=1" />
+    <title>Testbereich Claude – Spielebibliothek</title>
+  </head>
+  <body>
+    <div style="background:#241c3d;color:#fff;text-align:center;padding:8px 14px;font:700 0.82rem ui-sans-serif,system-ui,sans-serif;">
+      🧪 Testbereich „Claude" — unabhängige Testkopie, nur für Tester/Admin/Owner sichtbar
+    </div>
+
+    <header class="lib-topbar">
+      <a class="lib-brand" href="#top" aria-label="Startseite">
+        <span class="lib-brand-mark" aria-hidden="true">D</span>
+        <span>Spielebibliothek (Test: Claude)</span>
+      </a>
+      <div class="lib-topbar-right">
+        <nav aria-label="Hauptnavigation">
+          <a href="#spiele">Spiele</a>
+        </nav>
+        <div id="auth-status"></div>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="lib-hero">
+        <span class="lib-eyebrow">Testkopie · Claude</span>
+        <h1>Von kleinen Minigames zu großen Projekten, hier findest du alles an einem Ort.</h1>
+        <p>Eine kleine Sammlung eigener Browser-Spiele. Jedes größere Spiel hat seinen eigenen Bereich mit kurzer Erklärung, eigenem Look und direktem Link zum Spielen.</p>
+      </section>
+
+      <section id="spiele" class="lib-section">
+        <h2>Alle Spiele</h2>
+        <p class="lib-lead">Auf eine Kachel klicken, um mehr zu erfahren oder direkt loszuspielen.</p>
+        <div class="game-grid">
+          <a class="game-card" href="/neon-bot-arena.html">
+            <div class="game-card-art">
+              <span class="game-card-tag">Kampfspiel</span>
+              <img src="/neon-bot-arena-keyart-v2.png" alt="Volt Runner kämpft gegen pinke Roboter in Neon Bot Arena" loading="lazy" />
+            </div>
+            <div class="game-card-body">
+              <h3>Neon Bot Arena</h3>
+              <p>Wähle einen Helden, überstehe immer stärkere Roboterwellen und kämpfe allein oder im Koop-Modus.</p>
+              <span class="game-card-cta">Ansehen &amp; spielen →</span>
+            </div>
+          </a>
+
+          <a class="game-card" href="snake.html">
+            <div class="game-card-art">
+              <span class="game-card-tag">Minigame</span>
+              <span class="game-card-emoji">🐍</span>
+            </div>
+            <div class="game-card-body">
+              <h3>Snake</h3>
+              <p>Der Klassiker: Schlange steuern, Futter sammeln, Wand und Schwanz meiden.</p>
+              <span class="game-card-cta">Ansehen &amp; spielen →</span>
+            </div>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="lib-footer">
+      <div>
+        <strong>Spielebibliothek — Testkopie (Claude)</strong>
+      </div>
+      <nav aria-label="Rechtliche Informationen">
+        <a href="/datenschutz.html">Datenschutz</a>
+        <a href="/impressum.html">Impressum</a>
+        <a href="https://github.com/ddmeer321">GitHub</a>
+      </nav>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../supabase-client.js"></script>
+    <script src="../test-gate.js?v=1"></script>
+    <script src="../auth.js?v=2"></script>
+  </body>
+</html>

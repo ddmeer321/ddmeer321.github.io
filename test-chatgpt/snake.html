@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="stylesheet" href="library.css?v=3" />
+    <link rel="stylesheet" href="snake.css?v=1" />
+    <link rel="stylesheet" href="auth.css?v=1" />
+    <title>Snake (Test: ChatGPT) – Spielebibliothek</title>
+  </head>
+  <body>
+    <div style="background:#0f2a1a;color:#eafdf0;text-align:center;padding:8px 14px;font:700 0.82rem ui-sans-serif,system-ui,sans-serif;">
+      🧪 Testbereich „ChatGPT" — unabhängige Testkopie, nur für Tester/Admin/Owner sichtbar
+    </div>
+
+    <header class="lib-topbar">
+      <a class="lib-brand" href="index.html" aria-label="Zur Spielebibliothek">
+        <span class="lib-brand-mark" aria-hidden="true">D</span>
+        <span>Spielebibliothek (Test: ChatGPT)</span>
+      </a>
+      <div id="auth-status"></div>
+    </header>
+
+    <main>
+      <section id="view-intro" class="mini-view mini-hero">
+        <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
+        <h1>Snake</h1>
+        <p>Der Klassiker: Steuere die Schlange zum Futter, ohne die Wand, ein Hindernis oder dich selbst zu berühren. Sammle goldenes Bonus-Futter für Extrapunkte, wische auf dem Spielfeld oder nutze Pfeiltasten/WASD. Mit Punkten verdienst du Münzen für neue Skins im Shop.</p>
+        <button class="mini-btn" id="open-menu-button">Spiel öffnen</button>
+      </section>
+
+      <section id="view-menu" class="mini-view mini-menu hidden">
+        <h1>Snake</h1>
+        <span class="coin-pill" id="menu-coins">🪙 0 Münzen</span>
+        <button class="menu-btn primary" id="start-button"><span>▶ Start</span></button>
+        <button class="menu-btn" id="settings-button"><span>⚙ Einstellungen</span></button>
+        <button class="menu-btn" id="shop-button"><span>🛒 Shop</span></button>
+        <button class="menu-btn" id="records-button"><span>🏆 Bestenliste</span></button>
+        <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
+      </section>
+
+      <section id="view-settings" class="mini-view mini-panel hidden">
+        <div class="mini-panel-head">
+          <h1>Einstellungen</h1>
+          <button class="mini-btn mini-btn-ghost" data-back-to-menu style="color:var(--purple);background:none;">← Menü</button>
+        </div>
+        <div class="settings-row">
+          <span><strong>Schwierigkeit</strong><br /><span>Bestimmt Starttempo und wie schnell die Schlange wird.</span></span>
+          <select id="difficulty-select" aria-label="Schwierigkeit">
+            <option value="leicht">Leicht</option>
+            <option value="normal">Normal</option>
+            <option value="schwer">Schwer</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <span><strong>Wände umlaufen</strong><br /><span>Am Rand erscheint die Schlange auf der Gegenseite statt zu sterben.</span></span>
+          <button class="toggle" id="wrap-toggle" aria-label="Wände umlaufen"></button>
+        </div>
+        <div class="settings-row">
+          <span><strong>Hindernisse</strong><br /><span>Zufällige Blöcke auf dem Feld sorgen für mehr Herausforderung.</span></span>
+          <button class="toggle" id="obstacles-toggle" aria-label="Hindernisse"></button>
+        </div>
+        <div class="settings-row">
+          <span><strong>Ton</strong><br /><span>Kurze Soundeffekte beim Fressen, Bonus und Game Over.</span></span>
+          <button class="toggle" id="sound-toggle" aria-label="Ton"></button>
+        </div>
+        <div class="settings-row">
+          <span><strong>Bestenliste &amp; Rekord zurücksetzen</strong><br /><span>Setzt deinen lokalen Highscore und die letzten Runden zurück.</span></span>
+          <button class="mini-btn" id="reset-highscore-button">Zurücksetzen</button>
+        </div>
+        <p class="mini-help" style="margin-top:18px;">Steuerung: Wischen oder Steuerkreuz (Handy), Pfeiltasten/<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> (Desktop). <kbd>P</kbd> oder <kbd>Esc</kbd> pausiert die laufende Runde.</p>
+      </section>
+
+      <section id="view-shop" class="mini-view mini-panel hidden">
+        <div class="mini-panel-head">
+          <h1>Shop</h1>
+          <button class="mini-btn mini-btn-ghost" data-back-to-menu style="color:var(--purple);background:none;">← Menü</button>
+        </div>
+        <span class="coin-pill" id="shop-coins">🪙 0 Münzen</span>
+        <div class="shop-grid" id="shop-grid" style="margin-top:20px;"></div>
+      </section>
+
+      <section id="view-records" class="mini-view mini-panel hidden">
+        <div class="mini-panel-head">
+          <h1>Bestenliste</h1>
+          <button class="mini-btn mini-btn-ghost" data-back-to-menu style="color:var(--purple);background:none;">← Menü</button>
+        </div>
+        <p class="mini-help" style="text-align:left;">Deine letzten 5 besten Runden, nur auf diesem Gerät gespeichert.</p>
+        <div class="records-list" id="records-list"></div>
+      </section>
+
+      <section id="view-game" class="mini-view hidden mini-stage">
+        <div class="mini-hud">
+          <span><span class="label">Punkte</span><span id="score">0</span></span>
+          <span><span class="label">Rekord</span><span id="highscore">0</span></span>
+          <span><span class="label">Münzen</span><span id="game-coins">0</span></span>
+          <button class="pause-button" id="pause-button" aria-label="Pause">⏸</button>
+        </div>
+
+        <div class="mini-board-wrap" id="board-wrap">
+          <canvas id="snake-board"></canvas>
+          <div class="mini-overlay hidden" id="overlay">
+            <h2 id="overlay-title">Game Over</h2>
+            <p id="overlay-text">Du hast 0 Punkte erreicht.</p>
+            <div class="mini-overlay-actions">
+              <button class="mini-btn" id="retry-button">Nochmal spielen</button>
+              <button class="mini-btn mini-btn-ghost" id="game-menu-button">Hauptmenü</button>
+            </div>
+          </div>
+          <div class="mini-overlay hidden" id="pause-overlay">
+            <h2>Pause</h2>
+            <p>Die Runde wartet auf dich.</p>
+            <div class="mini-overlay-actions">
+              <button class="mini-btn" id="resume-button">Weiter</button>
+              <button class="mini-btn mini-btn-ghost" id="pause-menu-button">Hauptmenü</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dpad" aria-label="Steuerkreuz">
+          <button class="dpad-up" data-dir="up" aria-label="Nach oben">▲</button>
+          <button class="dpad-left" data-dir="left" aria-label="Nach links">◀</button>
+          <button class="dpad-down" data-dir="down" aria-label="Nach unten">▼</button>
+          <button class="dpad-right" data-dir="right" aria-label="Nach rechts">▶</button>
+        </div>
+
+        <p class="mini-help">Wische, nutze das Steuerkreuz oder Pfeiltasten/WASD. Goldenes Futter gibt Punkte, pinkes Bonus-Futter gibt mehr, verschwindet aber wieder.</p>
+      </section>
+    </main>
+
+    <footer class="lib-footer">
+      <div>
+        <strong>Spielebibliothek — Testkopie (ChatGPT)</strong>
+      </div>
+      <nav aria-label="Rechtliche Informationen">
+        <a href="/datenschutz.html">Datenschutz</a>
+        <a href="/impressum.html">Impressum</a>
+        <a href="https://github.com/ddmeer321">GitHub</a>
+      </nav>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../supabase-client.js"></script>
+    <script src="../test-gate.js?v=1"></script>
+    <script src="../auth.js?v=2"></script>
+    <script src="snake.js?v=1"></script>
+  </body>
+</html>

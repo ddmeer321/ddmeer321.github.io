@@ -1,0 +1,40 @@
+.lib-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+#auth-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-user {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+.auth-user strong { color: var(--ink); }
+
+.auth-login-btn {
+  padding: 9px 18px;
+  font-size: 0.88rem;
+  margin-top: 0;
+}
+
+.auth-logout-btn {
+  padding: 7px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.auth-logout-btn:hover, .auth-logout-btn:focus-visible { border-color: var(--purple); color: var(--purple); }
+
+@media (max-width: 560px) {
+  .auth-user { display: none; }
+}
