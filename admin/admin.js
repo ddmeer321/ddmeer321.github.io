@@ -15,8 +15,8 @@
     tableBody: document.getElementById("admin-table-body"),
   };
 
-  var ROLES = ["user", "moderator", "admin", "owner"];
-  var ROLE_LABELS = { user: "User", moderator: "Moderator", admin: "Admin", owner: "Owner" };
+  var ROLES = ["user", "tester", "admin", "owner"];
+  var ROLE_LABELS = { user: "User", tester: "Tester", admin: "Admin", owner: "Owner" };
 
   var users = [];
   var currentUserId = null;
