@@ -241,7 +241,9 @@
     setTimeout(function () { window.location.href = "index.html"; }, 1500);
   });
 
-  var recoveryMode = false;
+  var recoveryMode = !!window.__recoveryFlow;
+  if (recoveryMode) showForm(els.resetForm);
+
   sb.auth.onAuthStateChange(function (event, session) {
     if (event === "PASSWORD_RECOVERY") {
       recoveryMode = true;
