@@ -1,3 +1,3 @@
 # ddmeer321.github.io
 
-Spiele Biblothek vin kleinen Minigames zu großen Prjekten 
+Spiele Biblothek von kleinen Minigames zu großen Prjekten 
