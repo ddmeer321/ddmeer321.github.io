@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#0b0d12" />
+    <title>Admin – Spielebibliothek</title>
+    <link rel="stylesheet" href="admin.css?v=1" />
+  </head>
+  <body>
+    <div id="admin-loading" class="admin-state">
+      <p>Wird geladen …</p>
+    </div>
+
+    <div id="admin-no-access" class="admin-state hidden">
+      <div class="admin-state-card">
+        <h1>Kein Zugriff</h1>
+        <p id="admin-no-access-text">Diese Seite ist nur für Owner der Spielebibliothek zugänglich.</p>
+        <a class="admin-btn admin-btn-primary" href="../index.html">Zur Spielebibliothek</a>
+      </div>
+    </div>
+
+    <div id="admin-app" class="hidden">
+      <header class="admin-header">
+        <div class="admin-header-left">
+          <h1>Admin</h1>
+          <span class="admin-subtitle">Spielebibliothek</span>
+        </div>
+        <div class="admin-header-right">
+          <span id="admin-whoami" class="admin-whoami"></span>
+          <a class="admin-btn admin-btn-ghost" href="../index.html">← Zur Spielebibliothek</a>
+          <button class="admin-btn admin-btn-ghost" id="admin-logout-btn" type="button">Abmelden</button>
+        </div>
+      </header>
+
+      <main class="admin-main">
+        <div class="admin-toolbar">
+          <input type="search" id="admin-search" class="admin-search" placeholder="Benutzername oder Spieler-ID suchen …" />
+          <span id="admin-count" class="admin-count"></span>
+        </div>
+
+        <p class="admin-message" id="admin-message" role="alert"></p>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Benutzername</th>
+                <th>Spieler-ID</th>
+                <th>Rang</th>
+                <th>Status</th>
+                <th>Registriert</th>
+                <th>Aktionen</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../supabase-client.js"></script>
+    <script src="admin.js?v=1"></script>
+  </body>
+</html>
