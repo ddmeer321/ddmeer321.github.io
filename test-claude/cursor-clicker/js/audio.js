@@ -48,6 +48,19 @@ export function playAchievementSound() {
   tone(1174, 0.18, "sine", 0.06, 0.1);
 }
 
+// Energie-artiges Auf- und Abschwellen während des Fusion-Ladens.
+export function playFusionChargeSound(spectacular) {
+  const steps = spectacular ? 6 : 4;
+  for (let i = 0; i < steps; i++) {
+    tone(220 + i * 60, 0.16, "sawtooth", 0.03, i * 0.18);
+  }
+}
+
+export function playFusionRevealSound(spectacular) {
+  const notes = spectacular ? [392, 523, 659, 784, 988, 1319] : [392, 523, 659, 784];
+  notes.forEach((freq, i) => tone(freq, spectacular ? 0.32 : 0.22, "triangle", 0.075, i * 0.1));
+}
+
 export function playUiSound() {
   tone(440, 0.04, "sine", 0.03);
 }

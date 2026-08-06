@@ -1,8 +1,15 @@
 // Zentraler Spielzustand als einfaches, mutierbares Objekt. Änderungen werden
 // per events.emit("state:changed") gemeldet, UI-Module rendern daraufhin neu.
 import { events } from "./events.js";
+import { getDefaultUnlockedCosmeticIds } from "../data/cosmetics.js";
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
+
+function defaultUnlockedCosmetics() {
+  const unlocked = {};
+  getDefaultUnlockedCosmeticIds().forEach((id) => { unlocked[id] = true; });
+  return unlocked;
+}
 
 export function createDefaultState() {
   return {
@@ -11,12 +18,22 @@ export function createDefaultState() {
     totalCoinsEarned: 0,
     totalClicks: 0,
     boxesOpened: 0,
-    equippedCursorId: null,
-    // cursorId -> { count, favorite, firstObtainedAt }
+    fusionsPerformed: 0,
+    // Welcher Cursor aktiv ist: instanceId=null -> unmutierte Basisform,
+    // sonst Verweis auf einen Eintrag in mutatedCursors[cursorId].
+    equipped: { cursorId: null, instanceId: null },
+    // cursorId -> { count, favorite, firstObtainedAt } — Basis-Duplikate (Fusion-Rohstoff)
     ownedCursors: {},
+    // cursorId -> Level (0 = nicht aufgewertet)
+    cursorLevels: {},
+    // cursorId -> [{ instanceId, major, minor, createdAt }] — Fusionsergebnisse
+    mutatedCursors: {},
     // achievementId -> Zeitstempel der Freischaltung
     unlockedAchievements: {},
     dailyReward: { lastClaimedDate: null, streak: 0 },
+    // cosmeticId -> true
+    unlockedCosmetics: defaultUnlockedCosmetics(),
+    equippedCosmeticId: null,
     settings: { music: false, sfx: true, animations: true },
     playtimeSeconds: 0,
     createdAt: Date.now(),

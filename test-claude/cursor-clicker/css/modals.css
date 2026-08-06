@@ -69,8 +69,9 @@
 }
 
 .cc-drop-icon {
-  font-size: 4.2rem;
-  margin-bottom: 6px;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 6px;
 }
 
 .cc-drop-rare .cc-drop-icon {
@@ -113,9 +114,14 @@
   margin-top: 10px;
 }
 
-#drop-continue-btn {
+.cc-drop-actions {
+  display: flex;
+  gap: 10px;
   margin-top: 18px;
-  width: 100%;
+}
+
+.cc-drop-actions .cc-btn {
+  flex: 1;
 }
 
 .cc-particle {

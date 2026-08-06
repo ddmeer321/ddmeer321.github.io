@@ -1,0 +1,154 @@
+/* Cursor Clicker — Fusion-Tab (Menü) und Fusion-Lade-Animation (Modal). */
+
+.cc-fusion-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.cc-fusion-picker {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.cc-fusion-picker h2 {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.cc-fusion-cursor-list {
+  display: grid;
+  gap: 8px;
+}
+
+.cc-fusion-cursor-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+}
+
+.cc-fusion-cursor-item:hover,
+.cc-fusion-cursor-item.cc-fusion-cursor-active {
+  border-color: var(--accent-2);
+}
+
+.cc-fusion-cursor-icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+}
+
+.cc-fusion-cursor-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.cc-fusion-cursor-count {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.cc-fusion-detail {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  min-height: 260px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.cc-fusion-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cc-fusion-detail-icon {
+  width: 64px;
+  height: 64px;
+  flex: none;
+}
+
+.cc-fusion-odds-group h3 {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.cc-fusion-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.cc-fusion-actions .cc-btn {
+  flex: 1;
+}
+
+@media (max-width: 720px) {
+  .cc-fusion-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fusion-Lade-Modal: Energie sammelt sich um den Cursor, bevor die Mutation enthüllt wird. */
+.cc-fusion-modal {
+  max-width: 360px;
+}
+
+.cc-fusion-orbit {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+  animation: cc-fusion-charge 1.4s ease-in-out infinite;
+}
+
+.cc-fusion-orbit::before,
+.cc-fusion-orbit::after {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent-2) 55%, transparent);
+  animation: cc-fusion-ring 1.6s linear infinite;
+}
+.cc-fusion-orbit::after {
+  inset: -26%;
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  animation-direction: reverse;
+  animation-duration: 2.2s;
+}
+
+@keyframes cc-fusion-charge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+@keyframes cc-fusion-ring {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.cc-fusion-spectacular .cc-fusion-orbit {
+  animation-duration: 0.9s;
+}
+.cc-fusion-spectacular .cc-fusion-orbit::before,
+.cc-fusion-spectacular .cc-fusion-orbit::after {
+  border-color: color-mix(in srgb, #f43f5e 60%, transparent);
+}

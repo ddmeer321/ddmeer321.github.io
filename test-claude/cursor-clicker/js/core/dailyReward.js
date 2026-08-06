@@ -2,6 +2,7 @@
 // Ein ausgelassener Tag setzt die Serie zurück auf 1.
 import { state } from "./state.js";
 import { events } from "./events.js";
+import { addCoins } from "./wallet.js";
 
 const BASE_REWARD = 100;
 const MAX_STREAK_DAYS = 7;
@@ -41,8 +42,7 @@ export function claimDailyReward() {
   const amount = BASE_REWARD * state.dailyReward.streak;
 
   state.dailyReward.lastClaimedDate = todayKey();
-  state.coins += amount;
-  state.totalCoinsEarned += amount;
+  addCoins(amount);
 
   const result = { amount, streak: state.dailyReward.streak };
   events.emit("dailyReward:claimed", result);

@@ -5,18 +5,11 @@ import { events } from "./events.js";
 import { getCursorsByRarity } from "../data/cursors.js";
 import { getBox } from "../data/boxes.js";
 import { spendCoins } from "./economy.js";
+import { weightedPick } from "./random.js";
 
 function rollRarity(odds) {
-  const roll = Math.random() * 100;
-  let cumulative = 0;
-  let lastPositive = null;
-  for (const [rarityId, chance] of Object.entries(odds)) {
-    if (chance > 0) lastPositive = rarityId;
-    cumulative += chance;
-    if (roll < cumulative) return rarityId;
-  }
-  // Rundungs-Fallback, falls die Summe knapp unter 100 liegt.
-  return lastPositive;
+  const rarityIds = Object.keys(odds);
+  return weightedPick(rarityIds, (rarityId) => odds[rarityId]);
 }
 
 function rollCursor(rarityId) {
@@ -40,8 +33,8 @@ export function openBox(boxId) {
 
   // Erster jemals gezogener Cursor wird automatisch ausgerüstet, damit Coins/Klick
   // nie ungenutzt bei x1 hängen bleibt. Danach entscheidet ausschließlich der Spieler.
-  if (!state.equippedCursorId) {
-    state.equippedCursorId = cursor.id;
+  if (!state.equipped.cursorId) {
+    state.equipped = { cursorId: cursor.id, instanceId: null };
   }
 
   const result = { box, cursor, isNew };

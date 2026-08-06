@@ -1,10 +1,18 @@
 // Achievement-Übersicht: freigeschaltete Erfolge farbig, gesperrte ausgegraut.
 import { state } from "../core/state.js";
 import { ACHIEVEMENTS } from "../data/achievements.js";
-import { formatDate } from "./format.js";
+import { getCosmetic } from "../data/cosmetics.js";
+import { formatDate, formatNumber } from "./format.js";
 
 let grid;
 let progressText;
+
+function renderReward(achievement) {
+  const parts = [];
+  if (achievement.reward) parts.push("+" + formatNumber(achievement.reward) + " Coins");
+  if (achievement.rewardCosmeticId) parts.push("+" + getCosmetic(achievement.rewardCosmeticId).name + " Cosmetic");
+  return parts.join(" · ");
+}
 
 function renderCard(achievement) {
   const unlockedAt = state.unlockedAchievements[achievement.id];
@@ -14,6 +22,7 @@ function renderCard(achievement) {
     '<div class="cc-achievement-icon">' + (unlockedAt ? achievement.icon : "🔒") + "</div>" +
     "<h3>" + achievement.name + "</h3>" +
     '<p class="cc-achievement-desc">' + achievement.description + "</p>" +
+    '<p class="cc-achievement-reward">' + renderReward(achievement) + "</p>" +
     (unlockedAt ? '<p class="cc-achievement-date">Freigeschaltet am ' + formatDate(unlockedAt) + "</p>" : "");
   return card;
 }
