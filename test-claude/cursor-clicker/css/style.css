@@ -20,6 +20,13 @@
   box-sizing: border-box;
 }
 
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
 html,
 body {
   margin: 0;
@@ -94,7 +101,7 @@ p {
 /* HUD-Leiste: Coins / Coins pro Klick / Ausgerüsteter Cursor / gesammelte Cursor */
 .cc-hud {
   display: grid;
-  grid-template-columns: repeat(4, 1fr) auto;
+  grid-template-columns: repeat(5, 1fr) auto;
   gap: 10px;
   padding: 14px 20px;
   max-width: 1080px;
@@ -105,6 +112,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -300,6 +308,9 @@ main {
 @media (max-width: 720px) {
   .cc-hud {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .cc-hud-stat:nth-child(5) {
+    grid-column: span 2;
   }
   .cc-daily-btn {
     grid-column: span 2;

@@ -13,6 +13,7 @@ import { initTabs } from "./ui/tabs.js";
 import { renderHud } from "./ui/hud.js";
 import { initMainPanel, updateEquippedVisual } from "./ui/mainPanel.js";
 import { initBoxesPanel, renderBoxesPanel } from "./ui/boxesPanel.js";
+import { initAuraPanel, renderAuraPanel } from "./ui/auraPanel.js";
 import { initFusionPanel, renderFusionPanel } from "./ui/fusionPanel.js";
 import { initInventoryPanel, renderInventoryPanel } from "./ui/inventoryPanel.js";
 import { initCosmeticsPanel, renderCosmeticsPanel } from "./ui/cosmeticsPanel.js";
@@ -28,6 +29,7 @@ function renderAll() {
   renderHud();
   updateEquippedVisual();
   renderBoxesPanel();
+  renderAuraPanel();
   renderFusionPanel();
   renderInventoryPanel();
   renderCosmeticsPanel();
@@ -100,6 +102,7 @@ function init() {
   initTabs();
   initMainPanel();
   initBoxesPanel();
+  initAuraPanel();
   initFusionPanel();
   initInventoryPanel();
   initCosmeticsPanel();

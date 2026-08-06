@@ -15,6 +15,11 @@ export function formatNumber(value) {
   return rounded.toLocaleString("de-DE");
 }
 
+// Multiplikatoren einheitlich formatieren, z.B. 1.2 -> "1,2×", 2.1 -> "2,1×".
+export function formatMultiplier(value) {
+  return value.toLocaleString("de-DE", { maximumFractionDigits: 2 }) + "×";
+}
+
 export function formatDate(timestamp) {
   if (!timestamp) return "";
   return new Date(timestamp).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });

@@ -3,7 +3,7 @@
 import { events } from "./events.js";
 import { getDefaultUnlockedCosmeticIds } from "../data/cosmetics.js";
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 function defaultUnlockedCosmetics() {
   const unlocked = {};
@@ -34,6 +34,10 @@ export function createDefaultState() {
     // cosmeticId -> true
     unlockedCosmetics: defaultUnlockedCosmetics(),
     equippedCosmeticId: null,
+    // auraId -> { count, firstObtainedAt } — aus Aura-Boxen gezogen, max. 1 gleichzeitig ausgerüstet
+    ownedAuras: {},
+    equippedAuraId: null,
+    auraBoxesOpened: 0,
     settings: { music: false, sfx: true, animations: true },
     playtimeSeconds: 0,
     createdAt: Date.now(),

@@ -7,10 +7,20 @@ import { getRarity } from "../data/rarities.js";
 import { getMutation } from "../data/mutations.js";
 import { toggleFavorite } from "../core/economy.js";
 import { equipCursor, isEquipped } from "../core/loadout.js";
-import { getCursorLevel, getUpgradeCost, canUpgrade, upgradeCursor } from "../core/upgrades.js";
+import { getCursorLevel, getLevelBonusMultiplier, isMaxLevel, getUpgradeCost, canUpgrade, upgradeCursor, MAX_LEVEL, LEVEL_BONUS_PER_LEVEL } from "../core/upgrades.js";
 import { checkAchievements } from "../core/achievements.js";
+import { getCursorMaterial } from "../data/cursorMaterials.js";
 import { renderCursorGlyph } from "./cursorGlyph.js";
-import { formatNumber } from "./format.js";
+import { formatNumber, formatMultiplier } from "./format.js";
+
+function mutationBonusLabel(mutation) {
+  if (!mutation) return "";
+  const parts = [];
+  if (mutation.effects.multiplierBonusPercent) parts.push("+" + mutation.effects.multiplierBonusPercent + "% Multiplikator");
+  if (mutation.effects.coinBonusPercent) parts.push("+" + mutation.effects.coinBonusPercent + "% Coins");
+  if (mutation.effects.dropChanceBonusPercent) parts.push("+" + mutation.effects.dropChanceBonusPercent + "% Fusionschance");
+  return parts.length ? mutation.name + ": " + parts.join(", ") : mutation.name + ": rein kosmetisch";
+}
 
 let grid;
 let searchInput;
@@ -53,8 +63,10 @@ function applySort(rows, sortBy) {
 
 function renderVariantChip(cursor, instance) {
   const equipped = isEquipped(cursor.id, instance ? instance.instanceId : null);
+  const majorMutation = instance ? getMutation(instance.major) : null;
+  const minorMutation = instance ? getMutation(instance.minor) : null;
   const label = instance
-    ? "✦ " + [instance.major, instance.minor].filter(Boolean).map((id) => getMutation(id).name).join("+")
+    ? "✦ " + [majorMutation?.name, minorMutation?.name].filter(Boolean).join("+")
     : "Basis";
 
   const chip = document.createElement("button");
@@ -62,6 +74,10 @@ function renderVariantChip(cursor, instance) {
   chip.className = "cc-inv-variant" + (equipped ? " cc-inv-variant-active" : "");
   chip.textContent = equipped ? label + " ✓" : label;
   chip.disabled = equipped;
+  if (instance) {
+    // Konkrete Boni als natives Tooltip, damit die kompakte Chip-Ansicht nicht überladen wird.
+    chip.title = [majorMutation, minorMutation].filter(Boolean).map(mutationBonusLabel).join(" · ");
+  }
   if (!equipped) {
     chip.addEventListener("click", () => equipCursor(cursor.id, instance ? instance.instanceId : null));
   }
@@ -71,7 +87,11 @@ function renderVariantChip(cursor, instance) {
 function renderCard({ cursor, entry }) {
   const rarity = getRarity(cursor.rarity);
   const level = getCursorLevel(cursor.id);
-  const upgradeCost = getUpgradeCost(cursor.id);
+  const levelBonus = getLevelBonusMultiplier(cursor.id);
+  const currentMultiplier = cursor.multiplier + levelBonus;
+  const maxed = isMaxLevel(cursor.id);
+  const nextMultiplier = maxed ? null : currentMultiplier + LEVEL_BONUS_PER_LEVEL;
+  const upgradeCost = maxed ? null : getUpgradeCost(cursor.id);
   const mutatedInstances = state.mutatedCursors[cursor.id] || [];
 
   const card = document.createElement("div");
@@ -82,24 +102,34 @@ function renderCard({ cursor, entry }) {
   card.innerHTML =
     '<button class="cc-inv-fav" type="button" aria-label="Favorit umschalten">' + (entry.favorite ? "★" : "☆") + "</button>" +
     (entry.count > 1 ? '<span class="cc-inv-count">x' + entry.count + "</span>" : "") +
-    '<div class="cc-inv-icon">' + renderCursorGlyph({ color: rarity.color, badgeIcon: cursor.icon }) + "</div>" +
-    '<div class="cc-inv-rarity">' + rarity.label + (level > 0 ? " · Lv." + level : "") + "</div>" +
+    '<div class="cc-inv-icon">' + renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color: rarity.color }) + "</div>" +
+    '<div class="cc-inv-rarity">' + rarity.label + " · Lv. " + level + " / " + MAX_LEVEL + "</div>" +
     "<h3>" + cursor.name + "</h3>" +
     '<p class="cc-inv-desc">' + cursor.description + "</p>" +
-    '<p class="cc-inv-multiplier">×' + cursor.multiplier + "</p>" +
-    '<button class="cc-btn cc-btn-ghost cc-inv-upgrade" type="button">Upgrade · ' + formatNumber(upgradeCost) + " Coins</button>" +
+    '<p class="cc-inv-multiplier">Aktuell ' + formatMultiplier(currentMultiplier) +
+      '<span class="cc-inv-multiplier-detail"> (Basis ' + formatMultiplier(cursor.multiplier) + (levelBonus > 0 ? " + Level " + formatMultiplier(levelBonus) : "") + ")</span></p>" +
+    (maxed
+      ? '<p class="cc-inv-next">Maximales Level erreicht.</p>'
+      : '<p class="cc-inv-next">Nächstes Level: ' + formatMultiplier(nextMultiplier) + "</p>") +
+    '<button class="cc-btn cc-btn-ghost cc-inv-upgrade" type="button">' +
+      (maxed ? "MAX" : "Upgrade · " + formatNumber(upgradeCost) + " Coins") +
+      "</button>" +
     '<div class="cc-inv-variants"></div>';
 
   card.querySelector(".cc-inv-fav").addEventListener("click", () => toggleFavorite(cursor.id));
 
   const upgradeBtn = card.querySelector(".cc-inv-upgrade");
-  upgradeBtn.disabled = !canUpgrade(cursor.id);
-  upgradeBtn.addEventListener("click", () => {
-    if (upgradeCursor(cursor.id)) checkAchievements();
-  });
+  upgradeBtn.disabled = maxed || !canUpgrade(cursor.id);
+  if (!maxed) {
+    upgradeBtn.addEventListener("click", () => {
+      if (upgradeCursor(cursor.id)) checkAchievements();
+    });
+  }
 
   const variantsEl = card.querySelector(".cc-inv-variants");
-  variantsEl.appendChild(renderVariantChip(cursor, null));
+  // Die Basisvariante ist nur ausrüstbar/anzeigbar, solange mindestens ein
+  // unmutiertes Exemplar übrig ist — Fusion kann es auf 0 verbrauchen.
+  if (entry.count > 0) variantsEl.appendChild(renderVariantChip(cursor, null));
   mutatedInstances.forEach((instance) => variantsEl.appendChild(renderVariantChip(cursor, instance)));
 
   return card;

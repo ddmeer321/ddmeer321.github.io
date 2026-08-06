@@ -14,7 +14,7 @@ function renderCard({ id, name, description, cssClass }) {
   const card = document.createElement("div");
   card.className = "cc-cosmetic-card" + (unlocked ? "" : " cc-cosmetic-locked") + (equipped ? " cc-cosmetic-equipped" : "");
   card.innerHTML =
-    '<div class="cc-cosmetic-preview">' + renderCursorGlyph({ color: "#7c5cff", extraClasses: unlocked && cssClass ? [cssClass] : [], badgeIcon: "🖱️" }) + "</div>" +
+    '<div class="cc-cosmetic-preview">' + renderCursorGlyph({ color: "#7c5cff", extraClasses: unlocked && cssClass ? [cssClass] : [] }) + "</div>" +
     "<h3>" + name + "</h3>" +
     '<p class="cc-cosmetic-desc">' + description + "</p>" +
     (unlocked

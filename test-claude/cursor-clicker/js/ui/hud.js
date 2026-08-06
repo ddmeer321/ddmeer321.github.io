@@ -3,6 +3,7 @@
 import { state } from "../core/state.js";
 import { getCoinsPerClick } from "../core/economy.js";
 import { getEquippedLoadout } from "../core/loadout.js";
+import { getEquippedAura } from "../core/auras.js";
 import { getUniqueCursorsDrawn, getTotalCursorCatalogSize } from "../core/stats.js";
 import { canClaimDailyReward } from "../core/dailyReward.js";
 import { formatNumber } from "./format.js";
@@ -16,12 +17,15 @@ export function renderHud() {
   if (!loadout.cursor) {
     equippedEl.textContent = "—";
   } else {
-    const levelTag = loadout.level > 0 ? " Lv." + loadout.level : "";
+    const levelTag = " Lv." + loadout.level;
     const mutationTag = loadout.mutationMajor || loadout.mutationMinor
       ? " ✦" + [loadout.mutationMajor?.name, loadout.mutationMinor?.name].filter(Boolean).join("+")
       : "";
     equippedEl.textContent = loadout.cursor.icon + " " + loadout.cursor.name + levelTag + mutationTag;
   }
+
+  const aura = getEquippedAura();
+  document.getElementById("hud-aura").textContent = aura ? aura.name + " (×" + loadout.breakdown.auraFactor.toLocaleString("de-DE") + ")" : "—";
 
   document.getElementById("hud-collected").textContent = getUniqueCursorsDrawn() + " / " + getTotalCursorCatalogSize();
 

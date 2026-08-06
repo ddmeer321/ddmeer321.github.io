@@ -5,6 +5,38 @@
   margin-bottom: 18px;
 }
 
+.cc-subheading {
+  font-size: 1rem;
+  margin: 26px 0 12px;
+  color: var(--text);
+}
+
+/* Klare Kennzeichnung: Auren beeinflussen Gameplay, Cosmetics nie. */
+.cc-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.cc-tag-gameplay {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.cc-tag-cosmetic {
+  background: rgba(34, 211, 238, 0.15);
+  color: var(--accent-2);
+  border: 1px solid rgba(34, 211, 238, 0.4);
+}
+
 /* Home: großer klickbarer Cursor */
 .cc-click-stage {
   position: relative;
@@ -17,6 +49,7 @@
   position: absolute;
   top: 8px;
   right: 8px;
+  z-index: 4;
   padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -52,6 +85,9 @@
   cursor: pointer;
   user-select: none;
   transition: transform 0.08s ease, box-shadow 0.2s ease;
+  /* Layering (siehe auras.css): Cursor muss immer über der Aura liegen. */
+  position: relative;
+  z-index: 2;
 }
 
 .cc-big-cursor:hover {
@@ -87,6 +123,9 @@
   inset: 0;
   pointer-events: none;
   overflow: hidden;
+  /* Layering (siehe auras.css): Klick-Burst/Coin-Zahl liegen über allem anderen
+     in der Klick-Bühne (Aura z-index 1, Cursor z-index 2). */
+  z-index: 3;
 }
 
 .cc-float-gain {
@@ -316,6 +355,18 @@
   color: var(--text);
 }
 
+.cc-inv-multiplier-detail {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.cc-inv-next {
+  font-size: 0.72rem;
+  color: var(--accent-2);
+  margin: -4px 0 2px;
+}
+
 .cc-inv-equip {
   width: 100%;
   margin-top: 4px;
@@ -400,6 +451,70 @@
 .cc-achievement-date {
   font-size: 0.72rem;
   color: var(--accent-2);
+  margin-top: 4px;
+}
+
+/* Aura */
+.cc-aura-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.cc-aura-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--rarity-color, var(--border));
+  box-shadow: 0 0 18px var(--rarity-glow, transparent);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-aura-card-equipped {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.cc-aura-count {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.cc-aura-rarity {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rarity-color, var(--muted));
+}
+
+.cc-aura-desc {
+  font-size: 0.78rem;
+  min-height: 34px;
+}
+
+.cc-aura-bonus {
+  font-weight: 800;
+  color: var(--text);
+}
+
+.cc-aura-bonus-detail {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.cc-aura-equip {
+  width: 100%;
   margin-top: 4px;
 }
 
