@@ -1,0 +1,308 @@
+/* Cursor Clicker — eigenes dunkles Design, unabhängig von library.css/style.css. */
+:root {
+  --bg: #0b0d14;
+  --bg-elevated: #12151f;
+  --bg-card: #161a26;
+  --border: rgba(255, 255, 255, 0.09);
+  --text: #f1f3fb;
+  --muted: #8b93a8;
+  --accent: #7c5cff;
+  --accent-2: #22d3ee;
+  --cyan: #22d3ee; /* von auth-badge.css genutzt, damit der Login-Badge zum Theme passt */
+  --success: #4ade80;
+  --danger: #f87171;
+  --radius: 16px;
+  --radius-sm: 10px;
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at 50% -10%, #1b1030 0%, var(--bg) 45%) fixed;
+  color: var(--text);
+  font-family: "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  min-height: 100%;
+}
+
+body.cc-no-animations * {
+  animation: none !important;
+  transition: none !important;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 6px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Testbereich-Banner, konsistent mit den anderen test-claude Seiten */
+.cc-test-banner {
+  background: #241c3d;
+  color: #fff;
+  text-align: center;
+  padding: 8px 14px;
+  font: 700 0.82rem ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Header */
+.cc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10, 12, 20, 0.7);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.cc-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.cc-brand-mark {
+  font-size: 1.3rem;
+}
+
+/* HUD-Leiste: Coins / Coins pro Klick / Ausgerüsteter Cursor / gesammelte Cursor */
+.cc-hud {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 10px;
+  padding: 14px 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.cc-hud-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.cc-hud-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.cc-hud-value {
+  font-weight: 800;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-daily-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 0 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.cc-daily-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-2);
+}
+
+.cc-daily-btn-ready {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 1px var(--accent-2), 0 0 18px rgba(34, 211, 238, 0.35);
+  animation: cc-daily-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes cc-daily-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px var(--accent-2), 0 0 10px rgba(34, 211, 238, 0.25); }
+  50% { box-shadow: 0 0 0 1px var(--accent-2), 0 0 22px rgba(34, 211, 238, 0.55); }
+}
+
+/* Tabs */
+.cc-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 14px;
+  max-width: 1080px;
+  margin: 0 auto;
+  overflow-x: auto;
+}
+
+.cc-tab {
+  flex: none;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--muted);
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.cc-tab:hover {
+  color: var(--text);
+}
+
+.cc-tab.active {
+  color: #0b0d14;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  border-color: transparent;
+}
+
+main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 8px 20px 60px;
+}
+
+/* Wiederverwendbare Buttons */
+.cc-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.cc-btn:hover {
+  transform: translateY(-1px);
+}
+
+.cc-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cc-btn-primary {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: #0b0d14;
+  border-color: transparent;
+}
+
+.cc-btn-ghost {
+  background: transparent;
+}
+
+.cc-btn-danger {
+  background: transparent;
+  border-color: rgba(248, 113, 113, 0.5);
+  color: var(--danger);
+}
+
+.cc-btn-danger:hover {
+  background: rgba(248, 113, 113, 0.1);
+}
+
+/* Toggle-Schalter (Einstellungen) */
+.cc-toggle {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  position: relative;
+  cursor: pointer;
+  flex: none;
+}
+
+.cc-toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.cc-toggle-on {
+  border-color: var(--accent-2);
+}
+
+.cc-toggle-on::after {
+  transform: translateX(20px);
+  background: var(--accent-2);
+}
+
+/* Footer */
+.cc-footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.cc-footer nav {
+  display: flex;
+  gap: 16px;
+}
+
+.cc-footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.cc-footer a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 720px) {
+  .cc-hud {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cc-daily-btn {
+    grid-column: span 2;
+    padding: 10px;
+  }
+}
