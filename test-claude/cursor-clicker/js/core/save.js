@@ -2,6 +2,7 @@
 // Wechsel auf Cloud-Speicherung (z.B. Supabase) nur diese Datei betrifft.
 import { state, replaceState, createDefaultState, SAVE_VERSION } from "./state.js";
 import { getDefaultUnlockedCosmeticIds } from "../data/cosmetics.js";
+import { MAX_LEVEL } from "./upgrades.js";
 
 const STORAGE_KEY = "cursorClicker.save.v1";
 
@@ -27,6 +28,23 @@ const MIGRATIONS = {
       mutatedCursors: saved.mutatedCursors || {},
       unlockedCosmetics: saved.unlockedCosmetics || defaultUnlockedCosmetics(),
       equippedCosmeticId: saved.equippedCosmeticId ?? null,
+    };
+  },
+  // v2 -> v3: sichtbares Level startet jetzt bei 1 statt 0 (alter interner
+  // Wert 0 = "kein Upgrade" wird zu neuem Level 1 = "kein Bonus"). Jeder alte
+  // gespeicherte Levelwert wird daher um 1 verschoben und auf MAX_LEVEL gedeckelt.
+  // Auren sind ein komplett neues System und starten für Bestandsspieler leer.
+  2: (saved) => {
+    const shiftedLevels = {};
+    for (const [cursorId, oldLevel] of Object.entries(saved.cursorLevels || {})) {
+      shiftedLevels[cursorId] = Math.min(MAX_LEVEL, (Number(oldLevel) || 0) + 1);
+    }
+    return {
+      ...saved,
+      cursorLevels: shiftedLevels,
+      ownedAuras: saved.ownedAuras || {},
+      equippedAuraId: saved.equippedAuraId ?? null,
+      auraBoxesOpened: saved.auraBoxesOpened || 0,
     };
   },
 };

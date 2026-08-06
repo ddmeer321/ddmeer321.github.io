@@ -16,7 +16,7 @@ export function renderHud() {
   if (!loadout.cursor) {
     equippedEl.textContent = "—";
   } else {
-    const levelTag = loadout.level > 0 ? " Lv." + loadout.level : "";
+    const levelTag = " Lv." + loadout.level;
     const mutationTag = loadout.mutationMajor || loadout.mutationMinor
       ? " ✦" + [loadout.mutationMajor?.name, loadout.mutationMinor?.name].filter(Boolean).join("+")
       : "";

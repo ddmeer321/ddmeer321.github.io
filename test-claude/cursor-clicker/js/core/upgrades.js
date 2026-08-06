@@ -1,7 +1,10 @@
-// Pro-Cursor-Upgrades: jeder Cursor hat ein eigenes Level mit exponentiell
-// steigenden Kosten und einem eigenen Multiplikator-Bonus. Level gilt für den
-// Cursor-TYP (nicht pro Mutation/Instanz) — Mutationen (siehe fusion.js) legen
-// ihren Bonus unabhängig obendrauf, siehe loadout.js für die Kombination.
+// Pro-Cursor-Upgrades. Level gilt für den Cursor-TYP (nicht pro Mutation/
+// Instanz) — Mutationen (fusion.js) und Auren (auras.js) legen ihren Bonus
+// unabhängig obendrauf, siehe loadout.js für die zentrale Kombination.
+//
+// Sichtbares Level startet bei 1 (Grundzustand, kein Bonus) und geht bis
+// Level 10. Jedes Level über 1 gibt +0,1× auf den Cursor-Basiswert:
+//   Bonus = (Level - 1) × 0,1
 import { state } from "./state.js";
 import { events } from "./events.js";
 import { getCursor } from "../data/cursors.js";
@@ -19,21 +22,32 @@ const BASE_COST_BY_RARITY = {
 };
 
 const COST_GROWTH_RATE = 1.6;
-const LEVEL_BONUS_PERCENT_PER_LEVEL = 6;
+export const MIN_LEVEL = 1;
+export const MAX_LEVEL = 10;
+export const LEVEL_BONUS_PER_LEVEL = 0.1;
 
 export function getCursorLevel(cursorId) {
-  return state.cursorLevels[cursorId] || 0;
+  return state.cursorLevels[cursorId] || MIN_LEVEL;
 }
 
-export function getLevelBonusPercent(cursorId) {
-  return getCursorLevel(cursorId) * LEVEL_BONUS_PERCENT_PER_LEVEL;
+// Additiver Bonus in "×"-Einheiten, nicht Prozent — siehe loadout.js für die
+// zentrale Formel, die diesen Wert direkt auf den Basismultiplikator addiert.
+export function getLevelBonusMultiplier(cursorId) {
+  return (getCursorLevel(cursorId) - MIN_LEVEL) * LEVEL_BONUS_PER_LEVEL;
 }
 
+export function isMaxLevel(cursorId) {
+  return getCursorLevel(cursorId) >= MAX_LEVEL;
+}
+
+// null = kein weiteres Upgrade möglich (MAX erreicht).
 export function getUpgradeCost(cursorId) {
+  if (isMaxLevel(cursorId)) return null;
   const cursor = getCursor(cursorId);
-  if (!cursor) return Infinity;
+  if (!cursor) return null;
   const baseCost = BASE_COST_BY_RARITY[cursor.rarity] ?? BASE_COST_BY_RARITY.common;
-  return Math.round(baseCost * Math.pow(COST_GROWTH_RATE, getCursorLevel(cursorId)));
+  const stepsAboveMin = getCursorLevel(cursorId) - MIN_LEVEL;
+  return Math.round(baseCost * Math.pow(COST_GROWTH_RATE, stepsAboveMin));
 }
 
 export function isOwned(cursorId) {
@@ -41,13 +55,15 @@ export function isOwned(cursorId) {
 }
 
 export function canUpgrade(cursorId) {
-  return isOwned(cursorId) && canAfford(getUpgradeCost(cursorId));
+  if (!isOwned(cursorId) || isMaxLevel(cursorId)) return false;
+  const cost = getUpgradeCost(cursorId);
+  return cost !== null && canAfford(cost);
 }
 
 export function upgradeCursor(cursorId) {
-  if (!isOwned(cursorId)) return false;
+  if (!canUpgrade(cursorId)) return false;
   const cost = getUpgradeCost(cursorId);
-  if (!spendCoins(cost)) return false;
+  if (cost === null || !spendCoins(cost)) return false;
 
   state.cursorLevels[cursorId] = getCursorLevel(cursorId) + 1;
   const result = { cursorId, level: state.cursorLevels[cursorId], cost };

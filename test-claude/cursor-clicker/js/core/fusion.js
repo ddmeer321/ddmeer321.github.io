@@ -11,7 +11,7 @@ import { getFusionDropChanceBonus } from "./loadout.js";
 // Basiskosten in Duplikaten. Als Funktion gehalten, damit spätere Balance-Änderungen
 // (z.B. nach Seltenheit gestaffelt) keine Aufrufer anfassen müssen.
 export function getFusionCost() {
-  return 5;
+  return 3;
 }
 
 export function getDuplicateCount(cursorId) {
@@ -61,7 +61,9 @@ export function performFusion(cursorId) {
   const cursor = getCursor(cursorId);
   if (!cursor) return null;
 
-  state.ownedCursors[cursorId].count -= getFusionCost(cursorId);
+  const entry = state.ownedCursors[cursorId];
+  // Nie unter 0 fallen, auch nicht bei einem theoretisch doppelt ausgelösten Aufruf.
+  entry.count = Math.max(0, entry.count - getFusionCost(cursorId));
   state.fusionsPerformed += 1;
 
   const outcomeOdds = getOutcomeOdds(cursorId);
@@ -75,6 +77,13 @@ export function performFusion(cursorId) {
   const instance = { instanceId: rollInstanceId(cursorId), major: majorId, minor: minorId, createdAt: Date.now() };
   if (!state.mutatedCursors[cursorId]) state.mutatedCursors[cursorId] = [];
   state.mutatedCursors[cursorId].push(instance);
+
+  // War die gerade fusionierte Basisvariante ausgerüstet und ist jetzt auf 0
+  // Exemplare, bliebe sonst ein nicht mehr ausrüstbarer Zustand aktiv — statt-
+  // dessen automatisch auf das frische Fusionsergebnis wechseln.
+  if (entry.count === 0 && state.equipped.cursorId === cursorId && state.equipped.instanceId === null) {
+    state.equipped = { cursorId, instanceId: instance.instanceId };
+  }
 
   const majorMutation = getMutation(majorId);
   const minorMutation = getMutation(minorId);

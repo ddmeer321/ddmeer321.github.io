@@ -316,6 +316,18 @@
   color: var(--text);
 }
 
+.cc-inv-multiplier-detail {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.cc-inv-next {
+  font-size: 0.72rem;
+  color: var(--accent-2);
+  margin: -4px 0 2px;
+}
+
 .cc-inv-equip {
   width: 100%;
   margin-top: 4px;

@@ -26,7 +26,7 @@ export const ACHIEVEMENTS = [
 
   { id: "daily_streak_7", name: "Treuer Spieler", description: "Hole dir 7 Tage in Folge deine tägliche Belohnung.", icon: "📅", type: "dailyStreak", value: 7, reward: 700, rewardCosmeticId: "sakura" },
 
-  { id: "first_upgrade", name: "Erstes Upgrade", description: "Werte einen Cursor zum ersten Mal auf.", icon: "⬆️", type: "cursorLevel", value: 1, reward: 100 },
+  { id: "first_upgrade", name: "Erstes Upgrade", description: "Werte einen Cursor zum ersten Mal auf.", icon: "⬆️", type: "cursorLevel", value: 2, reward: 100 },
   { id: "first_fusion", name: "Erste Fusion", description: "Fusioniere zum ersten Mal Duplikate.", icon: "🧬", type: "fusionsPerformed", value: 1, reward: 400, rewardCosmeticId: "rainbow" },
   { id: "first_major_mutation", name: "Große Mutation", description: "Erhalte durch Fusion eine Hauptmutation.", icon: "✨", type: "mutationTierObtained", value: "major", reward: 800 },
 ];
