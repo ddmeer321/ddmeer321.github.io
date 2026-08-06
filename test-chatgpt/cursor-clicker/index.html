@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <style>html{visibility:hidden}</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#080b14" />
+    <meta name="description" content="Cursor Clicker – klicken, Cursor-Boxen öffnen und seltene Cursor sammeln." />
+    <link rel="stylesheet" href="cursor-clicker.css?v=1" />
+    <title>Cursor Clicker · Test ChatGPT</title>
+  </head>
+  <body>
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+    <header class="game-header">
+      <a class="back-link" href="../index.html" aria-label="Zur Test-Spielebibliothek">← <span>Testbibliothek</span></a>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">➤</span>
+        <div><strong>Cursor Clicker</strong><small>Collect · Equip · Click</small></div>
+      </div>
+      <button class="daily-button" id="daily-button" type="button"><span>☀</span><span id="daily-label">Daily Reward</span></button>
+    </header>
+
+    <main class="game-shell">
+      <section class="top-stats" aria-label="Spielstatus">
+        <article><span class="stat-icon coin-icon">●</span><div><small>Coins</small><strong id="coins-value">0</strong></div></article>
+        <article><span class="stat-icon">☝</span><div><small>Coins pro Klick</small><strong id="per-click-value">1</strong></div></article>
+        <article><span class="stat-icon" id="equipped-mini-icon">◆</span><div><small>Ausgerüstet</small><strong id="equipped-value">Wooden Cursor</strong></div></article>
+        <article><span class="stat-icon">◈</span><div><small>Gezogene Cursor</small><strong id="draws-value">0</strong></div></article>
+      </section>
+
+      <nav class="game-tabs" aria-label="Spielbereiche">
+        <button class="tab-button active" data-tab="play" type="button">Klicken</button>
+        <button class="tab-button" data-tab="boxes" type="button">Boxen</button>
+        <button class="tab-button" data-tab="inventory" type="button">Inventar <span class="tab-count" id="inventory-count">1</span></button>
+        <button class="tab-button" data-tab="progress" type="button">Fortschritt</button>
+        <button class="tab-button" data-tab="settings" type="button">Einstellungen</button>
+      </nav>
+
+      <section class="tab-panel active" id="panel-play" data-panel="play">
+        <div class="play-layout">
+          <article class="click-stage">
+            <div class="click-stage-copy"><span class="eyebrow">Dein aktiver Cursor</span><h1 id="active-cursor-name">Wooden Cursor</h1><p id="active-cursor-description">Ein solider Anfang.</p></div>
+            <div class="combo-pill" id="combo-pill">Klickserie <strong id="combo-value">0</strong></div>
+            <button class="cursor-button rarity-common" id="cursor-button" type="button" aria-label="Cursor klicken">
+              <span class="cursor-aura" aria-hidden="true"></span>
+              <span class="cursor-icon" id="main-cursor-icon" aria-hidden="true">◆</span>
+              <span class="cursor-shape" aria-hidden="true"></span>
+            </button>
+            <p class="click-hint">Klicken oder <kbd>Leertaste</kbd> drücken</p>
+            <div class="recent-drop hidden" id="special-effect-note"></div>
+          </article>
+
+          <aside class="side-stack">
+            <article class="panel-card quick-box">
+              <div class="card-heading"><div><span class="eyebrow">Schnellzugriff</span><h2>Starter Box</h2></div><span class="box-symbol">▣</span></div>
+              <p>Ziehe deinen nächsten Cursor und verbessere deinen Multiplikator.</p>
+              <button class="primary-button" data-buy-box="starter" type="button">Für <span>75</span> Coins öffnen</button>
+            </article>
+            <article class="panel-card daily-card">
+              <div class="card-heading"><div><span class="eyebrow">Tägliche Serie</span><h2><span id="daily-streak">0</span> Tage</h2></div><span class="sun-symbol">☀</span></div>
+              <p id="daily-description">Hol dir heute deinen kostenlosen Bonus.</p>
+              <button class="secondary-button" id="daily-claim-inline" type="button">Belohnung abholen</button>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="panel-boxes" data-panel="boxes">
+        <div class="section-heading"><div><span class="eyebrow">Cursor-Boxen</span><h1>Öffne etwas Seltenes.</h1><p>Jede Box hat ihre eigenen Drop-Chancen. Der gezogene Cursor landet sofort in deinem Inventar.</p></div></div>
+        <div class="box-grid" id="box-grid"></div>
+      </section>
+
+      <section class="tab-panel" id="panel-inventory" data-panel="inventory">
+        <div class="section-heading inventory-heading">
+          <div><span class="eyebrow">Deine Sammlung</span><h1>Cursor-Inventar</h1><p>Doppelte Cursor verstärken nicht den Multiplikator, bleiben aber als Anzahl sichtbar.</p></div>
+          <label class="search-field"><span aria-hidden="true">⌕</span><input id="inventory-search" type="search" placeholder="Cursor suchen …" autocomplete="off" /></label>
+        </div>
+        <div class="inventory-toolbar"><span id="unique-count">1 von 19 gesammelt</span><span>Sortiert nach Seltenheit</span></div>
+        <div class="cursor-grid" id="inventory-grid"></div>
+        <div class="empty-state hidden" id="inventory-empty"><span>⌕</span><h2>Kein Cursor gefunden</h2><p>Versuche einen anderen Suchbegriff.</p></div>
+      </section>
+
+      <section class="tab-panel" id="panel-progress" data-panel="progress">
+        <div class="section-heading"><div><span class="eyebrow">Deine Reise</span><h1>Statistiken & Achievements</h1><p>Alle Werte werden automatisch lokal in deinem Browser gespeichert.</p></div></div>
+        <div class="progress-layout">
+          <div class="stats-grid" id="stats-grid"></div>
+          <article class="panel-card achievements-card"><div class="card-heading"><div><span class="eyebrow">Meilensteine</span><h2>Achievements</h2></div><span id="achievement-progress">0 / 7</span></div><div class="achievement-list" id="achievement-list"></div></article>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="panel-settings" data-panel="settings">
+        <div class="section-heading"><div><span class="eyebrow">Feintuning</span><h1>Einstellungen</h1><p>Passe Audio und Darstellung an oder beginne vollständig neu.</p></div></div>
+        <div class="settings-grid">
+          <article class="settings-card"><div><span class="settings-icon">♫</span><div><h2>Musik</h2><p>Ruhiger elektronischer Hintergrundloop.</p></div></div><label class="toggle"><input id="setting-music" type="checkbox" /><span></span></label></article>
+          <article class="settings-card"><div><span class="settings-icon">♪</span><div><h2>Soundeffekte</h2><p>Feedback für Klicks, Boxen und seltene Drops.</p></div></div><label class="toggle"><input id="setting-sounds" type="checkbox" /><span></span></label></article>
+          <article class="settings-card"><div><span class="settings-icon">✦</span><div><h2>Animationen</h2><p>Bewegungen, Partikel und Öffnungsanimationen.</p></div></div><label class="toggle"><input id="setting-animations" type="checkbox" /><span></span></label></article>
+          <article class="settings-card danger-card"><div><span class="settings-icon">↺</span><div><h2>Spielstand zurücksetzen</h2><p>Löscht Coins, Inventar, Statistiken und Erfolge auf diesem Gerät.</p></div></div><button class="danger-button" id="reset-button" type="button">Alles zurücksetzen</button></article>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-backdrop hidden" id="reward-modal" role="dialog" aria-modal="true" aria-labelledby="reward-title">
+      <article class="reward-modal rarity-common" id="reward-card">
+        <button class="modal-close" id="reward-close" type="button" aria-label="Schließen">×</button>
+        <span class="reward-rays" aria-hidden="true"></span><span class="reward-kicker">Neuer Cursor</span>
+        <div class="reward-icon" id="reward-icon">◆</div><span class="rarity-chip" id="reward-rarity">Common</span>
+        <h2 id="reward-title">Wooden Cursor</h2><p id="reward-description"></p><strong class="reward-multiplier" id="reward-multiplier">×1</strong>
+        <div class="reward-actions"><button class="primary-button" id="reward-equip" type="button">Ausrüsten</button><button class="secondary-button" id="reward-continue" type="button">Weiter</button></div>
+      </article>
+    </div>
+
+    <div class="modal-backdrop hidden" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <article class="confirm-card"><span class="warning-symbol">!</span><h2 id="confirm-title">Wirklich zurücksetzen?</h2><p>Diese Aktion kann nicht rückgängig gemacht werden.</p><div><button class="secondary-button" id="confirm-cancel" type="button">Abbrechen</button><button class="danger-button" id="confirm-reset" type="button">Spielstand löschen</button></div></article>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../../supabase-client.js"></script>
+    <script src="../../test-gate.js?v=1"></script>
+    <script type="module" src="cursor-game.js?v=1"></script>
+  </body>
+</html>
