@@ -13,6 +13,30 @@
   padding: 60px 0 30px;
 }
 
+.cc-combo-pill {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--muted);
+  font-size: 0.72rem;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.cc-combo-pill-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cc-combo-pill strong {
+  color: var(--accent-2);
+}
+
 .cc-big-cursor {
   --equipped-color: #7c5cff;
   --equipped-glow: rgba(124, 92, 255, 0.55);
@@ -32,6 +56,12 @@
 
 .cc-big-cursor:hover {
   box-shadow: 0 0 80px var(--equipped-glow), inset 0 0 40px rgba(255, 255, 255, 0.06);
+}
+
+#big-cursor-icon {
+  display: block;
+  width: 68%;
+  height: 68%;
 }
 
 .cc-big-cursor:active {
@@ -113,6 +143,51 @@
   margin-top: 6px;
 }
 
+/* Wahrscheinlichkeits-Balken — von Boxen und Fusion genutzt (oddsDisplay.js) */
+.cc-odds-list {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 4px 0 14px;
+}
+
+.cc-odds-row {
+  display: grid;
+  grid-template-columns: 78px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.68rem;
+}
+
+.cc-odds-label {
+  font-weight: 800;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-odds-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.cc-odds-bar::after {
+  content: "";
+  display: block;
+  width: var(--odds, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--odds-color, var(--accent-2));
+}
+
+.cc-odds-value {
+  color: var(--text);
+  text-align: right;
+}
+
 /* Inventar */
 .cc-inventory-controls {
   display: flex;
@@ -183,7 +258,44 @@
 }
 
 .cc-inv-icon {
-  font-size: 2.4rem;
+  width: 64px;
+  height: 64px;
+  font-size: 1.4rem;
+}
+
+.cc-inv-upgrade {
+  width: 100%;
+  font-size: 0.78rem;
+}
+
+.cc-inv-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.cc-inv-variant {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-inv-variant:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent-2);
+}
+
+.cc-inv-variant-active {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+  cursor: default;
 }
 
 .cc-inv-rarity {
@@ -279,10 +391,64 @@
   font-size: 0.78rem;
 }
 
+.cc-achievement-reward {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
 .cc-achievement-date {
   font-size: 0.72rem;
   color: var(--accent-2);
   margin-top: 4px;
+}
+
+/* Cosmetics */
+.cc-cosmetics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.cc-cosmetic-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-cosmetic-locked {
+  opacity: 0.55;
+}
+
+.cc-cosmetic-equipped {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.2);
+}
+
+.cc-cosmetic-preview {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 4px;
+}
+
+.cc-cosmetic-desc {
+  font-size: 0.76rem;
+  min-height: 34px;
+}
+
+.cc-cosmetic-locked-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.cc-cosmetic-equip {
+  width: 100%;
 }
 
 /* Einstellungen */

@@ -1,15 +1,35 @@
-// Der große klickbare Cursor: Klick-Handling, fliegende "+N"-Zahlen, Glow passend
-// zum ausgerüsteten Cursor.
+// Der große klickbare Cursor: Klick-Handling, fliegende "+N"-Zahlen, Glyph +
+// Glow passend zum ausgerüsteten Cursor (inkl. Level/Mutation/Cosmetic).
 import { state } from "../core/state.js";
-import { registerClick, getEquippedCursor } from "../core/economy.js";
+import { registerClick } from "../core/economy.js";
+import { getEquippedLoadout } from "../core/loadout.js";
 import { checkAchievements } from "../core/achievements.js";
 import { playClickSound } from "../audio.js";
 import { formatNumber } from "./format.js";
 import { getRarity } from "../data/rarities.js";
+import { renderCursorGlyph } from "./cursorGlyph.js";
 
 let button;
-let icon;
+let iconSlot;
 let floatLayer;
+let comboPill;
+let comboValue;
+let comboCount = 0;
+let comboResetTimer = null;
+
+const COMBO_RESET_MS = 1600;
+
+// Rein visuelles Feedback (keine Coin-Auswirkung) — bewusst UI-lokal, nicht im State.
+function registerComboClick() {
+  comboCount += 1;
+  comboValue.textContent = comboCount;
+  comboPill.classList.add("cc-combo-pill-visible");
+  clearTimeout(comboResetTimer);
+  comboResetTimer = setTimeout(() => {
+    comboCount = 0;
+    comboPill.classList.remove("cc-combo-pill-visible");
+  }, COMBO_RESET_MS);
+}
 
 function spawnFloatingGain(gain, clientX, clientY) {
   if (!state.settings.animations) return;
@@ -24,21 +44,30 @@ function spawnFloatingGain(gain, clientX, clientY) {
 }
 
 export function updateEquippedVisual() {
-  const equipped = getEquippedCursor();
-  icon.textContent = equipped ? equipped.icon : "🖱️";
-  const rarity = equipped ? getRarity(equipped.rarity) : null;
+  const loadout = getEquippedLoadout();
+  const rarity = loadout.cursor ? getRarity(loadout.cursor.rarity) : null;
+
+  iconSlot.innerHTML = renderCursorGlyph({
+    color: rarity ? rarity.color : "#7c5cff",
+    extraClasses: loadout.visualClasses,
+    badgeIcon: loadout.cursor ? loadout.cursor.icon : null,
+  });
+
   button.style.setProperty("--equipped-glow", rarity ? rarity.glow : "rgba(124,92,255,0.55)");
   button.style.setProperty("--equipped-color", rarity ? rarity.color : "#7c5cff");
 }
 
 export function initMainPanel() {
   button = document.getElementById("big-cursor-btn");
-  icon = document.getElementById("big-cursor-icon");
+  iconSlot = document.getElementById("big-cursor-icon");
   floatLayer = document.getElementById("click-float-layer");
+  comboPill = document.getElementById("combo-pill");
+  comboValue = document.getElementById("combo-value");
 
   button.addEventListener("click", (event) => {
     const gained = registerClick();
     spawnFloatingGain(gained, event.clientX, event.clientY);
+    registerComboClick();
     playClickSound();
     checkAchievements();
     button.classList.remove("cc-cursor-pulse");
