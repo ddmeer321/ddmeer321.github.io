@@ -9,8 +9,18 @@ import { toggleFavorite } from "../core/economy.js";
 import { equipCursor, isEquipped } from "../core/loadout.js";
 import { getCursorLevel, getLevelBonusMultiplier, isMaxLevel, getUpgradeCost, canUpgrade, upgradeCursor, MAX_LEVEL, LEVEL_BONUS_PER_LEVEL } from "../core/upgrades.js";
 import { checkAchievements } from "../core/achievements.js";
+import { getCursorMaterial } from "../data/cursorMaterials.js";
 import { renderCursorGlyph } from "./cursorGlyph.js";
 import { formatNumber, formatMultiplier } from "./format.js";
+
+function mutationBonusLabel(mutation) {
+  if (!mutation) return "";
+  const parts = [];
+  if (mutation.effects.multiplierBonusPercent) parts.push("+" + mutation.effects.multiplierBonusPercent + "% Multiplikator");
+  if (mutation.effects.coinBonusPercent) parts.push("+" + mutation.effects.coinBonusPercent + "% Coins");
+  if (mutation.effects.dropChanceBonusPercent) parts.push("+" + mutation.effects.dropChanceBonusPercent + "% Fusionschance");
+  return parts.length ? mutation.name + ": " + parts.join(", ") : mutation.name + ": rein kosmetisch";
+}
 
 let grid;
 let searchInput;
@@ -53,8 +63,10 @@ function applySort(rows, sortBy) {
 
 function renderVariantChip(cursor, instance) {
   const equipped = isEquipped(cursor.id, instance ? instance.instanceId : null);
+  const majorMutation = instance ? getMutation(instance.major) : null;
+  const minorMutation = instance ? getMutation(instance.minor) : null;
   const label = instance
-    ? "✦ " + [instance.major, instance.minor].filter(Boolean).map((id) => getMutation(id).name).join("+")
+    ? "✦ " + [majorMutation?.name, minorMutation?.name].filter(Boolean).join("+")
     : "Basis";
 
   const chip = document.createElement("button");
@@ -62,6 +74,10 @@ function renderVariantChip(cursor, instance) {
   chip.className = "cc-inv-variant" + (equipped ? " cc-inv-variant-active" : "");
   chip.textContent = equipped ? label + " ✓" : label;
   chip.disabled = equipped;
+  if (instance) {
+    // Konkrete Boni als natives Tooltip, damit die kompakte Chip-Ansicht nicht überladen wird.
+    chip.title = [majorMutation, minorMutation].filter(Boolean).map(mutationBonusLabel).join(" · ");
+  }
   if (!equipped) {
     chip.addEventListener("click", () => equipCursor(cursor.id, instance ? instance.instanceId : null));
   }
@@ -86,7 +102,7 @@ function renderCard({ cursor, entry }) {
   card.innerHTML =
     '<button class="cc-inv-fav" type="button" aria-label="Favorit umschalten">' + (entry.favorite ? "★" : "☆") + "</button>" +
     (entry.count > 1 ? '<span class="cc-inv-count">x' + entry.count + "</span>" : "") +
-    '<div class="cc-inv-icon">' + renderCursorGlyph({ color: rarity.color, badgeIcon: cursor.icon }) + "</div>" +
+    '<div class="cc-inv-icon">' + renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color: rarity.color }) + "</div>" +
     '<div class="cc-inv-rarity">' + rarity.label + " · Lv. " + level + " / " + MAX_LEVEL + "</div>" +
     "<h3>" + cursor.name + "</h3>" +
     '<p class="cc-inv-desc">' + cursor.description + "</p>" +

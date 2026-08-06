@@ -5,6 +5,7 @@ import { getRarity } from "../data/rarities.js";
 import { getMutation } from "../data/mutations.js";
 import { getFusableCursorIds, getFusionCost, getDuplicateCount, getFusionOddsPreview, performFusion } from "../core/fusion.js";
 import { checkAchievements } from "../core/achievements.js";
+import { getCursorMaterial } from "../data/cursorMaterials.js";
 import { renderCursorGlyph } from "./cursorGlyph.js";
 import { renderOddsRows } from "./oddsDisplay.js";
 import { playFusionSequence } from "./modals.js";
@@ -16,6 +17,9 @@ let cursorList;
 let detailPanel;
 let emptyHint;
 let selectedCursorId = null;
+// Verhindert, dass ein zweiter Klick während der laufenden Fusions-Animation
+// dieselbe Fusion erneut auslöst (siehe fusion.js für die eigentliche Logik).
+let fusionInProgress = false;
 
 function renderCursorItem(cursorId) {
   const cursor = getCursor(cursorId);
@@ -25,7 +29,7 @@ function renderCursorItem(cursorId) {
   item.type = "button";
   item.className = "cc-fusion-cursor-item" + (cursorId === selectedCursorId ? " cc-fusion-cursor-active" : "");
   item.innerHTML =
-    '<span class="cc-fusion-cursor-icon">' + renderCursorGlyph({ color: rarity.color, badgeIcon: cursor.icon }) + "</span>" +
+    '<span class="cc-fusion-cursor-icon">' + renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color: rarity.color }) + "</span>" +
     '<span class="cc-fusion-cursor-name">' + cursor.name + "</span>" +
     '<span class="cc-fusion-cursor-count">' + getDuplicateCount(cursorId) + "×</span>";
   item.addEventListener("click", () => {
@@ -53,7 +57,7 @@ function renderDetail() {
 
   detailPanel.innerHTML =
     '<div class="cc-fusion-detail-head">' +
-    '<span class="cc-fusion-detail-icon">' + renderCursorGlyph({ color: rarity.color, badgeIcon: cursor.icon }) + "</span>" +
+    '<span class="cc-fusion-detail-icon">' + renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color: rarity.color }) + "</span>" +
     "<div><h2>" + cursor.name + "</h2><p>" + available + " Duplikate verfügbar · Kosten je Fusion: " + cost + "</p></div>" +
     "</div>" +
     '<div class="cc-fusion-odds-group"><h3>Ergebnis</h3><div class="cc-odds-list">' + renderOddsRows(outcomeRows) + "</div></div>" +
@@ -61,7 +65,7 @@ function renderDetail() {
     '<div class="cc-fusion-odds-group"><h3>Nebenmutation (falls gewürfelt)</h3><div class="cc-odds-list">' + renderOddsRows(minorRows) + "</div></div>" +
     '<div class="cc-fusion-actions">' +
     '<button class="cc-btn cc-btn-ghost" id="fusion-cancel-btn" type="button">Abbrechen</button>' +
-    '<button class="cc-btn cc-btn-primary" id="fusion-start-btn" type="button">Fusion starten</button>' +
+    '<button class="cc-btn cc-btn-primary" id="fusion-start-btn" type="button"' + (fusionInProgress ? " disabled" : "") + ">Fusion starten</button>" +
     "</div>";
 
   document.getElementById("fusion-cancel-btn").addEventListener("click", () => {
@@ -69,9 +73,13 @@ function renderDetail() {
     renderFusionPanel();
   });
   document.getElementById("fusion-start-btn").addEventListener("click", () => {
+    if (fusionInProgress) return;
     const result = performFusion(selectedCursorId);
     if (!result) return;
-    playFusionSequence(result);
+    fusionInProgress = true;
+    playFusionSequence(result, () => {
+      fusionInProgress = false;
+    });
     checkAchievements();
     renderFusionPanel();
   });

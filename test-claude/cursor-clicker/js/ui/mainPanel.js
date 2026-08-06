@@ -7,11 +7,16 @@ import { checkAchievements } from "../core/achievements.js";
 import { playClickSound } from "../audio.js";
 import { formatNumber } from "./format.js";
 import { getRarity } from "../data/rarities.js";
+import { getCursorMaterial } from "../data/cursorMaterials.js";
+import { getEquippedAura } from "../core/auras.js";
 import { renderCursorGlyph } from "./cursorGlyph.js";
+import { renderAuraLayer } from "./auraGlyph.js";
+import { playClickEffect } from "./effectRenderer.js";
 
 let button;
 let iconSlot;
 let floatLayer;
+let auraLayerSlot;
 let comboPill;
 let comboValue;
 let comboCount = 0;
@@ -48,10 +53,12 @@ export function updateEquippedVisual() {
   const rarity = loadout.cursor ? getRarity(loadout.cursor.rarity) : null;
 
   iconSlot.innerHTML = renderCursorGlyph({
+    cursor: loadout.cursor,
+    material: loadout.cursor ? getCursorMaterial(loadout.cursor.id) : null,
     color: rarity ? rarity.color : "#7c5cff",
     extraClasses: loadout.visualClasses,
-    badgeIcon: loadout.cursor ? loadout.cursor.icon : null,
   });
+  auraLayerSlot.innerHTML = renderAuraLayer(getEquippedAura());
 
   button.style.setProperty("--equipped-glow", rarity ? rarity.glow : "rgba(124,92,255,0.55)");
   button.style.setProperty("--equipped-color", rarity ? rarity.color : "#7c5cff");
@@ -61,12 +68,14 @@ export function initMainPanel() {
   button = document.getElementById("big-cursor-btn");
   iconSlot = document.getElementById("big-cursor-icon");
   floatLayer = document.getElementById("click-float-layer");
+  auraLayerSlot = document.getElementById("aura-layer-slot");
   comboPill = document.getElementById("combo-pill");
   comboValue = document.getElementById("combo-value");
 
   button.addEventListener("click", (event) => {
     const gained = registerClick();
     spawnFloatingGain(gained, event.clientX, event.clientY);
+    playClickEffect(getEquippedLoadout().particle, event.clientX, event.clientY, floatLayer);
     registerComboClick();
     playClickSound();
     checkAchievements();

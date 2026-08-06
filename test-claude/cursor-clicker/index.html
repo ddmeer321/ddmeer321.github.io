@@ -9,9 +9,11 @@
     <link rel="stylesheet" href="css/style.css?v=2" />
     <link rel="stylesheet" href="css/panels.css?v=2" />
     <link rel="stylesheet" href="css/modals.css?v=2" />
-    <link rel="stylesheet" href="css/cursor-glyph.css?v=1" />
+    <link rel="stylesheet" href="css/cursor-glyph.css?v=2" />
     <link rel="stylesheet" href="css/mutations-cosmetics.css?v=1" />
     <link rel="stylesheet" href="css/fusion.css?v=1" />
+    <link rel="stylesheet" href="css/auras.css?v=1" />
+    <link rel="stylesheet" href="css/effects.css?v=1" />
     <link rel="stylesheet" href="../../auth-badge.css?v=1" />
     <title>Cursor Clicker (Test: Claude) – Spielebibliothek</title>
   </head>
@@ -40,6 +42,10 @@
         <span class="cc-hud-value" id="hud-equipped">—</span>
       </div>
       <div class="cc-hud-stat">
+        <span class="cc-hud-label">Aura</span>
+        <span class="cc-hud-value" id="hud-aura">—</span>
+      </div>
+      <div class="cc-hud-stat">
         <span class="cc-hud-label">Cursor gesammelt</span>
         <span class="cc-hud-value" id="hud-collected">0 / 0</span>
       </div>
@@ -49,6 +55,7 @@
     <nav class="cc-tabs" aria-label="Bereiche">
       <button class="cc-tab active" data-tab="home" type="button">Home</button>
       <button class="cc-tab" data-tab="boxes" type="button">Boxen</button>
+      <button class="cc-tab" data-tab="aura" type="button">Aura</button>
       <button class="cc-tab" data-tab="fusion" type="button">Fusion</button>
       <button class="cc-tab" data-tab="inventory" type="button">Inventar</button>
       <button class="cc-tab" data-tab="cosmetics" type="button">Cosmetics</button>
@@ -61,6 +68,7 @@
       <section id="tab-home" class="cc-panel">
         <div class="cc-click-stage">
           <div class="cc-combo-pill" id="combo-pill">Klickserie <strong id="combo-value">0</strong></div>
+          <div id="aura-layer-slot"></div>
           <button class="cc-big-cursor" id="big-cursor-btn" type="button" aria-label="Klicken für Coins">
             <span id="big-cursor-icon">🖱️</span>
           </button>
@@ -73,6 +81,16 @@
         <h1>Cursor-Boxen</h1>
         <p class="cc-lead">Öffne Boxen für eine zufällige Chance auf neue Cursor — von Common bis Secret.</p>
         <div class="cc-box-grid" id="box-grid"></div>
+      </section>
+
+      <section id="tab-aura" class="cc-panel hidden">
+        <h1>Aura</h1>
+        <p class="cc-lead"><span class="cc-tag cc-tag-gameplay">✦ Aura — mit Gameplay-Effekt</span> Multipliziert deinen gesamten Klick-Ertrag zusätzlich. Maximal eine Aura gleichzeitig ausgerüstet.</p>
+        <h2 class="cc-subheading">Aura-Boxen</h2>
+        <div class="cc-box-grid" id="aura-box-grid"></div>
+        <h2 class="cc-subheading">Deine Auren</h2>
+        <div class="cc-aura-inventory-grid" id="aura-inventory-grid"></div>
+        <p class="cc-empty-hint hidden" id="aura-inventory-empty">Noch keine Aura gezogen. Öffne eine Aura-Box, um loszulegen!</p>
       </section>
 
       <section id="tab-fusion" class="cc-panel hidden">
@@ -106,7 +124,7 @@
 
       <section id="tab-cosmetics" class="cc-panel hidden">
         <h1>Cosmetics</h1>
-        <p class="cc-lead">Rein visuelle Overlays für deinen ausgerüsteten Cursor — kein Gameplay-Effekt. Weitere Cosmetics gibt es über Achievements; eigene Cosmetic-Boxen folgen später.</p>
+        <p class="cc-lead"><span class="cc-tag cc-tag-cosmetic">◆ Cosmetic — nur optisch</span> Verändert kleine Details direkt am Cursor. Kein Einfluss auf Coins oder Multiplikator. Weitere Cosmetics gibt es über Achievements; eigene Cosmetic-Boxen folgen später.</p>
         <div class="cc-cosmetics-grid" id="cosmetics-grid"></div>
       </section>
 
@@ -195,6 +213,29 @@
       </div>
     </div>
 
+    <div class="cc-modal-overlay hidden" id="modal-aura-box-opening">
+      <div class="cc-modal cc-box-modal">
+        <div class="cc-box-spin" id="aura-box-spin-icon">◐</div>
+        <p class="cc-box-modal-text" id="aura-box-modal-text">Aura-Box wird geöffnet…</p>
+      </div>
+    </div>
+
+    <div class="cc-modal-overlay hidden" id="modal-aura-reveal">
+      <div class="cc-modal cc-drop-modal" id="aura-reveal-card">
+        <div class="cc-drop-rarity" id="aura-reveal-rarity">Common</div>
+        <div class="cc-aura-preview" id="aura-reveal-preview"></div>
+        <h2 id="aura-reveal-name">Aura</h2>
+        <p id="aura-reveal-description"></p>
+        <p class="cc-drop-multiplier" id="aura-reveal-bonus"></p>
+        <p class="cc-drop-new-badge hidden" id="aura-reveal-new-badge">✨ Neu!</p>
+        <p class="cc-drop-dupe-badge hidden" id="aura-reveal-dupe-badge"></p>
+        <div class="cc-drop-actions">
+          <button class="cc-btn cc-btn-ghost" id="aura-reveal-continue-btn" type="button">Weiter</button>
+          <button class="cc-btn cc-btn-primary" id="aura-reveal-equip-btn" type="button">Ausrüsten</button>
+        </div>
+      </div>
+    </div>
+
     <div class="cc-modal-overlay hidden" id="modal-daily-reward">
       <div class="cc-modal cc-daily-modal">
         <h2>🎁 Tägliche Belohnung</h2>
@@ -222,6 +263,6 @@
     <script src="../../supabase-client.js"></script>
     <script src="../../test-gate.js?v=1"></script>
     <script src="../../auth.js?v=3"></script>
-    <script type="module" src="js/main.js?v=2"></script>
+    <script type="module" src="js/main.js?v=4"></script>
   </body>
 </html>

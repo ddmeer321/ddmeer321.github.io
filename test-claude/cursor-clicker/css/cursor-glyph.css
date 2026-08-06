@@ -1,5 +1,6 @@
 /* Cursor Clicker — gemeinsame Cursor-Silhouette (js/ui/cursorGlyph.js). Immer
-   dieselbe Pfeil-Zeiger-Form; Individualität kommt über Farbe + Overlay-Klassen. */
+   dieselbe Pfeil-Zeiger-Form; Individualität kommt über Material-Farbverlauf
+   (Fill direkt am <path>, siehe cursorGlyph.js), Textur-Akzente und Glow. */
 
 .cc-cursor-glyph {
   position: relative;
@@ -13,20 +14,23 @@
   width: 62%;
   height: 62%;
   fill: var(--glyph-color, #7c5cff);
-  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 16px color-mix(in srgb, var(--glyph-color, #7c5cff) 45%, transparent));
-  transition: fill 0.2s ease;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 16px var(--glyph-glow, color-mix(in srgb, var(--glyph-color, #7c5cff) 45%, transparent)));
+  transition: filter 0.2s ease;
 }
 
-.cc-cursor-badge {
-  position: absolute;
-  right: 10%;
-  bottom: 8%;
-  font-size: 0.85em;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55));
-  pointer-events: none;
+/* "Instabile" Materialien (z.B. Quantum) bekommen einen dezenten Doppel-
+   Versatz statt einer komplett neuen Form — die Silhouette bleibt exakt gleich. */
+.cc-cursor-unstable .cc-cursor-svg {
+  animation: cc-cursor-unstable 2.6s ease-in-out infinite;
 }
 
-/* Kompaktgröße für Icon-Kontexte (Inventar-Karten, Fusion-Auswahl usw.) */
-.cc-cursor-glyph-sm .cc-cursor-badge {
-  font-size: 0.7em;
+@keyframes cc-cursor-unstable {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-0.6px) translateY(0.4px); }
+  50% { transform: translateX(0.5px) translateY(-0.3px); }
+  75% { transform: translateX(-0.3px); }
+}
+
+body.cc-no-animations .cc-cursor-unstable .cc-cursor-svg {
+  animation: none;
 }

@@ -4,7 +4,11 @@ import { state } from "../core/state.js";
 import { getRarity, isRareDrop } from "../data/rarities.js";
 import { formatNumber } from "./format.js";
 import { renderCursorGlyph } from "./cursorGlyph.js";
+import { renderAuraLayer } from "./auraGlyph.js";
+import { getCursorMaterial } from "../data/cursorMaterials.js";
+import { getAuraFactor } from "../data/auras.js";
 import { equipCursor } from "../core/loadout.js";
+import { equipAura } from "../core/auras.js";
 import { playBoxOpenSound, playRareDropSound, playFusionChargeSound, playFusionRevealSound } from "../audio.js";
 
 function show(el) {
@@ -54,7 +58,7 @@ function revealDrop(cursor, isNew) {
 
   document.getElementById("drop-rarity-label").textContent = rarity.label;
   document.getElementById("drop-rarity-label").style.color = rarity.color;
-  document.getElementById("drop-icon").innerHTML = renderCursorGlyph({ color: rarity.color, badgeIcon: cursor.icon });
+  document.getElementById("drop-icon").innerHTML = renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color: rarity.color });
   document.getElementById("drop-name").textContent = cursor.name;
   document.getElementById("drop-description").textContent = cursor.description;
   document.getElementById("drop-multiplier").textContent = "×" + cursor.multiplier + " Coins pro Klick";
@@ -97,15 +101,87 @@ function revealDrop(cursor, isNew) {
   equipBtn.addEventListener("click", onEquip);
 }
 
+// ---------- Aura-Box ----------
+
+export function playAuraBoxOpen(result) {
+  const { box, aura, isNew } = result;
+  const openingModal = document.getElementById("modal-box-opening");
+  const spinIcon = document.getElementById("box-spin-icon");
+  const modalText = document.getElementById("box-modal-text");
+
+  spinIcon.textContent = box.icon;
+  modalText.textContent = box.name + " wird geöffnet…";
+  show(openingModal);
+  playBoxOpenSound();
+
+  const spinDuration = state.settings.animations ? 1100 : 200;
+  setTimeout(() => {
+    hide(openingModal);
+    revealAura(aura, isNew);
+  }, spinDuration);
+}
+
+function revealAura(aura, isNew) {
+  const rarity = getRarity(aura.rarity);
+  const modal = document.getElementById("modal-aura-reveal");
+  const card = document.getElementById("aura-reveal-card");
+  const factor = getAuraFactor(aura);
+
+  document.getElementById("aura-reveal-rarity").textContent = rarity.label;
+  document.getElementById("aura-reveal-rarity").style.color = rarity.color;
+  document.getElementById("aura-reveal-preview").innerHTML = renderAuraLayer(aura);
+  document.getElementById("aura-reveal-name").textContent = aura.name;
+  document.getElementById("aura-reveal-description").textContent = aura.description;
+  document.getElementById("aura-reveal-bonus").textContent =
+    "Klick-Ertrag: +" + aura.clickBonus.toLocaleString("de-DE") + "× · Endgültiger Aura-Faktor: " + factor.toLocaleString("de-DE") + "×";
+
+  const newBadge = document.getElementById("aura-reveal-new-badge");
+  const dupeBadge = document.getElementById("aura-reveal-dupe-badge");
+  newBadge.classList.toggle("hidden", !isNew);
+  dupeBadge.classList.toggle("hidden", isNew);
+  if (!isNew) {
+    const count = state.ownedAuras[aura.id]?.count || 1;
+    dupeBadge.textContent = "Duplikat (x" + count + ")";
+  }
+
+  card.style.setProperty("--rarity-color", rarity.color);
+  card.style.setProperty("--rarity-glow", rarity.glow);
+  card.classList.toggle("cc-drop-rare", isRareDrop(aura.rarity));
+  card.classList.toggle("cc-drop-secret", aura.rarity === "secret");
+
+  card.querySelectorAll(".cc-particle").forEach((p) => p.remove());
+  if (isRareDrop(aura.rarity)) {
+    spawnCelebrationParticles(card, rarity.color);
+    playRareDropSound(rarity.order);
+  }
+
+  show(modal);
+
+  const continueBtn = document.getElementById("aura-reveal-continue-btn");
+  const equipBtn = document.getElementById("aura-reveal-equip-btn");
+  const cleanup = () => {
+    hide(modal);
+    continueBtn.removeEventListener("click", onContinue);
+    equipBtn.removeEventListener("click", onEquip);
+  };
+  const onContinue = () => cleanup();
+  const onEquip = () => {
+    equipAura(aura.id);
+    cleanup();
+  };
+  continueBtn.addEventListener("click", onContinue);
+  equipBtn.addEventListener("click", onEquip);
+}
+
 // ---------- Fusion ----------
 
-export function playFusionSequence(result) {
+export function playFusionSequence(result, onComplete) {
   const { cursor, spectacular } = result;
   const rarity = getRarity(cursor.rarity);
   const openingModal = document.getElementById("modal-fusion-opening");
   const orbitIcon = document.getElementById("fusion-orbit-icon");
 
-  orbitIcon.innerHTML = renderCursorGlyph({ color: rarity.color, badgeIcon: cursor.icon });
+  orbitIcon.innerHTML = renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color: rarity.color });
   openingModal.classList.toggle("cc-fusion-spectacular", spectacular);
   show(openingModal);
   playFusionChargeSound(spectacular);
@@ -114,6 +190,7 @@ export function playFusionSequence(result) {
   setTimeout(() => {
     hide(openingModal);
     revealFusion(result);
+    if (onComplete) onComplete();
   }, duration);
 }
 
@@ -125,11 +202,11 @@ function revealFusion(result) {
   const label = [majorMutation?.name, minorMutation?.name].filter(Boolean).join(" + ") || "Mutation";
   const color = majorMutation?.color || minorMutation?.color || "#7c5cff";
   const glow = color + "88";
-  const badgeParts = [majorMutation?.visualClass, minorMutation?.visualClass].filter(Boolean);
+  const mutationClasses = [majorMutation?.visualClass, minorMutation?.visualClass].filter(Boolean);
 
   document.getElementById("fusion-reveal-label").textContent = label;
   document.getElementById("fusion-reveal-label").style.color = color;
-  document.getElementById("fusion-reveal-icon").innerHTML = renderCursorGlyph({ color, extraClasses: badgeParts, badgeIcon: cursor.icon });
+  document.getElementById("fusion-reveal-icon").innerHTML = renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color, extraClasses: mutationClasses });
   document.getElementById("fusion-reveal-name").textContent = cursor.name + " (" + label + ")";
 
   const descParts = [majorMutation?.description, minorMutation?.description].filter(Boolean);
