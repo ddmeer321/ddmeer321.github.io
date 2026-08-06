@@ -1,0 +1,27 @@
+#auth-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-user { color: var(--muted); }
+.auth-user strong { color: var(--text); }
+
+.auth-login-btn {
+  color: var(--cyan);
+  font-weight: 800;
+  text-decoration: none;
+}
+.auth-login-btn:hover, .auth-login-btn:focus-visible { text-decoration: underline; }
+
+.auth-logout-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.auth-logout-btn:hover, .auth-logout-btn:focus-visible { color: var(--cyan); }

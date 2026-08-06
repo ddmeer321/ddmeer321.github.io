@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Neon Bot Arena (Test: ChatGPT) – Testlabor</title>
+    <link rel="stylesheet" href="style.css?v=chaos4" />
+    <link rel="stylesheet" href="../../auth-badge.css?v=1" />
+  </head>
+  <body class="test-build">
+    <aside class="test-build-banner" aria-label="Hinweis zur Testversion">
+      <strong>TESTLABOR · CHATGPT</strong>
+      <span>Testkopie der Spielebibliothek &middot; Testpanel aktiv &middot; Online-Scores deaktiviert</span>
+    </aside>
+    <button id="settingsBtn" class="settings-button" type="button" aria-controls="settingsOverlay" data-i18n-aria-label="settings.open">
+      <span aria-hidden="true">⚙</span>
+      <strong data-i18n="settings.open">Einstellungen</strong>
+    </button>
+
+    <div id="settingsOverlay" class="settings-overlay hidden">
+      <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="settings-heading">
+          <h2 id="settingsTitle" data-i18n="settings.title">Einstellungen</h2>
+          <button id="settingsCloseBtn" class="settings-close" type="button" data-i18n-aria-label="settings.close">×</button>
+        </div>
+
+        <div class="settings-group">
+          <label data-i18n="settings.background">Hintergrundbild</label>
+          <div class="background-presets" role="group" aria-label="Vorgefertigte Hintergründe" data-i18n-aria-label="settings.presets">
+            <button class="background-preset preset-neon" type="button" data-background-preset="neon" aria-pressed="false">
+              <span class="preset-preview" aria-hidden="true"></span>
+              <strong data-i18n="settings.presetNeon">Neon</strong>
+            </button>
+            <button class="background-preset preset-space" type="button" data-background-preset="space" aria-pressed="false">
+              <span class="preset-preview" aria-hidden="true"></span>
+              <strong data-i18n="settings.presetSpace">Weltraum</strong>
+            </button>
+            <button class="background-preset preset-sunset" type="button" data-background-preset="sunset" aria-pressed="false">
+              <span class="preset-preview" aria-hidden="true"></span>
+              <strong data-i18n="settings.presetSunset">Sonnenuntergang</strong>
+            </button>
+            <button class="background-preset preset-ice" type="button" data-background-preset="ice" aria-pressed="false">
+              <span class="preset-preview" aria-hidden="true"></span>
+              <strong data-i18n="settings.presetIce">Eiswelt</strong>
+            </button>
+          </div>
+          <small data-i18n="settings.presetHint">Die Auswahl verändert das Hauptmenü und die Arena.</small>
+          <div class="settings-actions">
+            <label class="file-button" for="backgroundImageInput" data-i18n="settings.choose">Bild auswählen</label>
+            <input id="backgroundImageInput" type="file" accept="image/png,image/jpeg,image/webp" />
+            <button id="removeBackgroundBtn" class="secondary-btn" type="button" data-i18n="settings.remove">Bild entfernen</button>
+          </div>
+          <small data-i18n="settings.backgroundHint">JPG, PNG oder WebP · maximal 1,5 MB · bleibt nur auf diesem Gerät</small>
+          <p id="backgroundStatus" class="settings-status" aria-live="polite"></p>
+        </div>
+
+        <label class="settings-group">
+          <span data-i18n="settings.language">Sprache</span>
+          <select id="settingsLanguage">
+            <option value="de">Deutsch</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="it">Italiano</option>
+            <option value="pl">Polski</option>
+            <option value="nl">Nederlands</option>
+            <option value="zh-CN">简体中文</option>
+          </select>
+        </label>
+
+        <div class="settings-group online-score-settings">
+          <strong data-i18n="scoreManage.title">Meine Online-Scores</strong>
+          <small data-i18n="scoreManage.hint">Nur Einträge, die auf diesem Gerät mit einem Löschschlüssel gespeichert wurden, können hier gelöscht werden.</small>
+          <div id="ownedScoresList" class="owned-scores-list"></div>
+          <button id="deleteAllOnlineScoresBtn" class="secondary-btn hidden" type="button" data-i18n="scoreManage.deleteAll">Alle meine Online-Scores löschen</button>
+          <div id="deleteOnlineScoresWarning" class="delete-warning hidden" role="alert">
+            <p data-i18n="scoreManage.confirmText">Diese Einträge werden dauerhaft aus der Online-Rangliste gelöscht.</p>
+            <div class="settings-actions">
+              <button id="cancelDeleteOnlineScoresBtn" class="secondary-btn" type="button" data-i18n="settings.cancel">Abbrechen</button>
+              <button id="confirmDeleteOnlineScoresBtn" class="danger-button" type="button" data-i18n="scoreManage.confirm">Online-Scores löschen</button>
+            </div>
+          </div>
+          <p id="ownedScoresStatus" class="settings-status" aria-live="polite"></p>
+        </div>
+
+        <div class="settings-group test-ad-settings">
+          <strong data-ad-text="title">Testwerbung</strong>
+          <small data-ad-text="hint">Bis zu 8 Testwerbungen täglich. Die Belohnung steigt nach jeder Werbung.</small>
+          <div class="settings-actions">
+            <button id="testRewardAdBtn" class="reward-ad-button" type="button">Testwerbung ansehen – 25 Münzen</button>
+          </div>
+          <small id="testRewardAdRemaining">8 von 8 heute verfügbar</small>
+          <p id="testRewardAdStatus" class="settings-status" aria-live="polite"></p>
+        </div>
+
+        <div class="settings-group danger-zone">
+          <strong data-i18n="settings.deleteTitle">Lokale Daten</strong>
+          <small data-i18n="settings.deleteHint">Löscht Fortschritt, Coins, Einstellungen, Test-ID und lokale Rekorde auf diesem Gerät.</small>
+          <button id="deleteAllBtn" class="danger-button" type="button" data-i18n="settings.delete">Alles löschen</button>
+          <div id="deleteWarning" class="delete-warning hidden" role="alert">
+            <p data-i18n="settings.warning">Achtung: Diese Aktion kann nicht rückgängig gemacht werden. Die Online-Rangliste wird nicht gelöscht.</p>
+            <div class="settings-actions">
+              <button id="cancelDeleteBtn" class="secondary-btn" type="button" data-i18n="settings.cancel">Abbrechen</button>
+              <button id="confirmDeleteBtn" class="danger-button" type="button" data-i18n="settings.confirm">Ja, alles löschen</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="testAdOverlay" class="test-ad-overlay hidden" style="display: none" role="dialog" aria-modal="true" aria-labelledby="testAdTitle">
+      <section class="test-ad-card">
+        <p class="eyebrow">TESTWERBUNG</p>
+        <h2 id="testAdTitle" data-ad-text="dialogTitle">Simulierte Testwerbung</h2>
+        <p data-ad-text="dialogHint">Keine echte Werbung · Countdown pausiert, wenn du den Tab verlässt.</p>
+        <div class="test-ad-visual" aria-hidden="true">
+          <strong id="testAdCountdown" class="test-ad-countdown">Belohnung in 30 Sekunden</strong>
+        </div>
+        <button id="testAdCancelBtn" class="secondary-btn" type="button" data-ad-text="cancel">Abbrechen</button>
+      </section>
+    </div>
+
+    <main class="shell">
+      <section id="menu" class="menu">
+        <div class="title-block">
+          <p class="eyebrow" data-i18n="menu.eyebrow">Browser Kampfspiel</p>
+          <h1>Neon Bot Arena</h1>
+          <p class="intro" data-i18n="menu.intro">Wähle eine Figur, zerlege Roboterwellen und setze deine Spezialfähigkeit im richtigen Moment ein.</p>
+        </div>
+
+        <section id="companionReward" class="companion-reward hidden" aria-live="polite">
+          <div class="reward-mask" aria-hidden="true"></div>
+          <div>
+            <span class="label" data-i18n="reward.new">Neue Belohnung</span>
+            <strong>Scipios Maske</strong>
+            <p data-i18n="reward.maskDescription">Die Maske verstärkt bei deiner Spezialfähigkeit alle Werte 5 Sekunden lang um 25 %.</p>
+          </div>
+          <div class="reward-actions">
+            <button id="rewardEquipBtn" type="button" data-i18n="reward.equip">Jetzt ausrüsten</button>
+            <button id="rewardCloseBtn" class="secondary-btn" type="button" data-i18n="reward.later">Später</button>
+          </div>
+        </section>
+
+        <div class="device-choice" aria-label="Gerät auswählen">
+          <p data-i18n="menu.device">Womit spielst du?</p>
+          <div>
+            <button class="device-btn selected" data-device="pc">PC</button>
+            <button class="device-btn" data-device="mobile" data-i18n="menu.mobile">Handy</button>
+          </div>
+        </div>
+
+        <div class="difficulty-choice" aria-label="Schwierigkeitsgrad auswählen">
+          <p data-i18n="menu.difficulty">Schwierigkeit</p>
+          <div>
+            <button class="difficulty-btn" data-difficulty="easy">
+              <span data-i18n="menu.easy">Einfach</span>
+              <small data-i18n="menu.easyHint">weniger Gegner, kaum Münzen</small>
+            </button>
+            <button class="difficulty-btn selected" data-difficulty="normal">
+              <span data-i18n="menu.normal">Normal</span>
+              <small data-i18n="menu.normalHint">normale Belohnung</small>
+            </button>
+            <button class="difficulty-btn" data-difficulty="hard">
+              <span data-i18n="menu.hard">Schwer</span>
+              <small data-i18n="menu.hardHint">stärkere Gegner, mehr Münzen</small>
+            </button>
+          </div>
+        </div>
+
+        <label class="name-field">
+          <span data-i18n="menu.playerName">Spielername</span>
+          <input id="playerName" type="text" maxlength="16" placeholder="Dein Name" data-i18n-placeholder="menu.namePlaceholder" autocomplete="nickname" />
+          <small class="name-privacy-hint" data-i18n="menu.namePrivacyHint">Bitte verwende nicht deinen echten Namen.</small>
+        </label>
+
+        <div class="menu-score">
+          <span>Highscore</span>
+          <strong id="menuHighScore">0</strong>
+        </div>
+
+        <div class="menu-score coins-box">
+          <span data-i18n="menu.coins">Münzen</span>
+          <strong id="coinCount">0</strong>
+        </div>
+
+        <div class="test-access-badge">
+          <strong>Testzugang aktiv</strong>
+          <span id="auth-status"></span>
+        </div>
+
+        <div class="multiplayer-test">
+          <div class="multiplayer-row">
+            <button id="multiplayerTestBtn" type="button" data-i18n="multiplayer.testConnection">Verbindung testen</button>
+            <span id="multiplayerStatus" data-state="idle" data-i18n="multiplayer.disconnected">Nicht verbunden</span>
+          </div>
+          <div class="multiplayer-row">
+            <button id="createLobbyBtn" type="button" data-i18n="multiplayer.createLobby">Lobby erstellen</button>
+            <label class="lobby-code-field">
+              <span>Code</span>
+              <input id="lobbyCodeInput" type="text" inputmode="numeric" maxlength="4" placeholder="1234" />
+            </label>
+            <button id="joinLobbyBtn" type="button" data-i18n="multiplayer.join">Beitreten</button>
+          </div>
+          <div class="multiplayer-row">
+            <strong id="lobbyCodeText" data-i18n="multiplayer.noLobby">Keine Lobby</strong>
+            <span id="lobbyPlayersText">0/2 Spieler</span>
+            <button id="leaveLobbyBtn" type="button" data-i18n="multiplayer.leave">Verlassen</button>
+          </div>
+          <div class="multiplayer-row">
+            <button id="coopStartBtn" type="button" data-i18n="multiplayer.startCoop">Koop starten</button>
+            <span id="coopStartText" data-i18n="multiplayer.coopPlayers">Koop: 2 Spieler</span>
+            <button id="endbossBtn" class="endboss-btn hidden" type="button">Endboss</button>
+          </div>
+          <div id="lobbyNames" class="lobby-names" data-i18n="multiplayer.emptyLobby">Noch niemand in der Lobby</div>
+        </div>
+
+        <div class="leaderboard">
+          <div class="leaderboard-title">
+            <span id="leaderboardMode" data-i18n="leaderboard.online">Online Rangliste</span>
+            <label class="leaderboard-filter">
+              <span data-i18n="menu.leaderboard">Rangliste</span>
+              <select id="leaderboardFilter" aria-label="Ranglistenfilter">
+                <option value="all" data-i18n="menu.all">Alle</option>
+                <option value="easy" data-i18n="menu.easy">Einfach</option>
+                <option value="normal" data-i18n="menu.normal">Normal</option>
+                <option value="hard" data-i18n="menu.hard">Schwer</option>
+                <option value="players-2" data-i18n="menu.twoPlayers">2 Spieler</option>
+              </select>
+            </label>
+          </div>
+          <div class="leaderboard-columns">
+            <section class="leaderboard-column">
+              <h3 data-i18n="menu.normal">Normal</h3>
+              <ol id="leaderboardList"></ol>
+            </section>
+            <section class="leaderboard-column chaos-column">
+              <h3 data-i18n="mode.chaos">Chaos</h3>
+              <ol id="chaosLeaderboardList"></ol>
+            </section>
+            <section class="leaderboard-column hardcore-column">
+              <h3 data-i18n="mode.hardcore">Hardcore</h3>
+              <ol id="hardcoreLeaderboardList"></ol>
+            </section>
+          </div>
+        </div>
+
+        <div class="menu-actions">
+          <button id="heroMenuBtn" class="device-btn selected" data-i18n="menu.heroes">Helden</button>
+          <button id="shopMenuBtn" class="device-btn" data-i18n="menu.shop">Shop</button>
+        </div>
+
+        <section id="heroPanel" class="menu-panel">
+          <div id="heroList" class="fighters" aria-label="Figur auswählen"></div>
+          <div id="heroDetails" class="hero-details"></div>
+        </section>
+
+        <section id="shopPanel" class="menu-panel hidden">
+          <div id="shopList" class="shop-list" aria-label="Shop Helden und Begleiter"></div>
+        </section>
+
+        <section id="testPanel" class="test-panel hidden" aria-label="Testpanel">
+          <div class="test-panel-title">
+            <span>Testpanel</span>
+            <strong id="testPanelUser">Aktiv</strong>
+          </div>
+          <div class="test-actions">
+            <button id="testCoinsBtn" type="button">+5.000 Münzen</button>
+            <button id="testMaxCoinsBtn" type="button">50.000 Münzen</button>
+            <button id="testWave10Btn" type="button">Welle 10 starten</button>
+            <button id="testWave20Btn" type="button">Welle 20 starten</button>
+            <button id="testUnlockBtn" type="button">Alle Helden</button>
+            <button id="testMaxHeroBtn" type="button">Held maxen</button>
+            <button id="testHealBtn" type="button">Heilen</button>
+            <button id="testSpecialBtn" type="button">Spezial bereit</button>
+            <button id="testEndbossBtn" type="button">Endboss starten</button>
+            <button id="testSkipWaitsBtn" type="button" aria-pressed="false">Timer-Skip: AUS</button>
+            <button id="openTestLogsBtn" class="test-log-open" type="button">Logs anzeigen</button>
+            <button id="openTestDevtoolsBtn" class="test-devtools-open-button" type="button">Devtools öffnen</button>
+          </div>
+          <div class="test-admin-section">
+            <strong>Debug/Admin</strong>
+            <div class="test-actions">
+              <button id="testGodModeBtn" type="button">Godmode: AUS</button>
+              <button id="testClearThreatsBtn" type="button">Gefahren löschen</button>
+              <button id="testDefeatRobotsBtn" type="button">Gegner besiegen</button>
+              <button id="testScoreBtn" type="button">+100.000 Score</button>
+              <button id="testPickupHealBtn" type="button">Heal spawnen</button>
+              <button id="testPickupDamageBtn" type="button">Damage spawnen</button>
+              <button id="testPickupSpeedBtn" type="button">Speed spawnen</button>
+              <button id="testBlindnessBtn" type="button">Blindheit testen</button>
+              <button id="testCopyStateBtn" type="button">Status kopieren</button>
+            </div>
+            <code id="testDebugStatus" class="test-debug-status">Bereit</code>
+          </div>
+          <p>Testversion: Dieses Panel ist automatisch aktiv. Ergebnisse werden nicht an die Online-Rangliste gesendet.</p>
+        </section>
+
+        <div class="start-actions">
+          <button id="startBtn" class="start-btn" data-i18n="menu.start">Spiel starten</button>
+          <button
+            id="gameModeBtn"
+            class="game-mode-button"
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="gameModeOverlay"
+            aria-expanded="false"
+          >
+            <span data-i18n="mode.change">Modus wechseln</span>
+            <strong id="gameModeButtonLabel">Normal</strong>
+          </button>
+        </div>
+      </section>
+
+      <section id="gamePanel" class="game-panel hidden">
+        <canvas id="game" width="1280" height="720" aria-label="Neon Bot Arena Spielfeld"></canvas>
+        <div class="hud top">
+          <div>
+            <span class="label" data-i18n="hud.hero">Figur</span>
+            <strong id="heroName">Volt Runner</strong>
+          </div>
+          <div>
+            <span class="label" data-i18n="hud.wave">Welle</span>
+            <strong id="wave">1</strong>
+          </div>
+          <div>
+            <span class="label" data-i18n="hud.score">Punkte</span>
+            <strong id="score">0</strong>
+          </div>
+          <div>
+            <span class="label" data-i18n="hud.difficulty">Schwierigkeit</span>
+            <strong id="difficultyHud">Normal</strong>
+          </div>
+          <div id="chaosEventHud" class="chaos-event-hud hidden">
+            <span class="label" data-i18n="chaos.eventLabel">Chaos-Event</span>
+            <strong id="chaosEventText">–</strong>
+            <small id="chaosEventTimer">1:00</small>
+          </div>
+        </div>
+        <div class="hud bars">
+          <div class="bar-wrap">
+            <span data-i18n="hud.health">Leben</span>
+            <div class="bar"><i id="healthBar"></i></div>
+          </div>
+          <div class="bar-wrap">
+            <span data-i18n="hud.special">Spezial</span>
+            <div class="bar special"><i id="specialBar"></i></div>
+          </div>
+        </div>
+        <div class="controls">
+          <span id="moveHint">WASD</span>
+          <span id="aimHint" data-i18n="controls.mouse">Maus</span>
+          <span id="fireHint" data-i18n="controls.click">Klick</span>
+          <span id="specialHint" data-i18n="controls.space">Leertaste</span>
+          <button id="pauseBtn" title="Pause">II</button>
+        </div>
+        <div id="testPanelGame" class="test-panel test-panel-game hidden" aria-label="Testpanel im Spiel">
+          <div class="test-panel-title">
+            <span>Testpanel</span>
+            <strong>Runde</strong>
+          </div>
+          <div class="test-actions">
+            <button id="testGameHealBtn" type="button">Heilen</button>
+            <button id="testGameSpecialBtn" type="button">Spezial bereit</button>
+            <button id="testGameCoinsBtn" type="button">+5.000</button>
+            <button id="testGameWave10Btn" type="button">Welle 10</button>
+            <button id="testGameWave20Btn" type="button">Welle 20</button>
+            <button id="testGameEndbossBtn" type="button">Endboss</button>
+            <button id="testGameBossPhaseBtn" type="button">Bossphase +</button>
+            <button id="testGameBossQuakeBtn" type="button">Erdbeben</button>
+            <button id="testGameBossMaskBtn" type="button">Maskenwurf</button>
+            <button id="testGameBossBatsBtn" type="button">Fledermausschwarm</button>
+            <button id="testGameSkipWaitsBtn" type="button" aria-pressed="false">Timer-Skip: AUS</button>
+          </div>
+          <div class="test-admin-section test-admin-section-game">
+            <strong>Debug</strong>
+            <div class="test-actions">
+              <button id="testGameGodModeBtn" type="button">God: AUS</button>
+              <button id="testGameClearThreatsBtn" type="button">Clear</button>
+              <button id="testGameDefeatRobotsBtn" type="button">Kill</button>
+              <button id="testGameScoreBtn" type="button">+Score</button>
+              <button id="testGamePickupHealBtn" type="button">Heal+</button>
+              <button id="testGameBlindnessBtn" type="button">Blind</button>
+              <button id="testGameCopyStateBtn" type="button">Copy</button>
+              <button id="testGameDevtoolsBtn" type="button">Devtools</button>
+            </div>
+            <code id="testGameDebugStatus" class="test-debug-status">Bereit</code>
+          </div>
+        </div>
+        <div id="touchControls" class="touch-controls hidden" aria-label="Handy Steuerung">
+          <div id="touchStick" class="touch-stick">
+            <i id="touchKnob"></i>
+          </div>
+          <div class="touch-actions">
+            <button id="touchFire" class="touch-fire" data-i18n="controls.fire">Feuer</button>
+            <button id="touchSpecial" class="touch-special" data-i18n="hud.special">Spezial</button>
+          </div>
+        </div>
+        <div id="message" class="message hidden"></div>
+      </section>
+    </main>
+
+    <div id="gameModeOverlay" class="game-mode-overlay hidden">
+      <section class="game-mode-dialog" role="dialog" aria-modal="true" aria-labelledby="gameModeTitle">
+        <header class="game-mode-heading">
+          <div>
+            <p class="eyebrow" data-i18n="mode.change">Modus wechseln</p>
+            <h2 id="gameModeTitle" data-i18n="mode.title">Spielmodus wählen</h2>
+          </div>
+          <button id="gameModeCloseBtn" class="game-mode-close" type="button" data-i18n-aria-label="mode.close">×</button>
+        </header>
+        <div id="gameModeList" class="game-mode-list"></div>
+      </section>
+    </div>
+
+    <div id="testLogOverlay" class="test-log-overlay hidden">
+      <section class="test-log-dialog" role="dialog" aria-modal="true" aria-labelledby="testLogTitle">
+        <header class="test-log-heading">
+          <div>
+            <p>TESTLABOR · NUR LOKAL</p>
+            <h2 id="testLogTitle">Spielprotokoll</h2>
+          </div>
+          <button id="closeTestLogsBtn" class="test-log-close" type="button" aria-label="Logs schließen">×</button>
+        </header>
+        <div class="test-log-toolbar">
+          <span id="testLogSummary">0/500 lokale Ereignisse</span>
+          <div>
+            <button id="downloadTestLogsBtn" type="button">JSON herunterladen</button>
+            <button id="clearTestLogsBtn" class="danger-button" type="button">Logs löschen</button>
+          </div>
+        </div>
+        <p class="test-log-hint">Diese Daten bleiben in diesem Browser, bis du sie löschst. Es werden keine Logs an einen Server übertragen.</p>
+        <div id="testLogList" class="test-log-list" aria-live="polite"></div>
+        <p id="testLogStatus" class="settings-status" aria-live="polite"></p>
+      </section>
+    </div>
+
+    <section id="testDevtoolsDock" class="test-devtools-dock hidden" aria-label="Testlabor Devtools">
+      <header class="test-devtools-header">
+        <div>
+          <p>TESTLABOR DEVTOOLS</p>
+          <strong id="testDevtoolsTitle">Console</strong>
+        </div>
+        <div class="test-devtools-header-actions">
+          <button id="testDevtoolsRefreshBtn" type="button">Aktualisieren</button>
+          <button id="testDevtoolsCopyBtn" type="button">Kopieren</button>
+          <button id="testDevtoolsClearBtn" type="button">Console leeren</button>
+          <button id="testDevtoolsCloseBtn" type="button" aria-label="Devtools schließen">×</button>
+        </div>
+      </header>
+      <nav class="test-devtools-tabs" aria-label="Devtools Bereiche">
+        <button class="selected" type="button" data-devtools-tab="console">Console</button>
+        <button type="button" data-devtools-tab="state">State</button>
+        <button type="button" data-devtools-tab="logs">Logs</button>
+        <button type="button" data-devtools-tab="storage">Storage</button>
+        <button type="button" data-devtools-tab="env">Info</button>
+      </nav>
+      <pre id="testDevtoolsOutput" class="test-devtools-output" aria-live="polite"></pre>
+      <form id="testDevtoolsCommandForm" class="test-devtools-command" autocomplete="off">
+        <span aria-hidden="true">&gt;</span>
+        <input id="testDevtoolsCommandInput" type="text" inputmode="text" spellcheck="false" placeholder="help eingeben ..." aria-label="Devtools Befehl" />
+        <button type="submit">Run</button>
+      </form>
+      <p id="testDevtoolsStatus" class="test-devtools-status" aria-live="polite">Bereit</p>
+    </section>
+
+    <footer class="site-footer">
+      <a href="/datenschutz.html">Datenschutz</a>
+      <a href="/impressum.html">Impressum</a>
+      <a href="../index.html">← Zur Spielebibliothek (Test: ChatGPT)</a>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../../supabase-client.js"></script>
+    <script src="../../test-gate.js?v=1"></script>
+    <script src="../../auth.js?v=3"></script>
+    <script type="module" src="game.js?v=chaos4"></script>
+  </body>
+</html>
