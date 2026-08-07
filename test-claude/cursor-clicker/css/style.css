@@ -20,6 +20,27 @@
   box-sizing: border-box;
 }
 
+/* Mobile-Polish (iPad/iPhone): verhindert Doppeltipp-Zoom (touch-action nimmt
+   zusätzlich die ~300ms Klick-Verzögerung), grauen Tap-Flash, Textmarkierung
+   beim schnellen Tippen und das iOS-Kontextmenü (Callout) auf interaktiven
+   Elementen. Formularfelder bleiben bewusst normal bedienbar (siehe unten). */
+button,
+a,
+.cc-tab,
+.cc-big-cursor {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+input,
+textarea,
+select {
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 button:focus-visible,
 a:focus-visible,
 [tabindex]:focus-visible {

@@ -8,7 +8,14 @@
 //   2. + Level-Bonus:            (Level - 1) × 0,1        [additiv]
 //   3. × Mutationsbonus:         × (1 + Mutation% / 100)   [multiplikativ]
 //   4. × Aura-Faktor:            × (1 + Aura-Bonus)        [multiplikativ]
-//   5. = Klick-Ertrag (am Ende gerundet, mindestens 1)
+//   5. = Klick-Ertrag (bleibt eine Dezimalzahl, NICHT runden — siehe unten)
+//
+// coinsPerClick wird bewusst NIE gerundet: das ist der Wert, der 1:1 in
+// state.coins einfließt (economy.js -> wallet.js#addCoins). Ein Level-Bonus
+// von nur +0,1× oder eine kleine Mutation würde bei früher Rundung (Math.round
+// direkt hier) bei niedrigen Basis-Multiplikatoren sonst spurlos verschwinden
+// (z.B. 1,08 -> 1, exakt wie ein unveränderter 1,0×-Cursor). Anzeige-Rundung
+// passiert ausschließlich in ui/format.js#formatCoinsPerClick.
 import { state } from "./state.js";
 import { events } from "./events.js";
 import { getCursor } from "../data/cursors.js";
@@ -39,6 +46,7 @@ function emptyLoadout() {
     effectiveMultiplier: 1,
     coinsPerClick: BASE_COINS_PER_CLICK,
     visualClasses: [],
+    cosmeticClass: null,
     particle: null,
   };
 }
@@ -69,10 +77,15 @@ export function getEquippedLoadout() {
   const afterLevel = base + levelBonus;
   const afterMutation = afterLevel * (1 + mutationBonusPercent / 100);
   const afterAura = afterMutation * auraFactor;
-  const coinsPerClick = Math.max(1, Math.round(BASE_COINS_PER_CLICK * afterAura));
+  const coinsPerClick = Math.max(0.01, BASE_COINS_PER_CLICK * afterAura);
 
+  // Mutation-Klassen gehören auf den Cursor-Glyphen selbst (Fusion verändert
+  // den Cursor). Cosmetic-Klassen gehören auf den Kreis/Button drumherum
+  // (Cosmetics = Hintergrund/Rahmen der UI, siehe mainPanel.js) — bewusst
+  // getrennte Felder, damit sich beide Systeme nie optisch vermischen.
   const cosmetic = getCosmetic(state.equippedCosmeticId);
-  const visualClasses = [majorMutation?.visualClass, minorMutation?.visualClass, cosmetic?.cssClass].filter(Boolean);
+  const visualClasses = [majorMutation?.visualClass, minorMutation?.visualClass].filter(Boolean);
+  const cosmeticClass = cosmetic?.cssClass || null;
   const particle = majorMutation?.particle || minorMutation?.particle || null;
 
   const breakdown = { base, levelBonus, afterLevel, mutationBonusPercent, afterMutation, auraFactor, afterAura };
@@ -89,6 +102,7 @@ export function getEquippedLoadout() {
     effectiveMultiplier: afterAura,
     coinsPerClick,
     visualClasses,
+    cosmeticClass,
     particle,
   };
 }

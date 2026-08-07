@@ -2,7 +2,7 @@
 // (Ergebnistyp + welche Mutation) einsehen, Fusion starten oder abbrechen.
 import { getCursor } from "../data/cursors.js";
 import { getRarity } from "../data/rarities.js";
-import { getMutation } from "../data/mutations.js";
+import { getMutation, getMutationBonusParts } from "../data/mutations.js";
 import { getFusableCursorIds, getFusionCost, getDuplicateCount, getFusionOddsPreview, performFusion } from "../core/fusion.js";
 import { checkAchievements } from "../core/achievements.js";
 import { getCursorMaterial } from "../data/cursorMaterials.js";
@@ -52,8 +52,15 @@ function renderDetail() {
   const odds = getFusionOddsPreview(selectedCursorId);
 
   const outcomeRows = odds.outcome.map((row) => ({ label: OUTCOME_LABELS[row.key] || row.key, percent: row.percent, color: OUTCOME_COLORS[row.key] }));
-  const majorRows = odds.major.map((row) => ({ label: getMutation(row.key).name, percent: row.percent, color: getMutation(row.key).color }));
-  const minorRows = odds.minor.map((row) => ({ label: getMutation(row.key).name, percent: row.percent, color: getMutation(row.key).color }));
+  // Zeigt direkt in der Odds-Vorschau, welchen echten Bonus jede mögliche
+  // Mutation bringt — vor der Fusion soll klar sein, dass JEDES Ergebnis einen
+  // Gameplay-Vorteil hat, nicht erst nach dem Würfeln im Reveal-Modal.
+  const toBonusRow = (row) => {
+    const mutation = getMutation(row.key);
+    return { label: mutation.name, percent: row.percent, color: mutation.color, subtitle: getMutationBonusParts(mutation).join(", ") };
+  };
+  const majorRows = odds.major.map(toBonusRow);
+  const minorRows = odds.minor.map(toBonusRow);
 
   detailPanel.innerHTML =
     '<div class="cc-fusion-detail-head">' +

@@ -12,7 +12,6 @@ export const AURAS = [
     rarity: "common",
     clickBonus: 0.1,
     description: "Ein schwacher, warmer Schimmer. Bescheiden, aber ein Anfang.",
-    ringCount: 1,
     visualClass: "aura-ember",
   },
   {
@@ -20,8 +19,7 @@ export const AURAS = [
     name: "Frost Aura",
     rarity: "uncommon",
     clickBonus: 0.2,
-    description: "Ein kühler, klarer Ring aus feinem Frost.",
-    ringCount: 1,
+    description: "Feiner Frost — Schneeflocken treiben sacht nach unten.",
     visualClass: "aura-frost",
   },
   {
@@ -29,8 +27,7 @@ export const AURAS = [
     name: "Verdant Aura",
     rarity: "rare",
     clickBonus: 0.35,
-    description: "Zwei sich langsam drehende Ringe aus lebendigem Grün.",
-    ringCount: 2,
+    description: "Blätter und Pollen umkreisen den Cursor in sanftem Grün.",
     visualClass: "aura-verdant",
   },
   {
@@ -38,8 +35,7 @@ export const AURAS = [
     name: "Storm Aura",
     rarity: "epic",
     clickBonus: 0.55,
-    description: "Elektrisch geladene Ringe mit kurzen Blitzimpulsen.",
-    ringCount: 2,
+    description: "Kurze Blitze zucken um den Cursor, elektrisch aufgeladen.",
     visualClass: "aura-storm",
   },
   {
@@ -48,7 +44,6 @@ export const AURAS = [
     rarity: "legendary",
     clickBonus: 0.75,
     description: "Goldene Lichtstrahlen und funkelnde Partikel um den Cursor.",
-    ringCount: 3,
     visualClass: "aura-radiant",
   },
   {
@@ -57,7 +52,6 @@ export const AURAS = [
     rarity: "mythic",
     clickBonus: 1.0,
     description: "Ein kosmischer Wirbel aus Sternenstaub und tiefem Violett.",
-    ringCount: 3,
     visualClass: "aura-nebula",
   },
   {
@@ -65,8 +59,7 @@ export const AURAS = [
     name: "Voidstorm Aura",
     rarity: "secret",
     clickBonus: 1.5,
-    description: "Die seltenste Aura. Gegenläufige Ringe, dunkle Energie, ständige Partikelausbrüche.",
-    ringCount: 4,
+    description: "Die seltenste Aura. Dunkle Energie, schwarze Fragmente, violette Blitze.",
     visualClass: "aura-voidstorm",
   },
 ];

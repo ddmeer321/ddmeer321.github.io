@@ -1,5 +1,6 @@
 // Freischalt-/Equip-Logik für Cosmetics. Rein visuell, siehe data/cosmetics.js
-// und loadout.js (dort fließt das equippedCosmeticId in visualClasses ein).
+// und loadout.js (dort liefert equippedCosmeticId das separate cosmeticClass-
+// Feld — bewusst getrennt von visualClasses/Mutation, siehe dortiger Kommentar).
 import { state } from "./state.js";
 import { events } from "./events.js";
 import { COSMETICS, getCosmetic } from "../data/cosmetics.js";

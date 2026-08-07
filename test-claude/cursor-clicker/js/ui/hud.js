@@ -6,11 +6,11 @@ import { getEquippedLoadout } from "../core/loadout.js";
 import { getEquippedAura } from "../core/auras.js";
 import { getUniqueCursorsDrawn, getTotalCursorCatalogSize } from "../core/stats.js";
 import { canClaimDailyReward } from "../core/dailyReward.js";
-import { formatNumber } from "./format.js";
+import { formatNumber, formatCoinsPerClick } from "./format.js";
 
 export function renderHud() {
   document.getElementById("hud-coins").textContent = formatNumber(state.coins);
-  document.getElementById("hud-cpc").textContent = formatNumber(getCoinsPerClick());
+  document.getElementById("hud-cpc").textContent = formatCoinsPerClick(getCoinsPerClick());
 
   const loadout = getEquippedLoadout();
   const equippedEl = document.getElementById("hud-equipped");

@@ -1,7 +1,9 @@
 // Mutationskatalog für die Fusion (siehe core/fusion.js). Jede Mutation gehört zu
-// einer Stufe (major/minor) und trägt ihre eigenen Effekte — rein kosmetische
-// Mutationen sind bewusst dabei (effects mit lauter 0-Boni, aber eigener Optik).
-// Neue Mutationen = neuer Eintrag hier, kein Code an anderer Stelle nötig.
+// einer Stufe (major/minor) und trägt ihre eigenen Effekte. Jede Fusion MUSS
+// einen echten Gameplay-Vorteil geben (Multiplikator, Coins oder Fusionschance)
+// — rein kosmetische Mutationen (0-Boni überall) sind bewusst NICHT erlaubt,
+// das ist Aufgabe von Auren/Cosmetics. Neue Mutationen = neuer Eintrag hier,
+// kein Code an anderer Stelle nötig.
 
 export const MUTATION_TIERS = ["minor", "major"];
 
@@ -48,8 +50,8 @@ export const MUTATIONS = [
     weight: 20,
     spectacular: false,
     color: "#bfe7ff",
-    description: "Rein kosmetisch: ein fein vereister Cursor mit kaltem Schimmer.",
-    effects: { multiplierBonusPercent: 0, coinBonusPercent: 0, dropChanceBonusPercent: 0 },
+    description: "Ein fein vereister Cursor — die Kälte schärft jeden Klick spürbar.",
+    effects: { multiplierBonusPercent: 8, coinBonusPercent: 0, dropChanceBonusPercent: 0 },
     visualClass: "mut-frozen",
     particle: "frozen",
     sound: "frost",
@@ -61,8 +63,8 @@ export const MUTATIONS = [
     weight: 16,
     spectacular: false,
     color: "#84cc16",
-    description: "Rein kosmetisch: ein leicht giftgrün leuchtender Cursor.",
-    effects: { multiplierBonusPercent: 0, coinBonusPercent: 0, dropChanceBonusPercent: 0 },
+    description: "Giftgrün leuchtend — sickert spürbar mehr Wert in jeden Klick.",
+    effects: { multiplierBonusPercent: 0, coinBonusPercent: 10, dropChanceBonusPercent: 0 },
     visualClass: "mut-toxic",
     particle: "toxic",
     sound: "toxic",
@@ -74,8 +76,8 @@ export const MUTATIONS = [
     weight: 8,
     spectacular: false,
     color: "#f8fafc",
-    description: "Rein kosmetisch: seltener funkelnder Schimmer über dem ganzen Cursor.",
-    effects: { multiplierBonusPercent: 0, coinBonusPercent: 0, dropChanceBonusPercent: 0 },
+    description: "Die seltenste Minor-Mutation — funkelnder Schimmer mit dem stärksten Minor-Bonus.",
+    effects: { multiplierBonusPercent: 14, coinBonusPercent: 0, dropChanceBonusPercent: 0 },
     visualClass: "mut-shiny",
     particle: "shiny",
     sound: "shiny",
@@ -154,6 +156,21 @@ const BY_TIER = new Map(MUTATION_TIERS.map((tier) => [tier, MUTATIONS.filter((m)
 
 export function getMutation(id) {
   return id ? BY_ID.get(id) || null : null;
+}
+
+// Einzige Stelle, die Mutation-Boni in Anzeige-Text übersetzt (inventoryPanel.js
+// und modals.js nutzen dies statt jeweils eigene, potenziell abweichende
+// Berechnungen zu pflegen — genau das hätte vorher dazu geführt, dass eine
+// Lucky-Fusion im Reveal-Modal fälschlich als "rein kosmetisch" auftauchte,
+// obwohl ihr Fusionschance-Bonus real ist). Berücksichtigt bewusst ALLE drei
+// Effekt-Felder, nicht nur Multiplikator/Coins.
+export function getMutationBonusParts(mutation) {
+  if (!mutation) return [];
+  const parts = [];
+  if (mutation.effects.multiplierBonusPercent) parts.push("+" + mutation.effects.multiplierBonusPercent + "% Multiplikator");
+  if (mutation.effects.coinBonusPercent) parts.push("+" + mutation.effects.coinBonusPercent + "% Coins");
+  if (mutation.effects.dropChanceBonusPercent) parts.push("+" + mutation.effects.dropChanceBonusPercent + "% Fusionschance");
+  return parts;
 }
 
 export function getMutationsByTier(tier) {

@@ -4,7 +4,7 @@
 import { state } from "../core/state.js";
 import { getCursor } from "../data/cursors.js";
 import { getRarity } from "../data/rarities.js";
-import { getMutation } from "../data/mutations.js";
+import { getMutation, getMutationBonusParts } from "../data/mutations.js";
 import { toggleFavorite } from "../core/economy.js";
 import { equipCursor, isEquipped } from "../core/loadout.js";
 import { getCursorLevel, getLevelBonusMultiplier, isMaxLevel, getUpgradeCost, canUpgrade, upgradeCursor, MAX_LEVEL, LEVEL_BONUS_PER_LEVEL } from "../core/upgrades.js";
@@ -15,10 +15,7 @@ import { formatNumber, formatMultiplier } from "./format.js";
 
 function mutationBonusLabel(mutation) {
   if (!mutation) return "";
-  const parts = [];
-  if (mutation.effects.multiplierBonusPercent) parts.push("+" + mutation.effects.multiplierBonusPercent + "% Multiplikator");
-  if (mutation.effects.coinBonusPercent) parts.push("+" + mutation.effects.coinBonusPercent + "% Coins");
-  if (mutation.effects.dropChanceBonusPercent) parts.push("+" + mutation.effects.dropChanceBonusPercent + "% Fusionschance");
+  const parts = getMutationBonusParts(mutation);
   return parts.length ? mutation.name + ": " + parts.join(", ") : mutation.name + ": rein kosmetisch";
 }
 

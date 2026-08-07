@@ -13,8 +13,11 @@ function renderCard({ id, name, description, cssClass }) {
 
   const card = document.createElement("div");
   card.className = "cc-cosmetic-card" + (unlocked ? "" : " cc-cosmetic-locked") + (equipped ? " cc-cosmetic-equipped" : "");
+  // Cosmetic = Hintergrund/Rahmen des Kreises (siehe mutations-cosmetics.css),
+  // die Klasse gehört deshalb auf den Vorschau-Kreis selbst, nicht in den Glyphen.
+  const previewClass = "cc-cosmetic-preview" + (unlocked && cssClass ? " " + cssClass : "");
   card.innerHTML =
-    '<div class="cc-cosmetic-preview">' + renderCursorGlyph({ color: "#7c5cff", extraClasses: unlocked && cssClass ? [cssClass] : [] }) + "</div>" +
+    '<div class="' + previewClass + '">' + renderCursorGlyph({ color: "#7c5cff" }) + "</div>" +
     "<h3>" + name + "</h3>" +
     '<p class="cc-cosmetic-desc">' + description + "</p>" +
     (unlocked
