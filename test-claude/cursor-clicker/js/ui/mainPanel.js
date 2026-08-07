@@ -21,6 +21,8 @@ let comboPill;
 let comboValue;
 let comboCount = 0;
 let comboResetTimer = null;
+let lastRenderedAuraId; // undefined bis zum ersten Render, damit dieses immer läuft
+let lastCosmeticClass = null;
 
 const COMBO_RESET_MS = 1600;
 
@@ -58,7 +60,27 @@ export function updateEquippedVisual() {
     color: rarity ? rarity.color : "#7c5cff",
     extraClasses: loadout.visualClasses,
   });
-  auraLayerSlot.innerHTML = renderAuraLayer(getEquippedAura());
+
+  // Cosmetic = Hintergrund/Rahmen des Kreises, nicht des Glyphen — Klasse
+  // sitzt direkt auf dem Button (siehe mutations-cosmetics.css).
+  if (loadout.cosmeticClass !== lastCosmeticClass) {
+    if (lastCosmeticClass) button.classList.remove(lastCosmeticClass);
+    if (loadout.cosmeticClass) button.classList.add(loadout.cosmeticClass);
+    lastCosmeticClass = loadout.cosmeticClass;
+  }
+
+  // Der Aura-Layer arbeitet mit dauerhaft laufenden CSS-Animationen (Partikel
+  // treiben/umkreisen/blitzen). updateEquippedVisual() läuft bei JEDER
+  // state:changed-Änderung, also auch bei jedem Klick — ohne dieses Caching
+  // würde der Layer bei jedem Klick neu erzeugt und alle Animationen sprången
+  // zurück auf Frame 0 ("Sägezahn"-Ruckeln). Nur neu rendern, wenn sich die
+  // ausgerüstete Aura tatsächlich geändert hat.
+  const aura = getEquippedAura();
+  const auraId = aura ? aura.id : null;
+  if (auraId !== lastRenderedAuraId) {
+    auraLayerSlot.innerHTML = renderAuraLayer(aura);
+    lastRenderedAuraId = auraId;
+  }
 
   button.style.setProperty("--equipped-glow", rarity ? rarity.glow : "rgba(124,92,255,0.55)");
   button.style.setProperty("--equipped-color", rarity ? rarity.color : "#7c5cff");

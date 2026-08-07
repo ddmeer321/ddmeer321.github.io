@@ -1,15 +1,15 @@
-/* Cursor Clicker — Aura-Visuals: großflächige Ringe/Partikel HINTER dem Cursor
-   (siehe js/ui/auraGlyph.js). Seltenere Auren bekommen mehr Ringe und mehr
-   Partikel, aber nie ein Element, das den Cursor selbst verdeckt.
+/* Cursor Clicker — Aura-Visuals. Aura = Umgebungs-Effekt: jede Aura hat eine
+   eigene Partikel-Identität (siehe js/ui/auraGlyph.js für die Rezepte je
+   Aura), keine gestapelten gleich aussehenden Ringe. Alles liegt HINTER dem
+   Cursor (siehe Layering-Kommentar in panels.css) und darf ihn nie verdecken.
+
    Layering in .cc-click-stage (siehe panels.css), niedrig nach hoch:
-     1 = Aura (Ringe + Partikel, dieses File)
-     2 = Cursor-Button (.cc-big-cursor; Mutation-Effekt/Cosmetic-Details sind
-         ::before/::after bzw. .cc-cosmetic-deco INNERHALB dieser Ebene, siehe
-         mutations-cosmetics.css)
+     1 = Aura (dieses File)
+     2 = Cursor-Button (.cc-big-cursor; Mutation-Effekt liegt als ::before/
+         ::after INNERHALB dieser Ebene, Cosmetic-Hintergrund ebenfalls
+         direkt auf .cc-big-cursor, siehe mutations-cosmetics.css)
      3 = Klick-Burst/Coin-Zahl (.cc-float-layer, siehe effectRenderer.js)
-     4 = Klickserie-Anzeige (.cc-combo-pill)
-   Restliche Interface-Ebenen (Tabs, Modals, HUD) liegen außerhalb von
-   .cc-click-stage und damit außerhalb dieser Vergleichsgruppe. */
+     4 = Klickserie-Anzeige (.cc-combo-pill) */
 
 .cc-aura-layer {
   position: absolute;
@@ -22,104 +22,241 @@
   z-index: 1;
 }
 
-.cc-aura-ring {
+/* Muss exakt mit der Tablet-Vergrößerung von .cc-big-cursor in panels.css
+   mitwachsen, sonst wirkt die Aura auf einmal zu klein relativ zum Cursor. */
+@media (min-width: 600px) and (max-width: 1024px) {
+  .cc-aura-layer {
+    width: clamp(220px, 38vw, 320px);
+    height: clamp(220px, 38vw, 320px);
+  }
+}
+
+/* Sehr weicher, kleiner Anker-Schimmer — kein harter Ring, nur ein dezenter
+   Hinweis darauf, dass die Aura hier "entspringt". Bleibt klar kleiner als
+   der Cursor selbst, verdeckt ihn nie. */
+.cc-aura-anchor {
   position: absolute;
   inset: 0;
   margin: auto;
+  width: 68%;
+  height: 68%;
   border-radius: 50%;
-  border: 2px solid var(--aura-color, transparent);
-  opacity: 0.5;
+  background: radial-gradient(circle, color-mix(in srgb, var(--aura-color, transparent) 68%, transparent) 0%, transparent 75%);
+  filter: blur(1px);
+  animation: cc-aura-anchor-pulse 3.2s ease-in-out infinite;
 }
 
-.cc-aura-ring-1 { width: 108%; height: 108%; animation: cc-aura-spin 7s linear infinite; }
-.cc-aura-ring-2 { width: 138%; height: 138%; animation: cc-aura-spin 10s linear infinite reverse; }
-.cc-aura-ring-3 { width: 168%; height: 168%; animation: cc-aura-spin 14s linear infinite; }
-.cc-aura-ring-4 { width: 198%; height: 198%; animation: cc-aura-spin 8s linear infinite reverse; }
+@keyframes cc-aura-anchor-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.75; }
+}
 
-@keyframes cc-aura-spin {
+/* Seltenheit macht sich in der Präsenz bemerkbar, nicht in mehr Ringen (siehe
+   Datei-Kopf) — legendär+ fällt sofort ins Auge, Secret (Voidstorm) wirkt
+   spürbar beeindruckender als alles andere. */
+.aura-radiant .cc-aura-anchor {
+  width: 76%;
+  height: 76%;
+}
+.aura-nebula .cc-aura-anchor {
+  width: 82%;
+  height: 82%;
+}
+.aura-voidstorm .cc-aura-anchor {
+  width: 92%;
+  height: 92%;
+  filter: blur(0.5px) brightness(1.25);
+}
+@keyframes cc-aura-anchor-pulse-strong {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+.aura-radiant .cc-aura-anchor,
+.aura-nebula .cc-aura-anchor,
+.aura-voidstorm .cc-aura-anchor {
+  animation: cc-aura-anchor-pulse-strong 2.6s ease-in-out infinite;
+}
+
+/* ---------- Primitive (von auraGlyph.js je Aura kombiniert) ---------- */
+
+.cc-aura-p-rise {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size, 5px);
+  height: var(--size, 5px);
+  border-radius: 50%;
+  background: var(--color);
+  box-shadow: 0 0 6px var(--color);
+  animation: cc-aura-rise var(--duration, 2.8s) ease-in var(--delay, 0s) infinite;
+}
+@keyframes cc-aura-rise {
+  0% { transform: translate(calc(-50% + var(--x, 0px)), 36px) scale(0.5); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 0.85; }
+  100% { transform: translate(calc(-50% + var(--x, 0px) * 1.3), -62px) scale(1); opacity: 0; }
+}
+
+.cc-aura-p-fall {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size, 6px);
+  height: var(--size, 6px);
+  clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
+  background: var(--color);
+  opacity: 0;
+  animation: cc-aura-fall var(--duration, 3.6s) linear var(--delay, 0s) infinite;
+}
+@keyframes cc-aura-fall {
+  0% { transform: translate(calc(-50% + var(--x, 0px)), -58px) rotate(0deg); opacity: 0; }
+  18% { opacity: 0.9; }
+  82% { opacity: 0.8; }
+  100% { transform: translate(calc(-50% + var(--x, 0px) * -1), 58px) rotate(160deg); opacity: 0; }
+}
+
+.cc-aura-p-orbit-spoke {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  animation: cc-aura-orbit-spin var(--duration, 7s) linear var(--delay, 0s) infinite;
+  animation-direction: var(--direction, normal);
+}
+@keyframes cc-aura-orbit-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-.cc-aura-particles {
+.cc-aura-p-orbit-dot {
   position: absolute;
-  inset: -30%;
+  left: 0;
+  top: 0;
+  width: var(--size, 6px);
+  height: var(--size, 6px);
   border-radius: 50%;
-  pointer-events: none;
-  background-repeat: no-repeat;
-  animation: cc-aura-twinkle 2.4s ease-in-out infinite;
+  background: var(--color);
+  box-shadow: 0 0 5px var(--color);
+  transform: translate(var(--radius, 55px), -50%);
 }
 
-@keyframes cc-aura-twinkle {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.9; }
+.cc-aura-p-leaf {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--size, 6px) * 1.7);
+  height: var(--size, 6px);
+  background: var(--color);
+  border-radius: 60% 15% 60% 15%;
+  box-shadow: 0 0 4px var(--color);
+  transform: translate(var(--radius, 55px), -50%) rotate(28deg);
 }
 
-@keyframes cc-aura-pulse {
-  0%, 100% { opacity: 0.4; }
+.cc-aura-p-shard {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
+  background: var(--color);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  transform: translate(var(--radius, 55px), -50%) rotate(20deg);
+  opacity: 0.92;
+}
+
+.cc-aura-p-flash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size, 15px);
+  height: calc(var(--size, 15px) * 2.2);
+  background: var(--color);
+  clip-path: polygon(45% 0%, 20% 55%, 42% 55%, 15% 100%, 85% 40%, 55% 40%, 75% 0%);
+  filter: drop-shadow(0 0 4px var(--color));
+  transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 0px)));
+  opacity: 0;
+  animation: cc-aura-flash var(--duration, 2.6s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes cc-aura-flash {
+  0%, 84%, 100% { opacity: 0; }
+  86% { opacity: 1; }
+  89% { opacity: 0.2; }
+  91% { opacity: 0.9; }
+  94% { opacity: 0; }
+}
+
+.cc-aura-p-beam-group {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  animation: cc-aura-orbit-spin var(--duration, 22s) linear infinite;
+}
+.cc-aura-p-beam {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: var(--length, 50px);
+  background: linear-gradient(to top, transparent, var(--color));
+  transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--length, 50px)));
+  transform-origin: 50% 100%;
+  opacity: 0.5;
+  animation: cc-aura-beam-pulse 2.6s ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes cc-aura-beam-pulse {
+  0%, 100% { opacity: 0.3; }
   50% { opacity: 0.75; }
 }
 
-/* Ember (common) — ein schwacher, ruhiger Ring. */
-.aura-ember .cc-aura-ring { border-width: 1.5px; box-shadow: 0 0 10px var(--aura-color); }
-
-/* Frost (uncommon) — etwas klarer, leichter Glanz. */
-.aura-frost .cc-aura-ring { box-shadow: 0 0 14px var(--aura-color); }
-
-/* Verdant (rare) — zwei Ringe, organisch pulsierend. */
-.aura-verdant .cc-aura-ring { box-shadow: 0 0 16px var(--aura-color); animation-duration: 9s; }
-.aura-verdant .cc-aura-ring-2 { animation: cc-aura-spin 12s linear infinite reverse, cc-aura-pulse 3s ease-in-out infinite; }
-
-/* Storm (epic) — gestrichelte, "elektrische" Ringe. */
-.aura-storm .cc-aura-ring { border-style: dashed; box-shadow: 0 0 18px var(--aura-color); }
-.aura-storm .cc-aura-ring-1 { animation-duration: 3.5s; }
-
-/* Radiant (legendary) — drei Ringe, Partikel aktiv, deutlich heller. */
-.aura-radiant .cc-aura-ring { box-shadow: 0 0 22px var(--aura-color); }
-.aura-radiant .cc-aura-particles {
-  background-image:
-    radial-gradient(circle, #fff 1.4px, transparent 1.8px),
-    radial-gradient(circle, #fff 1.4px, transparent 1.8px),
-    radial-gradient(circle, #fff 1.4px, transparent 1.8px);
-  background-size: 30% 30%, 22% 22%, 26% 26%;
-  background-position: 10% 20%, 85% 30%, 30% 85%;
+.cc-aura-p-fog {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size, 60px);
+  height: var(--size, 60px);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color) 0%, transparent 72%);
+  filter: blur(3px);
+  animation: cc-aura-fog-drift var(--duration, 7s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes cc-aura-fog-drift {
+  0%, 100% { transform: translate(calc(-50% + var(--x1, 0px)), calc(-50% + var(--y1, 0px))) scale(0.9); opacity: 0.3; }
+  50% { transform: translate(calc(-50% + var(--x2, 0px)), calc(-50% + var(--y2, 0px))) scale(1.15); opacity: 0.55; }
 }
 
-/* Nebula (mythic) — drei Ringe unterschiedlicher Geschwindigkeit + Sternenstaub. */
-.aura-nebula .cc-aura-ring { box-shadow: 0 0 26px var(--aura-color); }
-.aura-nebula .cc-aura-particles {
-  background-image:
-    radial-gradient(circle, #e9d5ff 1.6px, transparent 2px),
-    radial-gradient(circle, #f5f3ff 1.2px, transparent 1.6px),
-    radial-gradient(circle, #e9d5ff 1.6px, transparent 2px),
-    radial-gradient(circle, #f5f3ff 1.2px, transparent 1.6px);
-  background-size: 20% 20%, 16% 16%, 24% 24%, 18% 18%;
-  background-position: 12% 15%, 80% 22%, 25% 82%, 78% 78%;
+.cc-aura-p-star {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size, 5px);
+  height: var(--size, 5px);
+  background: var(--color);
+  clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
+  animation: cc-aura-twinkle var(--duration, 2s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes cc-aura-twinkle {
+  0%, 100% { opacity: 0.15; transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 0px))) scale(0.7); }
+  50% { opacity: 1; transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 0px))) scale(1.1); }
 }
 
-/* Voidstorm (secret) — vier gegenläufige Ringe, dichte Partikel, deutlich
-   spektakulärer als alle anderen Stufen. */
-.aura-voidstorm .cc-aura-ring { border-width: 2.5px; box-shadow: 0 0 30px var(--aura-color); }
-.aura-voidstorm .cc-aura-ring-1 { animation-duration: 4s; }
-.aura-voidstorm .cc-aura-ring-3 { animation-duration: 6s; }
-.aura-voidstorm .cc-aura-particles {
-  background-image:
-    radial-gradient(circle, #d8b4fe 1.8px, transparent 2.2px),
-    radial-gradient(circle, #a855f7 1.4px, transparent 1.8px),
-    radial-gradient(circle, #d8b4fe 1.8px, transparent 2.2px),
-    radial-gradient(circle, #a855f7 1.4px, transparent 1.8px),
-    radial-gradient(circle, #f3e8ff 1.2px, transparent 1.6px);
-  background-size: 18% 18%, 14% 14%, 22% 22%, 16% 16%, 12% 12%;
-  background-position: 10% 12%, 82% 18%, 22% 84%, 76% 80%, 50% 6%;
-  animation-duration: 1.6s;
-}
-
-body.cc-no-animations .cc-aura-ring,
-body.cc-no-animations .cc-aura-particles {
+body.cc-no-animations .cc-aura-anchor,
+body.cc-no-animations .cc-aura-p-rise,
+body.cc-no-animations .cc-aura-p-fall,
+body.cc-no-animations .cc-aura-p-orbit-spoke,
+body.cc-no-animations .cc-aura-p-flash,
+body.cc-no-animations .cc-aura-p-beam-group,
+body.cc-no-animations .cc-aura-p-beam,
+body.cc-no-animations .cc-aura-p-fog,
+body.cc-no-animations .cc-aura-p-star {
   animation: none !important;
 }
 
-/* Kompakte Vorschau-Größe für Aura-Inventar-Karten. */
+/* Kompakte Vorschau-Größe für Aura-Karten/Reveal-Modal. Die Partikel-Rezepte
+   sind für die große Klick-Bühne bemessen — hier einfach als Ganzes
+   herunterskalieren statt eine zweite Größentabelle zu pflegen. */
 .cc-aura-preview {
   position: relative;
   width: 84px;
@@ -129,8 +266,9 @@ body.cc-no-animations .cc-aura-particles {
   place-items: center;
 }
 .cc-aura-preview .cc-aura-layer {
-  width: 100%;
-  height: 100%;
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, -50%) scale(0.32);
 }
 .cc-aura-preview-glyph {
   width: 40%;

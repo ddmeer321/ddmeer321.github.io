@@ -2,7 +2,9 @@
 // klar als Mauszeiger erkennbar bleibt — kein Emoji, kein Gegenstand über dem
 // Cursor. Individualität kommt aus Material (Farbverlauf), Textur-Akzenten
 // und Glow INNERHALB der Pfeilform (siehe data/cursorMaterials.js), plus
-// Mutations-/Cosmetic-Overlay-Klassen (mutations-cosmetics.css).
+// Mutations-Overlay-Klassen (mutations-cosmetics.css). Cosmetics fassen den
+// Glyphen NICHT an — die sitzen als Hintergrund/Rahmen auf dem Kreis drumherum
+// (siehe mainPanel.js/cosmeticsPanel.js), nicht hier.
 const POINTER_PATH = "M12 6 L12 78 L30 62 L42 88 L54 82 L40 58 L64 58 Z";
 
 // Jede Instanz braucht eindeutige <defs>-IDs, sonst kollidieren mehrere
@@ -66,18 +68,11 @@ export function renderCursorGlyph({ cursor = null, color = "#7c5cff", extraClass
   const classAttr = ["cc-cursor-glyph", ...extraClasses].filter(Boolean).join(" ");
   const glowColor = mat?.glow || (color + "aa");
 
-  // Eigenes Element statt ::after für Cosmetics: Mutationen belegen ::before (Glow)
-  // und teils ::after (Frozen-/Shiny-Schimmer). Würden Cosmetics ebenfalls ::after
-  // nutzen, überschreibt die zuletzt kaskadierte Regel die andere vollständig statt
-  // beide gleichzeitig darzustellen. Ein echtes Kind-Element umgeht diesen Konflikt.
-  const cosmeticDeco = `<span class="cc-cosmetic-deco" aria-hidden="true"></span>`;
-
   if (!mat) {
     // Neutrale Darstellung (kein Cursor ausgerüstet / generische Vorschau z.B. bei Cosmetics).
     return (
       `<span class="${classAttr}" style="--glyph-color:${color};--glyph-glow:${glowColor}">` +
       `<svg viewBox="0 0 100 100" class="cc-cursor-svg" aria-hidden="true"><path d="${POINTER_PATH}"></path></svg>` +
-      cosmeticDeco +
       `</span>`
     );
   }
@@ -104,7 +99,6 @@ export function renderCursorGlyph({ cursor = null, color = "#7c5cff", extraClass
     `<path d="${POINTER_PATH}" fill="${pathFill}"${fillOpacity}${pathStroke}></path>` +
     `<g clip-path="url(#${clipId})">${accentMarkup}</g>` +
     `</svg>` +
-    cosmeticDeco +
     `</span>`
   );
 }

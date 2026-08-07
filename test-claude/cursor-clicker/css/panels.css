@@ -94,6 +94,17 @@
   box-shadow: 0 0 80px var(--equipped-glow), inset 0 0 40px rgba(255, 255, 255, 0.06);
 }
 
+/* Tablets haben deutlich mehr Platz als Handys, aber die 260px-Obergrenze
+   greift dort genauso wie am Desktop — der Cursor wirkt kleiner, als der
+   Bildschirm hergibt. Eigene, größere Stufe nur für den Tablet-Bereich
+   (die Aura-Ebene skaliert in auras.css identisch mit, sonst wirkt sie zu klein). */
+@media (min-width: 600px) and (max-width: 1024px) {
+  .cc-big-cursor {
+    width: clamp(220px, 38vw, 320px);
+    height: clamp(220px, 38vw, 320px);
+  }
+}
+
 #big-cursor-icon {
   display: block;
   width: 68%;
@@ -192,7 +203,7 @@
 
 .cc-odds-row {
   display: grid;
-  grid-template-columns: 78px 1fr 44px;
+  grid-template-columns: minmax(78px, 128px) 1fr 44px;
   align-items: center;
   gap: 8px;
   font-size: 0.68rem;
@@ -201,9 +212,21 @@
 .cc-odds-label {
   font-weight: 800;
   text-align: left;
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* Nur bei Fusion belegt (siehe fusionPanel.js): zeigt den echten Bonus jeder
+   möglichen Mutation direkt in der Odds-Vorschau, nicht erst nach dem Würfeln. */
+.cc-odds-subtitle {
+  font-weight: 600;
+  font-size: 0.85em;
+  color: var(--muted);
+  white-space: normal;
 }
 
 .cc-odds-bar {
@@ -546,10 +569,18 @@
   box-shadow: 0 0 18px rgba(34, 211, 238, 0.2);
 }
 
+/* Mini-Kreis, dieselbe optische Sprache wie .cc-big-cursor — Cosmetics
+   zeigen hier direkt, wie sie den Kreis verändern (siehe mutations-cosmetics.css). */
 .cc-cosmetic-preview {
+  position: relative;
   width: 60px;
   height: 60px;
   margin-bottom: 4px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.1), var(--bg-card) 70%);
+  display: grid;
+  place-items: center;
 }
 
 .cc-cosmetic-desc {

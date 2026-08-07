@@ -6,10 +6,11 @@ import { AURAS, getAuraFactor } from "../data/auras.js";
 import { getRarity } from "../data/rarities.js";
 import { canAfford } from "../core/economy.js";
 import { openAuraBox } from "../core/auraGacha.js";
-import { isAuraOwned, getAuraCount, equipAura, isAuraEquipped } from "../core/auras.js";
+import { isAuraOwned, getAuraCount, equipAura, isAuraEquipped, getEquippedAura } from "../core/auras.js";
 import { checkAchievements } from "../core/achievements.js";
 import { renderOddsRows } from "./oddsDisplay.js";
 import { renderAuraLayer } from "./auraGlyph.js";
+import { renderCursorGlyph } from "./cursorGlyph.js";
 import { formatNumber } from "./format.js";
 import { playAuraBoxOpen } from "./modals.js";
 
@@ -45,6 +46,24 @@ function renderBoxCard(box) {
   return card;
 }
 
+// "Keine Aura" — jederzeit verfügbar, nie gesperrt. Der Spieler darf niemals
+// gezwungen sein, eine Aura auszurüsten (siehe Design-Regeln).
+function renderNoneAuraCard() {
+  const equipped = !getEquippedAura();
+  const card = document.createElement("div");
+  card.className = "cc-aura-card" + (equipped ? " cc-aura-card-equipped" : "");
+  card.innerHTML =
+    '<div class="cc-aura-preview">' + renderCursorGlyph({ color: "#7c5cff" }) + "</div>" +
+    '<div class="cc-aura-rarity">—</div>' +
+    "<h3>Keine Aura</h3>" +
+    '<p class="cc-aura-desc">Der Cursor bleibt ohne Umgebungs-Effekt.</p>' +
+    '<button class="cc-btn ' + (equipped ? "cc-btn-ghost" : "cc-btn-primary") + ' cc-aura-equip" type="button" ' + (equipped ? "disabled" : "") + ">" + (equipped ? "Ausgerüstet" : "Ausrüsten") + "</button>";
+  if (!equipped) {
+    card.querySelector(".cc-aura-equip").addEventListener("click", () => equipAura(null));
+  }
+  return card;
+}
+
 function renderAuraCard(aura) {
   const rarity = getRarity(aura.rarity);
   const owned = isAuraOwned(aura.id);
@@ -57,8 +76,15 @@ function renderAuraCard(aura) {
   card.style.setProperty("--rarity-color", rarity.color);
   card.style.setProperty("--rarity-glow", rarity.glow);
 
+  // Vorschau immer zeigen (auch gesperrt: neutraler Cursor ohne Partikel),
+  // damit die Karten in der Grid gleich hoch bleiben — Layout wie cosmeticsPanel.js.
+  const previewContent = owned
+    ? renderAuraLayer(aura) + renderCursorGlyph({ color: "#7c5cff", extraClasses: ["cc-aura-preview-glyph"] })
+    : renderCursorGlyph({ color: "#7c5cff", extraClasses: ["cc-aura-preview-glyph"] });
+
   card.innerHTML =
     (count > 1 ? '<span class="cc-aura-count">x' + count + "</span>" : "") +
+    '<div class="cc-aura-preview">' + previewContent + "</div>" +
     '<div class="cc-aura-rarity">' + rarity.label + "</div>" +
     "<h3>" + aura.name + "</h3>" +
     '<p class="cc-aura-desc">' + aura.description + "</p>" +
@@ -78,7 +104,7 @@ export function renderAuraPanel() {
   boxGrid.replaceChildren(...AURA_BOXES.map(renderBoxCard));
 
   const ownedAuras = AURAS.filter((a) => isAuraOwned(a.id));
-  inventoryGrid.replaceChildren(...AURAS.map(renderAuraCard));
+  inventoryGrid.replaceChildren(renderNoneAuraCard(), ...AURAS.map(renderAuraCard));
   emptyHint.classList.toggle("hidden", ownedAuras.length > 0);
 }
 

@@ -7,6 +7,7 @@ import { renderCursorGlyph } from "./cursorGlyph.js";
 import { renderAuraLayer } from "./auraGlyph.js";
 import { getCursorMaterial } from "../data/cursorMaterials.js";
 import { getAuraFactor } from "../data/auras.js";
+import { getMutationBonusParts } from "../data/mutations.js";
 import { equipCursor } from "../core/loadout.js";
 import { equipAura } from "../core/auras.js";
 import { playBoxOpenSound, playRareDropSound, playFusionChargeSound, playFusionRevealSound } from "../audio.js";
@@ -210,11 +211,13 @@ function revealFusion(result) {
   document.getElementById("fusion-reveal-name").textContent = cursor.name + " (" + label + ")";
 
   const descParts = [majorMutation?.description, minorMutation?.description].filter(Boolean);
-  document.getElementById("fusion-reveal-description").textContent = descParts.join(" ") || "Kosmetische Mutation ohne Spieleffekt.";
+  document.getElementById("fusion-reveal-description").textContent = descParts.join(" ") || "Mutation ohne weitere Details.";
 
-  const bonusPercent = (majorMutation?.effects.multiplierBonusPercent || 0) + (majorMutation?.effects.coinBonusPercent || 0) +
-    (minorMutation?.effects.multiplierBonusPercent || 0) + (minorMutation?.effects.coinBonusPercent || 0);
-  document.getElementById("fusion-reveal-bonus").textContent = bonusPercent > 0 ? "+" + bonusPercent + "% Bonus" : "Rein kosmetisch";
+  // Alle drei Effekt-Arten berücksichtigen (nicht nur Multiplikator/Coins) —
+  // sonst würde z.B. eine reine Lucky-Fusion (nur Fusionschance-Bonus) hier
+  // fälschlich als "rein kosmetisch" erscheinen, siehe data/mutations.js.
+  const bonusParts = [...getMutationBonusParts(majorMutation), ...getMutationBonusParts(minorMutation)];
+  document.getElementById("fusion-reveal-bonus").textContent = bonusParts.length ? bonusParts.join(" · ") : "Rein kosmetisch";
 
   card.style.setProperty("--rarity-color", color);
   card.style.setProperty("--rarity-glow", glow);
