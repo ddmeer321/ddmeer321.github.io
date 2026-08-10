@@ -1,0 +1,11 @@
+{
+  "id": "cursor-clicker",
+  "name": "Cursor Clicker",
+  "type": "clicker",
+  "status": "beta",
+  "version": "0.4.0",
+  "author": "Dodo",
+  "description": "Sammle Cursor, fusioniere Mutationen, rüste Auren aus und steigere deinen Klick-Ertrag.",
+  "icon": "🖱️",
+  "entry": "test-claude/cursor-clicker/index.html"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "neon-bot-arena",
+  "name": "Neon Bot Arena",
+  "type": "action",
+  "status": "stable",
+  "version": "1.0.0",
+  "author": "Dodo",
+  "description": "Wähle einen Helden, überstehe immer stärkere Roboterwellen und kämpfe allein oder im Koop-Modus.",
+  "thumbnail": "neon-bot-arena-keyart-v2.png",
+  "thumbnailAlt": "Volt Runner kämpft gegen pinke Roboter in Neon Bot Arena",
+  "entry": "neon-bot-arena.html"
+}
