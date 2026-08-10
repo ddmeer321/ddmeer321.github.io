@@ -1,7 +1,7 @@
 // Einstiegspunkt: lädt den Spielstand, initialisiert alle UI-Module und verdrahtet
 // globale Abläufe (Autosave, Achievement-Toasts, tägliche Belohnung).
 import { state, SAVE_VERSION } from "./core/state.js";
-import { loadGame, saveGame } from "./core/save.js";
+import { loadGame, saveGame, quickSaveGame } from "./core/save.js";
 import { events } from "./core/events.js";
 import { startPlaytimeTracking } from "./core/stats.js";
 import { checkAchievements } from "./core/achievements.js";
@@ -24,6 +24,7 @@ import { showDailyRewardModal } from "./ui/modals.js";
 import { showToast } from "./ui/toast.js";
 
 const AUTOSAVE_INTERVAL_MS = 8000;
+const FULL_AUTOSAVE_INTERVAL_MS = 3 * 60 * 1000;
 
 function renderAll() {
   renderHud();
@@ -67,13 +68,28 @@ function wireGlobalEvents() {
   events.on("state:changed", renderAll);
   events.on("achievements:unlocked", announceUnlockedAchievements);
 
+  // Seltene/wertvolle Fortschritts-Events sofort vollständig sichern, statt auf
+  // den nächsten 8s- oder 3min-Takt zu warten (Box-Ergebnis, Fusion, Level-Up,
+  // Achievement wären sonst bis zu 3 Minuten nur im Schnellspeicherstand-losen
+  // Zustand — bei einem Absturz in dem Fenster gingen sie verloren).
+  events.on("box:opened", saveGame);
+  events.on("auraBox:opened", saveGame);
+  events.on("fusion:completed", saveGame);
+  events.on("cursor:leveledUp", saveGame);
+  events.on("achievements:unlocked", saveGame);
+
   document.getElementById("daily-reward-btn").addEventListener("click", openDailyRewardModal);
 
   window.addEventListener("beforeunload", saveGame);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") saveGame();
   });
-  setInterval(saveGame, AUTOSAVE_INTERVAL_MS);
+  // 8s: günstige Teilspeicherung (nur Coins/Klicks/Spielzeit) für den häufigen
+  // Klick-Takt. 3min: vollständige Speicherung als Sicherheitsnetz für alles
+  // andere (Ausrüstung, Einstellungen, ...), zusätzlich zu den obigen
+  // Sofort-Speicherungen bei wertvollen Events.
+  setInterval(quickSaveGame, AUTOSAVE_INTERVAL_MS);
+  setInterval(saveGame, FULL_AUTOSAVE_INTERVAL_MS);
 }
 
 // Kleine, bewusst stabile externe Schnittstelle für spätere Systeme (Quests,
