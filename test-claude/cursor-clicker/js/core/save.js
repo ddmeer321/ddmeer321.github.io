@@ -81,29 +81,41 @@ function migrate(saved) {
 // gerade geladenen Vollspeicherstand — deckt den Fall ab, dass die letzte
 // Sitzung zwischen zwei Vollspeicherungen (alle 3 Min.) abgestürzt ist und nur
 // noch der 8s-Schnellspeicherstand die neueren Werte hat.
+// Gibt zurück, ob ein frischerer Schnellspeicherstand übernommen wurde —
+// loadGame() braucht das, um auch dann korrekt zu laden, wenn NOCH KEIN
+// Vollspeicherstand existiert (siehe dortiger Kommentar).
 function applyNewerQuickSave(target) {
   try {
     const raw = localStorage.getItem(QUICK_KEY);
-    if (!raw) return;
+    if (!raw) return false;
     const quick = JSON.parse(raw);
-    if (!quick || typeof quick !== "object") return;
+    if (!quick || typeof quick !== "object") return false;
     if (Number(quick.lastSavedAt) > (Number(target.lastSavedAt) || 0)) {
       QUICK_FIELDS.forEach((key) => {
         if (key in quick) target[key] = quick[key];
       });
+      return true;
     }
+    return false;
   } catch (err) {
     console.warn("Cursor Clicker: Schnellspeicherstand konnte nicht gelesen werden.", err);
+    return false;
   }
 }
 
 export function loadGame() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    const saved = JSON.parse(raw);
+    // saved bleibt null, wenn noch kein Vollspeicherstand existiert — migrate(null)
+    // liefert dafür bereits createDefaultState(). Wichtig: trotzdem weiter unten
+    // auf einen Schnellspeicherstand prüfen (nicht hier schon abbrechen), sonst
+    // ginge der Fortschritt eines ganz neuen Spielers verloren, der zwar schon
+    // einen 8s-Schnellspeicherstand hat, aber noch vor der ersten Vollspeicherung
+    // (3min-Takt/wertvolles Event/beforeunload) abstürzt.
+    const saved = raw ? JSON.parse(raw) : null;
     const merged = migrate(saved);
-    applyNewerQuickSave(merged);
+    const appliedQuickSave = applyNewerQuickSave(merged);
+    if (!raw && !appliedQuickSave) return false;
     replaceState(merged);
     return true;
   } catch (err) {
