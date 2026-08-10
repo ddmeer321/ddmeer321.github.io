@@ -4,7 +4,20 @@ import { state, replaceState, createDefaultState, SAVE_VERSION } from "./state.j
 import { getDefaultUnlockedCosmeticIds } from "../data/cosmetics.js";
 import { MAX_LEVEL } from "./upgrades.js";
 
-const STORAGE_KEY = "cursorClicker.save.v1";
+// test-claude/ läuft absichtlich unter einem eigenen Storage-Key. localStorage
+// ist pro Origin (nicht pro Pfad) gültig — ohne diese Trennung würde ein
+// künftiger echter Release (außerhalb von test-claude/, gleiche Origin
+// ddmeer321.github.io) automatisch den hier gespielten Testspielstand laden.
+// Alles außerhalb von test-claude/ startet dadurch garantiert bei null.
+const IS_TEST_ENV = location.pathname.includes("/test-claude/");
+const STORAGE_KEY = IS_TEST_ENV ? "cursorClicker.save.v1" : "cursorClicker.save.v1.live";
+
+// Leichtgewichtiger Zwischenstand für den häufigen Autosave-Takt: nur die
+// Felder, die sich bei praktisch jedem Klick ändern. Vermeidet, den kompletten
+// (mit wachsendem Inventar immer größeren) State alle paar Sekunden neu zu
+// serialisieren — das übernimmt weiterhin saveGame() in größeren Abständen.
+const QUICK_KEY = STORAGE_KEY + ".quick";
+const QUICK_FIELDS = ["coins", "totalCoinsEarned", "totalClicks", "playtimeSeconds", "lastSavedAt"];
 
 function defaultUnlockedCosmetics() {
   const unlocked = {};
@@ -64,12 +77,34 @@ function migrate(saved) {
   return merged;
 }
 
+// Übernimmt einen frischeren Schnellspeicherstand (falls vorhanden) in den
+// gerade geladenen Vollspeicherstand — deckt den Fall ab, dass die letzte
+// Sitzung zwischen zwei Vollspeicherungen (alle 3 Min.) abgestürzt ist und nur
+// noch der 8s-Schnellspeicherstand die neueren Werte hat.
+function applyNewerQuickSave(target) {
+  try {
+    const raw = localStorage.getItem(QUICK_KEY);
+    if (!raw) return;
+    const quick = JSON.parse(raw);
+    if (!quick || typeof quick !== "object") return;
+    if (Number(quick.lastSavedAt) > (Number(target.lastSavedAt) || 0)) {
+      QUICK_FIELDS.forEach((key) => {
+        if (key in quick) target[key] = quick[key];
+      });
+    }
+  } catch (err) {
+    console.warn("Cursor Clicker: Schnellspeicherstand konnte nicht gelesen werden.", err);
+  }
+}
+
 export function loadGame() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const saved = JSON.parse(raw);
-    replaceState(migrate(saved));
+    const merged = migrate(saved);
+    applyNewerQuickSave(merged);
+    replaceState(merged);
     return true;
   } catch (err) {
     console.warn("Cursor Clicker: Speicherstand konnte nicht geladen werden.", err);
@@ -77,6 +112,9 @@ export function loadGame() {
   }
 }
 
+// Vollständige Speicherung — läuft alle 3 Minuten (main.js), direkt nach
+// wertvollen/seltenen Fortschritts-Events (Box, Fusion, Level, Achievement)
+// sowie bei beforeunload/Tab-Wechsel.
 export function saveGame() {
   try {
     state.lastSavedAt = Date.now();
@@ -86,7 +124,21 @@ export function saveGame() {
   }
 }
 
+// Günstige Teilspeicherung für den 8s-Takt: nur die Felder, die sich bei
+// praktisch jedem Klick ändern, keine Vollserialisierung des Gesamtzustands.
+export function quickSaveGame() {
+  try {
+    state.lastSavedAt = Date.now();
+    const partial = {};
+    QUICK_FIELDS.forEach((key) => { partial[key] = state[key]; });
+    localStorage.setItem(QUICK_KEY, JSON.stringify(partial));
+  } catch (err) {
+    console.warn("Cursor Clicker: Schnellspeicherung fehlgeschlagen.", err);
+  }
+}
+
 export function hardReset() {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(QUICK_KEY);
   replaceState(createDefaultState());
 }
