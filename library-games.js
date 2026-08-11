@@ -33,9 +33,10 @@ function createArt(game) {
     art.appendChild(tag);
   }
 
-  // Rechts: optionaler Status. Ohne sinnvollen Status entsteht hier bewusst
-  // gar kein Element.
-  const badge = getStatusBadge(game.status);
+  // Rechts: optionaler Status. Ohne sinnvollen Status — oder wenn das
+  // Ablaufdatum aus "statusUntil" vorbei ist — entsteht hier bewusst gar
+  // kein Element.
+  const badge = getStatusBadge(game.status, game.statusUntil);
   if (badge) {
     const statusEl = document.createElement("span");
     statusEl.className = `game-card-status ${badge.badgeClass}`;

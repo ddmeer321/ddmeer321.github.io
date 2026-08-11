@@ -34,12 +34,31 @@ export function isKnownGameStatus(id) {
   return getGameStatus(id) !== null;
 }
 
+// Heutiges Datum als "YYYY-MM-DD" in der LOKALEN Zeitzone des Besuchers.
+// Bewusst als Text: ISO-Datumsangaben lassen sich direkt vergleichen, dadurch
+// entfallen Zeitzonen- und Sommerzeit-Fallstricke von Date-Rechnerei.
+function localTodayISO() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+// Ein Badge läuft am ENDE des angegebenen Tages ab: "statusUntil": "2026-08-17"
+// wird am 17.08. noch angezeigt und ab dem 18.08. nicht mehr.
+export function isStatusExpired(statusUntil) {
+  if (typeof statusUntil !== "string" || !statusUntil) return false;
+  return statusUntil < localTodayISO();
+}
+
 // Liefert { label, badgeClass } wenn ein Badge angezeigt werden soll, sonst
-// null. Ein unbekannter Status liefert ebenfalls null (kein Badge) statt eines
-// Fehlers — eine fehlerhafte Angabe soll die Karte nicht unbrauchbar machen.
-export function getStatusBadge(id) {
+// null. null kommt in drei Fällen: Status ohne Badge (z.B. "stable"),
+// unbekannter Status (eine fehlerhafte Angabe soll die Karte nicht unbrauchbar
+// machen) und abgelaufener Status (statusUntil liegt in der Vergangenheit).
+export function getStatusBadge(id, statusUntil = null) {
   const status = getGameStatus(id);
   if (!status || !status.badge) return null;
+  if (isStatusExpired(statusUntil)) return null;
   return { label: status.label, badgeClass: status.badgeClass };
 }
 

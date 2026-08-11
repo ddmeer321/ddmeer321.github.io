@@ -19,6 +19,7 @@ import { isKnownGameStatus, DEFAULT_STATUS } from "./statuses.js";
 
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 // Erlaubt nur harmlose Pfadzeichen. Doppelpunkt ist damit ausgeschlossen, also
 // auch "javascript:", "data:" und "https://".
 const SAFE_PATH_RE = /^[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*$/;
@@ -41,6 +42,7 @@ const ALLOWED_FIELDS = [
   "name",
   "type",
   "status",
+  "statusUntil",
   "version",
   "author",
   "description",
@@ -52,6 +54,15 @@ const ALLOWED_FIELDS = [
 
 function isPlainString(value) {
   return typeof value === "string" && value.trim().length > 0;
+}
+
+// Echtes Kalenderdatum im Format YYYY-MM-DD. Der Rückweg über toISOString()
+// fängt Angaben wie "2026-02-30" oder "2026-13-01" ab, die das Format zwar
+// erfüllen, aber keinen existierenden Tag bezeichnen.
+function isRealISODate(value) {
+  if (typeof value !== "string" || !DATE_RE.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
 // Prüft einen Pfad relativ zum Seiten-Root auf Ausbruchsversuche und Schemata.
@@ -138,6 +149,18 @@ export function validateGameConfig(raw, source = "config.json") {
     }
   }
 
+  // Ablaufdatum des Badges. Fehlt es, bleibt der Status dauerhaft sichtbar.
+  // Ein ungültiges Datum wird ignoriert (Badge bleibt), statt das Spiel zu
+  // verwerfen — ein Tippfehler im Datum soll kein Spiel unsichtbar machen.
+  let statusUntil = null;
+  if (raw.statusUntil !== undefined && raw.statusUntil !== null && raw.statusUntil !== "") {
+    if (isRealISODate(typeof raw.statusUntil === "string" ? raw.statusUntil.trim() : raw.statusUntil)) {
+      statusUntil = raw.statusUntil.trim();
+    } else {
+      warnings.push(`${source}: "statusUntil" ist kein gültiges Datum im Format JJJJ-MM-TT und wird ignoriert.`);
+    }
+  }
+
   let version = null;
   if (raw.version !== undefined && raw.version !== null && raw.version !== "") {
     if (isPlainString(raw.version) && VERSION_RE.test(raw.version.trim())) {
@@ -209,6 +232,7 @@ export function validateGameConfig(raw, source = "config.json") {
       name,
       type,
       status,
+      statusUntil,
       version,
       author,
       description,

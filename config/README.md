@@ -34,12 +34,37 @@ CSS-Klassen, HTML und Rendering-Logik stehen bewusst **nicht** darin.
 | Feld | Bedeutung |
 |---|---|
 | `status` | Veröffentlichungs-/Update-Status aus `config/statuses.js` (`stable`, `new`, `beta`, `updated`). Erscheint rechts auf der Karte. Fehlt das Feld oder steht `stable` drin, wird **kein** Badge angezeigt. |
+| `statusUntil` | Datum `JJJJ-MM-TT`, bis zu dem das Status-Badge angezeigt wird (siehe unten). Ohne dieses Feld bleibt der Status dauerhaft sichtbar. |
 | `version` | Versionsnummer im Format `1.0.0`. |
 | `author` | Wer das Spiel gemacht hat. |
 | `description` | Kurzbeschreibung auf der Karte (max. 400 Zeichen). |
 | `thumbnail` | Vorschaubild, relativ zum Seiten-Root. |
 | `thumbnailAlt` | Alt-Text des Vorschaubilds (Barrierefreiheit). |
 | `icon` | Emoji als Ersatz, wenn es kein `thumbnail` gibt (z.B. `🐍`). |
+
+## Status automatisch auslaufen lassen (`statusUntil`)
+
+Ein „Neu"-Badge soll meist nicht ewig stehen bleiben. Mit `statusUntil` läuft
+es von selbst ab — ohne dass jemand daran denken muss, es später zu entfernen:
+
+```json
+"status": "new",
+"statusUntil": "2026-08-17"
+```
+
+- Das Badge wird **bis einschließlich** des angegebenen Tages angezeigt und
+  verschwindet am Folgetag. Für „eine Woche neu" also: Veröffentlichungsdatum
+  + 7 Tage.
+- Danach verhält sich die Karte wie ein Spiel ohne Status: rechts entsteht gar
+  kein Element. Die `config.json` muss dafür **nicht** angefasst werden.
+- Ohne `statusUntil` bleibt der Status dauerhaft sichtbar — sinnvoll z.B. für
+  `beta`, das bis zum echten Release stehen bleiben soll.
+- Ein ungültiges Datum wird ignoriert (Badge bleibt sichtbar) und in der
+  Konsole gemeldet — ein Tippfehler macht kein Spiel unsichtbar.
+
+Der Vergleich passiert über die lokale Uhrzeit des Besuchers. Ein Gerät mit
+falsch gestellter Uhr kann ein Badge daher einen Tag früher oder später
+ausblenden; für rein dekorative Badges ist das unkritisch.
 
 ## Neues Spiel hinzufügen
 
