@@ -7,7 +7,7 @@
 // versehentlich öffentlich gelistet werden. Ein Spiel wird veröffentlicht,
 // indem seine Zeile hier hinzugefügt wird — und nur dann.
 //
-// Diese Datei enthält kein DOM und keine Anzeige-Logik (siehe library-games.js).
+// Diese Datei enthält kein DOM und keine Anzeige-Logik (siehe assets/js/library-games.js).
 
 import { validateGameConfig } from "./schema.js";
 

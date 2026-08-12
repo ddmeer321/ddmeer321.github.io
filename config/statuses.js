@@ -9,7 +9,7 @@
 //
 // NEUEN STATUS ERGÄNZEN:
 //   1. hier einen Eintrag mit label + badgeClass hinzufügen
-//   2. in library.css eine passende .status-<name>-Regel ergänzen
+//   2. in assets/css/library.css eine passende .status-<name>-Regel ergänzen
 //
 // badge: false bedeutet bewusst "kein Badge anzeigen" — nicht "unbekannt".
 

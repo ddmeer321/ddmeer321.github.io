@@ -11,9 +11,9 @@
 // geprüfte relative Pfade gesetzt — kein innerHTML mit Config-Daten, kein
 // eval(), kein Function()-Konstruktor.
 
-import { loadPublicGames } from "./config/games.js";
-import { getGameType } from "./config/types.js";
-import { getStatusBadge } from "./config/statuses.js";
+import { loadPublicGames } from "../../config/games.js";
+import { getGameType } from "../../config/types.js";
+import { getStatusBadge } from "../../config/statuses.js";
 
 // Reiner Anzeigetext, für alle Karten gleich — bewusst hier und nicht in den
 // einzelnen config.json-Dateien.

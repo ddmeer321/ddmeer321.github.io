@@ -6,7 +6,7 @@
   "version": "1.0.0",
   "author": "Dodo",
   "description": "Der Klassiker: Schlange steuern, Futter sammeln, Wand und Schwanz meiden.",
-  "thumbnail": "snake-keyart.webp",
+  "thumbnail": "assets/img/snake-keyart.webp",
   "thumbnailAlt": "Pixelige grüne Schlange mit bunten Früchten und Punkteanzeige im Neon-Look",
   "icon": "🐍",
   "entry": "snake.html"
