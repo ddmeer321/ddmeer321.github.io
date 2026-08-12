@@ -12,8 +12,8 @@ in einer `config.json`. Die Startseite baut ihre Spielkarten daraus auf.
 | `config/schema.js` | **Ob** eine `config.json` gültig ist (Validierung) |
 | `config/types.js` | Bedeutung von `type` (Anzeigetext) |
 | `config/statuses.js` | Bedeutung von `status` (Anzeigetext + Badge-Klasse) |
-| `library-games.js` | **Wie** daraus eine Spielkarte wird (DOM) |
-| `library.css` | Aussehen der Badges (`.status-*`) |
+| `assets/js/library-games.js` | **Wie** daraus eine Spielkarte wird (DOM) |
+| `assets/css/library.css` | Aussehen der Badges (`.status-*`) |
 
 Die `config.json` beschreibt nur, **was** ein Spiel ist. Anzeigetexte,
 CSS-Klassen, HTML und Rendering-Logik stehen bewusst **nicht** darin.
@@ -94,7 +94,7 @@ Danach ist `"type": "racing"` in jeder `config.json` gültig.
 soon: { badge: true, label: "Bald", badgeClass: "status-soon" },
 ```
 
-2. In `library.css` die passende Farbe ergänzen:
+2. In `assets/css/library.css` die passende Farbe ergänzen:
 
 ```css
 .status-soon { background: var(--pink); color: #fff; }
@@ -127,7 +127,7 @@ Die Struktur ist so angelegt, dass dafür nichts umgebaut werden muss:
 
 - **Weitere Metadaten** (`releasedAt`, `updatedAt`, `changelog`,
   `contributors`): Feld in `config/schema.js` zu `ALLOWED_FIELDS` und zur
-  Prüfung hinzufügen, dann in `library-games.js` anzeigen. Unbekannte Felder
+  Prüfung hinzufügen, dann in `assets/js/library-games.js` anzeigen. Unbekannte Felder
   werden bis dahin ignoriert und erzeugen nur eine Konsolen-Warnung, brechen
   also nichts.
 - **Spiel-Uploads fremder Entwickler**: `validateGameConfig()` aus

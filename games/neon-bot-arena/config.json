@@ -6,7 +6,7 @@
   "version": "1.0.0",
   "author": "Dodo",
   "description": "Wähle einen Helden, überstehe immer stärkere Roboterwellen und kämpfe allein oder im Koop-Modus.",
-  "thumbnail": "neon-bot-arena-logo.webp",
+  "thumbnail": "assets/img/neon-bot-arena-logo.webp",
   "thumbnailAlt": "Neon Bot Arena Logo mit blauen und pinken Kampfrobotern",
   "entry": "neon-bot-arena.html"
 }
