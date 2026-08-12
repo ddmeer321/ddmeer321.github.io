@@ -178,6 +178,10 @@
   var boardWrap = document.getElementById("board-wrap");
   var gridCount = 22;
   var cell, cols, rows;
+  // Logische Brettgroesse in CSS-Pixeln. Die Canvas-Pixel koennen dank
+  // Pixeldichte-Skalierung groesser sein (siehe sizeBoard), deshalb darf im
+  // Zeichencode NICHT canvas.width verwendet werden.
+  var boardSize = 0;
 
   var scoreEl = document.getElementById("score");
   var highscoreEl = document.getElementById("highscore");
@@ -198,10 +202,19 @@
     cell = size / gridCount;
     cols = gridCount;
     rows = gridCount;
+    boardSize = size;
     boardWrap.style.width = size + "px";
     boardWrap.style.height = size + "px";
-    canvas.width = size;
-    canvas.height = size;
+    // Auf hochaufloesenden Displays mit mehr Canvas-Pixeln zeichnen und per
+    // CSS auf die logische Groesse zurueckskalieren, damit Rundungen, Augen
+    // und Glanzkanten scharf bleiben. Auf 2 gedeckelt, damit sehr grosse
+    // Pixeldichten die Zeichenflaeche nicht unnoetig aufblaehen.
+    var ratio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(size * ratio);
+    canvas.height = Math.round(size * ratio);
+    // Muss NACH dem Setzen von width/height passieren - das setzt den
+    // Kontext (inkl. Transform) zurueck.
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
   function inStartZone(x, y) {
@@ -271,8 +284,14 @@
     }
   }
 
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath();
+  // --- Zeichen-Hilfen -------------------------------------------------
+  // addRoundRect() haengt nur eine Teilform an den offenen Pfad an (kein
+  // beginPath). Dadurch lassen sich Koerper und Verbindungsstuecke der
+  // Schlange zu EINEM Pfad zusammenfassen und in einem einzigen fill() mit
+  // Schein zeichnen - deutlich guenstiger als ein Aufruf je Segment.
+  function addRoundRect(x, y, w, h, r) {
+    var max = Math.min(w, h) / 2;
+    if (r > max) r = max;
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
     ctx.arcTo(x + w, y + h, x, y + h, r);
@@ -281,54 +300,252 @@
     ctx.closePath();
   }
 
-  function draw() {
-    var colors = SKINS[skin];
-    ctx.fillStyle = "#0f2a1a";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    addRoundRect(x, y, w, h, r);
+  }
 
-    ctx.strokeStyle = "rgba(255,255,255,0.04)";
-    for (var x = 0; x <= cols; x++) {
-      ctx.beginPath();
-      ctx.moveTo(x * cell, 0);
-      ctx.lineTo(x * cell, canvas.height);
-      ctx.stroke();
-    }
-    for (var y = 0; y <= rows; y++) {
-      ctx.beginPath();
-      ctx.moveTo(0, y * cell);
-      ctx.lineTo(canvas.width, y * cell);
-      ctx.stroke();
-    }
+  // Mischt eine Hex-Farbe Richtung Weiss (amount > 0) bzw. Schwarz (< 0).
+  // Damit leiten sich Glanzlicht und Schattenkante aus der jeweiligen
+  // Skin-Farbe ab, statt fuer jeden Skin eigene Farbwerte zu pflegen.
+  function shade(hex, amount) {
+    var n = parseInt(hex.slice(1), 16);
+    var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    var t = amount < 0 ? 0 : 255;
+    var p = Math.abs(amount);
+    r = Math.round(r + (t - r) * p);
+    g = Math.round(g + (t - g) * p);
+    b = Math.round(b + (t - b) * p);
+    return "rgb(" + r + "," + g + "," + b + ")";
+  }
 
-    ctx.fillStyle = "#3a5a45";
+  var DIRECTION_VECTORS = {
+    up: { x: 0, y: -1 },
+    down: { x: 0, y: 1 },
+    left: { x: -1, y: 0 },
+    right: { x: 1, y: 0 },
+  };
+
+  // Zwei Segmente gelten nur als verbunden, wenn sie direkt benachbart sind.
+  // Bei aktiviertem Wanddurchlauf springt die Schlange von einer Kante zur
+  // gegenueberliegenden - dort darf KEIN Verbindungsstueck quer ueber das
+  // ganze Feld gezeichnet werden.
+  function isAdjacent(a, b) {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) === 1;
+  }
+
+  function addLink(a, b, width) {
+    var inset = (cell - width) / 2;
+    var x = Math.min(a.x, b.x) * cell + inset;
+    var y = Math.min(a.y, b.y) * cell + inset;
+    var horizontal = a.y === b.y;
+    addRoundRect(
+      x, y,
+      horizontal ? cell + width : width,
+      horizontal ? width : cell + width,
+      width * 0.3
+    );
+  }
+
+  function drawBackground() {
+    ctx.fillStyle = "#0b1d13";
+    ctx.fillRect(0, 0, boardSize, boardSize);
+
+    ctx.strokeStyle = "rgba(120, 255, 170, 0.06)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (var i = 1; i < cols; i++) {
+      var p = Math.round(i * cell) + 0.5;
+      ctx.moveTo(p, 0);
+      ctx.lineTo(p, boardSize);
+      ctx.moveTo(0, p);
+      ctx.lineTo(boardSize, p);
+    }
+    ctx.stroke();
+  }
+
+  // Hindernisse hoben sich frueher kaum vom Hintergrund ab. Jetzt: dunkler
+  // Block mit hellem Oberkanten-Bevel und Rand, damit sie eindeutig als
+  // Wand lesbar sind.
+  function drawObstacles() {
+    if (!obstacles.length) return;
+    var pad = cell * 0.06;
+    var size = cell - pad * 2;
+
+    ctx.beginPath();
     obstacles.forEach(function (o) {
-      roundRect(o.x * cell + cell * 0.08, o.y * cell + cell * 0.08, cell * 0.84, cell * 0.84, cell * 0.18);
-      ctx.fill();
+      addRoundRect(o.x * cell + pad, o.y * cell + pad, size, size, cell * 0.16);
     });
+    ctx.fillStyle = "#23342c";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(130, 200, 160, 0.45)";
+    ctx.lineWidth = Math.max(1, cell * 0.05);
+    ctx.stroke();
 
-    ctx.fillStyle = "#ffc247";
-    roundRect(food.x * cell + cell * 0.15, food.y * cell + cell * 0.15, cell * 0.7, cell * 0.7, cell * 0.3);
+    ctx.beginPath();
+    obstacles.forEach(function (o) {
+      addRoundRect(o.x * cell + pad * 2.2, o.y * cell + pad * 2.2, size * 0.68, size * 0.3, cell * 0.08);
+    });
+    ctx.fillStyle = "rgba(255, 255, 255, 0.09)";
+    ctx.fill();
+  }
+
+  // Frucht als gewoelbte Kugel mit Schein, Stiel und Blatt statt eines
+  // flachen Kaestchens.
+  function drawFruit(gx, gy, color, radiusFactor) {
+    var cx = gx * cell + cell / 2;
+    var cy = gy * cell + cell / 2 + cell * 0.04;
+    var r = cell * radiusFactor;
+
+    var gradient = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.15, cx, cy, r);
+    gradient.addColorStop(0, shade(color, 0.45));
+    gradient.addColorStop(0.55, color);
+    gradient.addColorStop(1, shade(color, -0.35));
+
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = cell * 0.55;
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = "rgba(255,255,255,0.75)";
+    ctx.beginPath();
+    ctx.ellipse(cx - r * 0.34, cy - r * 0.42, r * 0.22, r * 0.15, -Math.PI / 5, 0, Math.PI * 2);
     ctx.fill();
 
-    if (bonusFood) {
-      var cx = bonusFood.x * cell + cell / 2;
-      var cy = bonusFood.y * cell + cell / 2;
-      ctx.fillStyle = "#ff5fa2";
+    ctx.strokeStyle = "#7a5a2a";
+    ctx.lineWidth = Math.max(1, cell * 0.05);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r * 0.9);
+    ctx.lineTo(cx + r * 0.1, cy - r * 1.3);
+    ctx.stroke();
+
+    ctx.fillStyle = "#4caf50";
+    ctx.beginPath();
+    ctx.ellipse(cx + r * 0.42, cy - r * 1.2, r * 0.32, r * 0.16, -Math.PI / 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawSnake(colors) {
+    var count = snake.length;
+    var headWidth = cell * 0.86;
+    var tailWidth = cell * 0.52;
+
+    function widthAt(i) {
+      if (count < 2) return headWidth;
+      return headWidth + (tailWidth - headWidth) * (i / (count - 1));
+    }
+
+    // Ein Pfad aus allen Segmenten UND den Verbindungsstuecken dazwischen:
+    // dadurch wirkt die Schlange als durchgehender Koerper statt als Reihe
+    // einzelner Kacheln - und der Schein wird nur einmal berechnet.
+    ctx.beginPath();
+    for (var i = 0; i < count; i++) {
+      var w = widthAt(i);
+      var inset = (cell - w) / 2;
+      addRoundRect(snake[i].x * cell + inset, snake[i].y * cell + inset, w, w, w * 0.32);
+      if (i > 0 && isAdjacent(snake[i - 1], snake[i])) {
+        addLink(snake[i - 1], snake[i], Math.min(widthAt(i - 1), w));
+      }
+    }
+    // Der Schein ist bewusst eine AUFGEHELLTE Variante der Koerperfarbe, nicht
+    // die Farbe selbst: dunkle Skins (z.B. Retro-Terminal mit #052e0f) waeren
+    // sonst kaum vom Hintergrund zu unterscheiden und man liefe in den eigenen
+    // Schwanz. So bleibt die Silhouette bei jedem Skin lesbar.
+    // Zweimal fuellen: der Schein legt sich dabei doppelt uebereinander und
+    // ergibt einen deutlich sichtbaren Saum. Guenstiger als ein groesserer
+    // shadowBlur und noetig, damit dunkle Skins ihre Kontur behalten.
+    ctx.save();
+    ctx.shadowColor = shade(colors.body, 0.45);
+    ctx.shadowBlur = cell * 0.5;
+    ctx.fillStyle = colors.body;
+    ctx.fill();
+    ctx.fill();
+    ctx.restore();
+
+    // Glanzkante oben auf jedem Segment - gibt den Bloecken Tiefe, ohne die
+    // durchgehende Silhouette aufzubrechen.
+    ctx.beginPath();
+    for (var j = 0; j < count; j++) {
+      var sw = widthAt(j);
+      var si = (cell - sw) / 2;
+      addRoundRect(
+        snake[j].x * cell + si + sw * 0.16,
+        snake[j].y * cell + si + sw * 0.12,
+        sw * 0.68, sw * 0.26, sw * 0.13
+      );
+    }
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
+    ctx.fill();
+
+    // Kopf zuletzt, damit er ueber dem Hals liegt.
+    var head = snake[0];
+    var hw = headWidth;
+    var hi = (cell - hw) / 2;
+    ctx.save();
+    ctx.shadowColor = shade(colors.head, 0.4);
+    ctx.shadowBlur = cell * 0.6;
+    ctx.fillStyle = colors.head;
+    roundRect(head.x * cell + hi, head.y * cell + hi, hw, hw, hw * 0.34);
+    ctx.fill();
+    ctx.restore();
+
+    drawEyes(head, colors);
+  }
+
+  // Augen zeigen in Laufrichtung - erst dadurch ist auf einen Blick klar,
+  // wo vorne ist.
+  function drawEyes(head, colors) {
+    var dir = DIRECTION_VECTORS[direction] || DIRECTION_VECTORS.right;
+    var cx = head.x * cell + cell / 2;
+    var cy = head.y * cell + cell / 2;
+    var forward = cell * 0.15;
+    var side = cell * 0.19;
+    var eyeR = cell * 0.115;
+    var pupilR = cell * 0.058;
+    // Senkrecht zur Laufrichtung, damit die Augen nebeneinander sitzen.
+    var px = -dir.y;
+    var py = dir.x;
+
+    for (var s = -1; s <= 1; s += 2) {
+      var ex = cx + dir.x * forward + px * side * s;
+      var ey = cy + dir.y * forward + py * side * s;
+      ctx.fillStyle = "#ffffff";
       ctx.beginPath();
-      ctx.arc(cx, cy, cell * 0.36, 0, Math.PI * 2);
+      ctx.arc(ex, ey, eyeR, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = Math.max(2, cell * 0.08);
+      ctx.fillStyle = shade(colors.body, -0.75);
       ctx.beginPath();
-      ctx.arc(cx, cy, cell * 0.46, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * (bonusFood.ttl / BONUS_TTL)));
+      ctx.arc(ex + dir.x * eyeR * 0.35, ey + dir.y * eyeR * 0.35, pupilR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function draw() {
+    var colors = SKINS[skin];
+
+    drawBackground();
+    drawObstacles();
+    drawFruit(food.x, food.y, "#ffc247", 0.3);
+
+    if (bonusFood) {
+      drawFruit(bonusFood.x, bonusFood.y, "#ff5fa2", 0.33);
+      // Restlaufzeit als Ring um die Bonusfrucht (Mechanik unveraendert).
+      var bx = bonusFood.x * cell + cell / 2;
+      var by = bonusFood.y * cell + cell / 2;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = Math.max(2, cell * 0.075);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(bx, by, cell * 0.44, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (bonusFood.ttl / BONUS_TTL));
       ctx.stroke();
     }
 
-    snake.forEach(function (segment, i) {
-      ctx.fillStyle = i === 0 ? colors.head : colors.body;
-      roundRect(segment.x * cell + cell * 0.1, segment.y * cell + cell * 0.1, cell * 0.8, cell * 0.8, cell * 0.3);
-      ctx.fill();
-    });
+    drawSnake(colors);
   }
 
   function step() {
