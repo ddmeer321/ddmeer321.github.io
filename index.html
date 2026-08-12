@@ -35,31 +35,12 @@
       <section id="spiele" class="lib-section">
         <h2>Alle Spiele</h2>
         <p class="lib-lead">Auf eine Kachel klicken, um mehr zu erfahren oder direkt loszuspielen.</p>
-        <div class="game-grid">
-          <a class="game-card" href="neon-bot-arena.html">
-            <div class="game-card-art">
-              <span class="game-card-tag">Kampfspiel</span>
-              <img src="neon-bot-arena-keyart-v2.png" alt="Volt Runner kämpft gegen pinke Roboter in Neon Bot Arena" loading="lazy" />
-            </div>
-            <div class="game-card-body">
-              <h3>Neon Bot Arena</h3>
-              <p>Wähle einen Helden, überstehe immer stärkere Roboterwellen und kämpfe allein oder im Koop-Modus.</p>
-              <span class="game-card-cta">Ansehen &amp; spielen →</span>
-            </div>
-          </a>
-
-          <a class="game-card" href="snake.html">
-            <div class="game-card-art">
-              <span class="game-card-tag">Minigame</span>
-              <span class="game-card-emoji">🐍</span>
-            </div>
-            <div class="game-card-body">
-              <h3>Snake</h3>
-              <p>Der Klassiker: Schlange steuern, Futter sammeln, Wand und Schwanz meiden.</p>
-              <span class="game-card-cta">Ansehen &amp; spielen →</span>
-            </div>
-          </a>
-
+        <!--
+          Die Spielkarten werden aus den config.json-Dateien der Spiele erzeugt
+          (Registry: config/games.js, Aufbau: library-games.js). Spieldaten
+          bitte dort pflegen, nicht hier im HTML.
+        -->
+        <div class="game-grid" id="game-grid">
           <span class="game-card coming-soon" aria-hidden="true">
             <div class="game-card-art">
               <span class="game-card-emoji">🎮</span>
@@ -71,6 +52,12 @@
             </div>
           </span>
         </div>
+
+        <noscript>
+          <p class="lib-lead">Für die Spieleübersicht bitte JavaScript aktivieren. Direkt zu den Spielen:
+            <a href="neon-bot-arena.html">Neon Bot Arena</a>, <a href="snake.html">Snake</a>.
+          </p>
+        </noscript>
       </section>
     </main>
 
@@ -88,5 +75,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="supabase-client.js"></script>
     <script src="auth.js?v=3"></script>
+    <script type="module" src="library-games.js?v=1"></script>
   </body>
 </html>

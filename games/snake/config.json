@@ -1,0 +1,13 @@
+{
+  "id": "snake",
+  "name": "Snake",
+  "type": "minigame",
+  "status": "stable",
+  "version": "1.0.0",
+  "author": "Dodo",
+  "description": "Der Klassiker: Schlange steuern, Futter sammeln, Wand und Schwanz meiden.",
+  "thumbnail": "snake-keyart.webp",
+  "thumbnailAlt": "Pixelige grüne Schlange mit bunten Früchten und Punkteanzeige im Neon-Look",
+  "icon": "🐍",
+  "entry": "snake.html"
+}

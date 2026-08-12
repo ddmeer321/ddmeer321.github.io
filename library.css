@@ -170,6 +170,7 @@ a { color: inherit; }
   font-size: 3.2rem;
 }
 
+/* Links auf der Karte: Art/Kategorie des Spiels ("type" in config.json). */
 .game-card-tag {
   position: absolute;
   top: 12px;
@@ -182,6 +183,38 @@ a { color: inherit; }
   font-weight: 800;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+}
+
+/* Rechts auf der Karte: optionaler Status ("status" in config.json).
+   Spiele ohne sinnvollen Status bekommen dieses Element gar nicht erst.
+   Die Farbe kommt aus einer .status-*-Klasse, damit sie zentral definiert
+   bleibt und nicht pro Spielkarte gesetzt werden muss. */
+.game-card-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  max-width: calc(100% - 24px);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(36, 28, 61, 0.18);
+}
+
+.status-new { background: var(--teal); color: #06403a; }
+.status-beta { background: var(--yellow); color: #6b4500; }
+.status-update { background: var(--purple); color: #fff; }
+
+/* Sehr schmale Geräte: Typ- und Status-Badge dürfen sich nicht überlappen. */
+@media (max-width: 360px) {
+  .game-card-tag,
+  .game-card-status {
+    padding: 4px 9px;
+    font-size: 0.66rem;
+  }
 }
 
 .game-card-body { padding: 22px; }
