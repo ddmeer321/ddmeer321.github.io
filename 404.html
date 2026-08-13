@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,follow" />
+    <link rel="stylesheet" href="/assets/css/library.css?v=1" />
+    <title>Seite nicht gefunden – Spielebibliothek</title>
+    <script>
+      // Die Neon-Bot-Arena-Infoseiten lagen frueher direkt im Root und sind so
+      // noch verlinkt und in Suchergebnissen. GitHub Pages kann keine echten
+      // Weiterleitungen (HTTP 301), deshalb faengt diese 404-Seite die alten
+      // Adressen ab und schickt Besucher sofort an die neue Stelle.
+      //
+      // Laeuft bewusst noch im <head>, damit die Weiterleitung passiert, bevor
+      // die Fehlerseite sichtbar wird. replace() statt href, damit der Zurueck-
+      // Knopf nicht in einer Schleife auf der 404-Seite landet.
+      (function () {
+        var MOVED_TO_NBA_INFO = [
+          "das-spiel", "funktionen", "steuerung", "helden", "begleiter",
+          "spielmodi", "gegner-und-bosse", "updates", "faq"
+        ];
+        var match = location.pathname.match(/^\/([a-z-]+)\.html$/);
+        if (match && MOVED_TO_NBA_INFO.indexOf(match[1]) !== -1) {
+          location.replace("/neon-bot-arena-beschreibung/" + match[1] + ".html" + location.search + location.hash);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="lib-topbar">
+      <a class="lib-brand" href="/" aria-label="Startseite">
+        <span class="lib-brand-mark" aria-hidden="true">D</span>
+        <span>Spielebibliothek</span>
+      </a>
+    </header>
+
+    <main class="lib-hero">
+      <span class="lib-eyebrow">Fehler 404</span>
+      <h1>Diese Seite gibt es nicht (mehr).</h1>
+      <p>
+        Vielleicht hat sich die Adresse geändert oder es hat sich ein Tippfehler
+        eingeschlichen. Über die Spielebibliothek findest du alle Spiele.
+      </p>
+      <p style="margin-top: 26px;">
+        <a class="mini-btn" href="/">Zur Spielebibliothek</a>
+      </p>
+    </main>
+
+    <footer class="lib-footer">
+      <div><strong>Spielebibliothek</strong></div>
+      <nav aria-label="Rechtliche Informationen">
+        <a href="/datenschutz.html">Datenschutz</a>
+        <a href="/impressum.html">Impressum</a>
+        <a href="https://github.com/ddmeer321">GitHub</a>
+      </nav>
+    </footer>
+  </body>
+</html>
