@@ -378,6 +378,9 @@ a { color: inherit; }
   font-weight: 800;
   font-size: 0.95rem;
   cursor: pointer;
+  /* Wird auch auf <a> eingesetzt (Login im Header, 404-Seite) — ohne das
+     zeichnet der Browser einen Unterstrich quer durch den Button. */
+  text-decoration: none;
 }
 .mini-btn:hover, .mini-btn:focus-visible { filter: brightness(1.08); }
 
