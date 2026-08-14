@@ -36,7 +36,7 @@ CSS-Klassen, HTML und Rendering-Logik stehen bewusst **nicht** darin.
 |---|---|
 | `status` | Veröffentlichungs-/Update-Status aus `config/statuses.js` (`stable`, `new`, `beta`, `updated`). Erscheint rechts auf der Karte. Fehlt das Feld oder steht `stable` drin, wird **kein** Badge angezeigt. |
 | `statusUntil` | Datum `JJJJ-MM-TT`, bis zu dem das Status-Badge angezeigt wird (siehe unten). Ohne dieses Feld bleibt der Status dauerhaft sichtbar. |
-| `features` | Liste der Fähigkeiten aus `config/features.js` (`multiplayer`, `leaderboard`, `mobile`, `offline`), z.B. `["multiplayer", "mobile"]`. Erscheint als kleine Chips im Textteil der Karte (siehe unten). |
+| `features` | Liste der Fähigkeiten **und Hinweise** aus `config/features.js` (`multiplayer`, `leaderboard`, `tablet`, `mobile`, `offline`, `no-mobile`), z.B. `["multiplayer", "tablet", "no-mobile"]`. Erscheint als kleine Chips im Textteil der Karte (siehe unten). |
 | `version` | Versionsnummer im Format `1.0.0`. |
 | `author` | Wer das Spiel gemacht hat. |
 | `description` | Kurzbeschreibung auf der Karte (max. 400 Zeichen). |
@@ -80,16 +80,42 @@ werden deshalb getrennt gehalten:
 | `features` | Was kann es? | mehrere, dauerhaft | im Textteil, unter der Beschreibung |
 
 ```json
-"features": ["multiplayer", "leaderboard", "mobile"]
+"features": ["multiplayer", "leaderboard", "tablet", "no-mobile"]
 ```
+
+### Zwei Sorten von Chips
+
+| Sorte | Sagt | Beispiel | Farbe |
+|---|---|---|---|
+| **Fähigkeit** (Vorgabe) | was das Spiel kann | „Multiplayer", „Tablet" | wählbarer Farbton |
+| **Hinweis** (`kind: "caveat"`) | wofür es eher **nicht** gedacht ist | „Nicht fürs Handy" | immer rot |
+
+Hinweise sind kein Mangel und kein Fehler — sie ersparen dem Besucher die
+Enttäuschung, ein Spiel auf einem Gerät zu öffnen, für das es nie gedacht war.
+Neon Bot Arena läuft auf dem iPad gut, war aber nie fürs Handy ausgelegt;
+genau das sagt der Hinweis, ohne dass die Beschreibung länger werden muss.
+
+### Regeln
 
 - **Die Reihenfolge auf der Karte kommt aus `config/features.js`**, nicht aus
   der `config.json`. Dadurch stehen gleiche Chips auf allen Karten an
-  derselben Stelle, egal wie ein Spiel sie einträgt.
-- **Höchstens 4 Chips je Karte.** Mehr wird abgeschnitten und in der Konsole
-  gemeldet — eine Karte mit acht Chips sagt nichts mehr aus.
-- **Die Farbe kommt aus einem festen kleinen Vorrat an Farbtönen**
-  (`purple`, `pink`, `amber`, `teal`, `neutral`) — nicht aus einer Farbe je
+  derselben Stelle, egal wie ein Spiel sie einträgt. Hinweise stehen dabei
+  immer **hinter** den Fähigkeiten, auch wenn sie in der `config.json` vorne
+  eingetragen sind.
+- **Höchstens 4 Fähigkeiten und 2 Hinweise je Karte** — getrennt gezählt.
+  Bei einer gemeinsamen Obergrenze könnte ein Spiel mit vielen Fähigkeiten
+  seinen Hinweis verlieren, und der ist die wichtigere der beiden Angaben.
+  Überzähliges wird abgeschnitten und in der Konsole gemeldet.
+- **Rot ist reserviert.** Nur Hinweise sind rot, und sie können ihren Ton
+  nicht selbst wählen — er kommt aus `CAVEAT_TINT`. Eine Fähigkeit kann Rot
+  gar nicht erst auswählen (`FEATURE_TINTS` enthält es nicht). Dadurch heißt
+  Rot auf der ganzen Seite dasselbe: „aufpassen", nie bloß „bunt".
+- **Der Text eines Hinweises muss die Einschränkung selbst benennen**
+  („Nicht fürs Handy", nicht bloß „Handy"). Die Farbe darf die Aussage nicht
+  allein tragen — sonst geht sie verloren, sobald jemand Farben schlecht
+  unterscheidet oder die Karte schwarzweiß gedruckt wird.
+- **Die Farbe der Fähigkeiten kommt aus einem festen kleinen Vorrat**
+  (`purple`, `amber`, `teal`, `neutral`) — nicht aus einer Farbe je
   Fähigkeit. Dadurch braucht eine neue Fähigkeit kein neues CSS, und die
   Karten bleiben ruhig, auch wenn irgendwann zehn Fähigkeiten existieren.
 - **Chips sind nur eingefärbt, Status-Badges sind Vollflächen.** Ein Status
@@ -102,33 +128,36 @@ Die Chips sind dafür gedacht, die Kurzbeschreibung zu **ergänzen oder zu
 ersetzen**. Ein Spiel darf also auch nur `features` und keine `description`
 haben.
 
-### Neue Fähigkeit hinzufügen
+### Neue Fähigkeit oder neuen Hinweis hinzufügen
 
 In `config/features.js` einen Eintrag ergänzen — an der Stelle, an der der Chip
-auf der Karte erscheinen soll — und einen der vorhandenen Farbtöne wählen:
+auf der Karte erscheinen soll:
 
 ```js
-controller: { label: "Gamepad", tint: "purple" },
+controller: { label: "Gamepad", tint: "purple" },        // Fähigkeit
+"no-touch": { label: "Nicht für Touch", kind: "caveat" }, // Hinweis
 ```
 
-Danach ist `"features": ["controller"]` in jeder `config.json` gültig. **CSS
-ist nicht nötig**, solange ein vorhandener Farbton genügt. Ein Tippfehler im
-Farbton fällt auf `neutral` zurück, der Chip bleibt also lesbar.
+Ein Hinweis bekommt **keinen** `tint` — sein Ton ist fest. Danach ist
+`"features": ["controller"]` in jeder `config.json` gültig. **CSS ist nicht
+nötig.** Ein Tippfehler im Farbton fällt auf `neutral` zurück, der Chip bleibt
+also lesbar.
 
 Ein wirklich neuer Farbton wäre der Ausnahmefall und braucht eine
 `.tint-<name>`-Regel in `assets/css/library.css` mit den drei Werten
 `--feature-bg`, `--feature-line` und `--feature-ink` — plus einen Eintrag in
 `FEATURE_TINTS`. Vorher lohnt die Frage, ob nicht ein bestehender Ton passt:
-je mehr Töne es gibt, desto unruhiger werden die Karten.
+je mehr Töne es gibt, desto unruhiger werden die Karten. Rot kommt dafür nicht
+in Frage, das gehört den Hinweisen.
 
-Aktuelle Zuordnung: `multiplayer` → pink, `leaderboard` → amber,
-`mobile` → teal, `offline` → neutral.
+Aktuelle Zuordnung: `multiplayer` → purple, `leaderboard` → amber,
+`tablet`/`mobile` → teal, `offline` → neutral, alle Hinweise → rose.
 
 ### Was aktuell wo steht
 
-| Spiel | Fähigkeiten | Geprüft an |
+| Spiel | Chips | Grundlage |
 |---|---|---|
-| Neon Bot Arena | `multiplayer`, `leaderboard`, `mobile` | Koop mit Lobby-Codes, `online-leaderboard.js`, Touch-Steuerung mit Stick/Feuer/Spezial |
+| Neon Bot Arena | `multiplayer`, `leaderboard`, `tablet`, `no-mobile` | Koop mit Lobby-Codes, `online-leaderboard.js`, Touch-Steuerung mit Stick/Feuer/Spezial. Der Hinweis stammt aus der Einschätzung des Entwicklers: läuft auf dem iPad gut, war aber nie fürs Handy ausgelegt. |
 | Snake | `mobile` | `touchstart` auf dem Spielfeld; Highscore nur lokal, deshalb keine `leaderboard` |
 
 `offline` ist in `config/features.js` definiert, aber **bei keinem Spiel

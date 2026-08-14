@@ -16,7 +16,14 @@
 
 import { isKnownGameType, listGameTypeIds } from "./types.js";
 import { isKnownGameStatus, DEFAULT_STATUS } from "./statuses.js";
-import { MAX_FEATURES_PER_GAME, isKnownGameFeature, listGameFeatureIds, orderGameFeatureIds } from "./features.js";
+import {
+  MAX_CAVEATS_PER_GAME,
+  MAX_FEATURES_PER_GAME,
+  isCaveatFeature,
+  isKnownGameFeature,
+  listGameFeatureIds,
+  orderGameFeatureIds,
+} from "./features.js";
 
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
@@ -187,13 +194,27 @@ export function validateGameConfig(raw, source = "config.json") {
       });
       // Erst sortieren, dann kürzen: so bleiben bei zu vielen Angaben die
       // wichtigsten übrig und nicht die, die zufällig oben in der Datei standen.
-      features = orderGameFeatureIds([...seen]);
-      if (features.length > MAX_FEATURES_PER_GAME) {
+      //
+      // Fähigkeiten und Hinweise werden GETRENNT gedeckelt. Bei einer
+      // gemeinsamen Obergrenze könnte ein Spiel mit vielen Fähigkeiten seinen
+      // Hinweis verlieren — und der ist die wichtigere der beiden Angaben.
+      const ordered = orderGameFeatureIds([...seen]);
+      const abilities = ordered.filter((id) => !isCaveatFeature(id));
+      const caveats = ordered.filter(isCaveatFeature);
+      if (abilities.length > MAX_FEATURES_PER_GAME) {
         warnings.push(
           `${source}: mehr als ${MAX_FEATURES_PER_GAME} Fähigkeiten angegeben — nur die ersten ${MAX_FEATURES_PER_GAME} werden angezeigt.`
         );
-        features = features.slice(0, MAX_FEATURES_PER_GAME);
       }
+      if (caveats.length > MAX_CAVEATS_PER_GAME) {
+        warnings.push(
+          `${source}: mehr als ${MAX_CAVEATS_PER_GAME} Hinweise angegeben — nur die ersten ${MAX_CAVEATS_PER_GAME} werden angezeigt.`
+        );
+      }
+      features = [
+        ...abilities.slice(0, MAX_FEATURES_PER_GAME),
+        ...caveats.slice(0, MAX_CAVEATS_PER_GAME),
+      ];
     }
   }
 

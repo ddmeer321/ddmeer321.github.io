@@ -239,7 +239,11 @@ a { color: inherit; }
 
    Die Farbe kommt aus einem festen kleinen Vorrat an Farbtönen (.tint-*),
    NICHT aus einer Klasse je Fähigkeit. Dadurch braucht eine neue Fähigkeit
-   kein neues CSS — sie wählt in config/features.js einen vorhandenen Ton. */
+   kein neues CSS — sie wählt in config/features.js einen vorhandenen Ton.
+
+   .tint-rose ist dabei reserviert: nur Hinweise ("wofür das Spiel eher nicht
+   gedacht ist") tragen Rot, und sie können ihren Ton nicht selbst wählen.
+   Deshalb heißt Rot auf der ganzen Seite dasselbe. */
 .game-card-features {
   display: flex;
   flex-wrap: wrap;
@@ -273,10 +277,12 @@ a { color: inherit; }
   --feature-ink: #553bc9;
 }
 
-.game-card-feature.tint-pink {
-  --feature-bg: #ffeaf2;
-  --feature-line: rgba(255, 95, 162, 0.34);
-  --feature-ink: #b02a63;
+/* Reserviert für Hinweise (kind: "caveat" in config/features.js). Eine
+   Fähigkeit kann diesen Ton nicht wählen — siehe FEATURE_TINTS. */
+.game-card-feature.tint-rose {
+  --feature-bg: #ffe8ea;
+  --feature-line: rgba(200, 40, 60, 0.32);
+  --feature-ink: #a51f36;
 }
 
 .game-card-feature.tint-amber {

@@ -1,4 +1,4 @@
-// Bekannte Fähigkeiten eines Spiels ("features" in config.json).
+// Bekannte Fähigkeiten und Hinweise eines Spiels ("features" in config.json).
 //
 // "features" beschreibt, WAS ein Spiel unterstützt — nicht was für ein Spiel
 // es ist (das macht "type", siehe types.js) und nicht seinen Zustand (das
@@ -12,47 +12,64 @@
 // config.json eines Spiels enthält nur die ids (z.B. ["multiplayer","mobile"]),
 // niemals den angezeigten Text und keine CSS-Klassen.
 //
-// Die Reihenfolge der Einträge hier ist gleichzeitig die ANZEIGE-Reihenfolge
-// auf der Karte. Sie stammt bewusst NICHT aus der config.json: dadurch stehen
-// gleiche Chips auf allen Karten an derselben Stelle, egal in welcher
-// Reihenfolge ein Spiel sie einträgt.
+// ZWEI SORTEN VON CHIPS
 //
-// NEUE FÄHIGKEIT ERGÄNZEN: einen Eintrag hinzufügen und einen der unten
-// definierten Farbtöne wählen — fertig. Anders als bei den Status braucht es
-// dafür KEIN eigenes CSS: die Farbtöne sind ein fester, kleiner Vorrat, keine
-// Farbe je Fähigkeit. Dadurch bleiben die Karten ruhig, auch wenn irgendwann
-// zehn Fähigkeiten existieren.
+//   Fähigkeit (Vorgabe)  "was das Spiel kann"        — z.B. „Multiplayer"
+//   Hinweis (caveat)     "wofür es eher nicht ist"   — z.B. „Nicht fürs Handy"
+//
+// Hinweise sind keine Fehler und kein Mangel: sie ersparen dem Besucher die
+// Enttäuschung, ein Spiel auf einem Gerät zu öffnen, für das es nie gedacht
+// war. Sie stehen immer HINTER den Fähigkeiten und tragen als einzige einen
+// roten Ton.
+//
+// FARBE
+//
+// Rot ist ausschließlich für Hinweise reserviert und lässt sich für eine
+// Fähigkeit gar nicht erst auswählen — der Ton eines Hinweises kommt aus
+// CAVEAT_TINT, nicht aus dem Eintrag. Dadurch bleibt die Bedeutung von Rot auf
+// der ganzen Seite eindeutig: rot heißt „aufpassen", nie bloß „bunt".
+//
+// Die Farbe steht deshalb nie allein: der Text eines Hinweises ist immer schon
+// für sich verneinend formuliert („Nicht fürs Handy"), damit die Aussage auch
+// ohne Farbwahrnehmung ankommt.
+//
+// NEUEN EINTRAG ERGÄNZEN
+//   Fähigkeit: Zeile hinzufügen, einen vorhandenen Farbton wählen — fertig.
+//   Hinweis:   Zeile hinzufügen mit kind: "caveat", KEIN tint. Der Text muss
+//              die Einschränkung selbst benennen, nicht nur das Gerät.
+// Eigenes CSS ist in beiden Fällen nicht nötig.
 //
 // Die Chips sind bewusst nur eingefärbt (heller Grund, kräftige Schrift),
 // während Status-Badges eine Vollfläche bekommen: ein Status ist eine Meldung
 // und darf auffallen, eine Fähigkeit ist eine Sacheigenschaft und soll die
 // Karte nicht dominieren.
 
-// Erlaubte Farbtöne. Jeder hat in assets/css/library.css eine
-// .tint-<name>-Regel; ein unbekannter Wert fällt auf "neutral" zurück.
-export const FEATURE_TINTS = ["purple", "pink", "amber", "teal", "neutral"];
+// Farbtöne, die eine FÄHIGKEIT wählen darf. Rot fehlt hier absichtlich.
+export const FEATURE_TINTS = ["purple", "amber", "teal", "neutral"];
 export const DEFAULT_FEATURE_TINT = "neutral";
 
+// Fester Ton aller Hinweise — nicht wählbar, damit Rot seine Bedeutung behält.
+export const CAVEAT_TINT = "rose";
+
+// Reihenfolge in dieser Datei = Reihenfolge auf der Karte (Fähigkeiten zuerst,
+// Hinweise danach — das erzwingt orderGameFeatureIds unabhängig davon, wo ein
+// Eintrag hier steht).
 export const GAME_FEATURES = {
-  multiplayer: { label: "Multiplayer", tint: "pink" },
+  multiplayer: { label: "Multiplayer", tint: "purple" },
   leaderboard: { label: "Online-Rangliste", tint: "amber" },
+  tablet: { label: "Tablet", tint: "teal" },
   mobile: { label: "Mobil", tint: "teal" },
   offline: { label: "Offline", tint: "neutral" },
+
+  // --- Hinweise ---
+  "no-mobile": { label: "Nicht fürs Handy", kind: "caveat" },
 };
 
-// Farbton einer Fähigkeit, abgesichert gegen Tippfehler in dieser Datei.
-// Der Rückgabewert landet als CSS-Klasse im DOM — deshalb wird er gegen die
-// bekannte Liste geprüft und nicht einfach durchgereicht.
-export function getFeatureTint(id) {
-  const feature = getGameFeature(id);
-  const tint = feature && typeof feature.tint === "string" ? feature.tint : "";
-  return FEATURE_TINTS.includes(tint) ? tint : DEFAULT_FEATURE_TINT;
-}
-
-// Höchstzahl der Chips je Karte. Begrenzt, weil eine Karte mit acht Chips
-// nichts mehr aussagt — die Chips sollen die Kurzbeschreibung ergänzen oder
-// ersetzen, nicht zu einer zweiten Merkmalsliste werden.
+// Höchstzahl der Chips je Karte, getrennt gezählt. Getrennt, weil sonst ein
+// Spiel mit vielen Fähigkeiten seinen Hinweis verlieren könnte — und der ist
+// die wichtigere der beiden Angaben.
 export const MAX_FEATURES_PER_GAME = 4;
+export const MAX_CAVEATS_PER_GAME = 2;
 
 // hasOwnProperty statt GAME_FEATURES[id], damit geerbte Object-Eigenschaften
 // ("constructor", "toString", ...) aus einer fremden config.json nicht
@@ -66,16 +83,32 @@ export function isKnownGameFeature(id) {
   return getGameFeature(id) !== null;
 }
 
+export function isCaveatFeature(id) {
+  return getGameFeature(id)?.kind === "caveat";
+}
+
 export function listGameFeatureIds() {
   return Object.keys(GAME_FEATURES);
 }
 
+// Farbton eines Eintrags, abgesichert gegen Tippfehler in dieser Datei.
+// Der Rückgabewert landet als CSS-Klasse im DOM — deshalb wird er gegen die
+// bekannten Werte geprüft und nicht einfach durchgereicht.
+export function getFeatureTint(id) {
+  if (isCaveatFeature(id)) return CAVEAT_TINT;
+  const feature = getGameFeature(id);
+  const tint = feature && typeof feature.tint === "string" ? feature.tint : "";
+  return FEATURE_TINTS.includes(tint) ? tint : DEFAULT_FEATURE_TINT;
+}
+
 /**
- * Bringt die Fähigkeiten eines Spiels in die zentrale Reihenfolge und wirft
- * dabei Unbekanntes und Doppeltes weg.
+ * Bringt die Angaben eines Spiels in die zentrale Reihenfolge und wirft dabei
+ * Unbekanntes und Doppeltes weg.
  *
- * Bewusst über die Reihenfolge von GAME_FEATURES statt über die Eingabe: so
- * ist das Ergebnis unabhängig davon, wie die config.json sortiert ist.
+ * Erst alle Fähigkeiten, dann alle Hinweise — jeweils in der Reihenfolge
+ * dieser Datei. Bewusst nicht in der Reihenfolge der config.json: so ist das
+ * Ergebnis unabhängig davon, wie ein Spiel seine Liste sortiert, und ein
+ * Hinweis rutscht nie zwischen die Fähigkeiten.
  *
  * @param {unknown} ids Rohe Liste aus einer config.json.
  * @returns {string[]}  Bekannte ids, ohne Duplikate, in Anzeige-Reihenfolge.
@@ -83,5 +116,6 @@ export function listGameFeatureIds() {
 export function orderGameFeatureIds(ids) {
   if (!Array.isArray(ids)) return [];
   const wanted = new Set(ids.filter((id) => typeof id === "string").map((id) => id.trim()));
-  return listGameFeatureIds().filter((id) => wanted.has(id));
+  const known = listGameFeatureIds().filter((id) => wanted.has(id));
+  return [...known.filter((id) => !isCaveatFeature(id)), ...known.filter(isCaveatFeature)];
 }
