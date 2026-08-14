@@ -5,6 +5,7 @@
 //   config/schema.js     → OB eine config.json gültig ist
 //   config/types.js      → WAS "type" bedeutet (Anzeigetext)
 //   config/statuses.js   → WAS "status" bedeutet (Anzeigetext + Badge-Klasse)
+//   config/features.js   → WAS "features" bedeuten (Anzeigetext + Reihenfolge)
 //   diese Datei          → WIE daraus eine Karte im bestehenden Design wird
 //
 // Sicherheit: Config-Werte werden ausschließlich über textContent bzw. über
@@ -14,6 +15,7 @@
 import { loadPublicGames } from "../../config/games.js";
 import { getGameType } from "../../config/types.js";
 import { getStatusBadge } from "../../config/statuses.js";
+import { getGameFeature } from "../../config/features.js";
 
 // Reiner Anzeigetext, für alle Karten gleich — bewusst hier und nicht in den
 // einzelnen config.json-Dateien.
@@ -60,6 +62,30 @@ function createArt(game) {
   return art;
 }
 
+// Kleine Fähigkeits-Chips ("features"). Bewusst eine echte Liste statt
+// aneinandergereihter <span>: für Screenreader ist "Liste mit 3 Einträgen"
+// die richtige Ansage, und die Chips ersetzen ja teilweise die Beschreibung.
+//
+// Die Reihenfolge kommt aus config/features.js und ist bereits in
+// schema.js angewandt worden — hier wird nur noch übersetzt und gezeichnet.
+function createFeatures(game) {
+  const ids = Array.isArray(game.features) ? game.features : [];
+  if (!ids.length) return null;
+
+  const list = document.createElement("ul");
+  list.className = "game-card-features";
+  ids.forEach((id) => {
+    const feature = getGameFeature(id);
+    if (!feature) return; // sollte nach schema.js nicht vorkommen
+    const item = document.createElement("li");
+    item.className = "game-card-feature";
+    item.textContent = feature.label;
+    list.appendChild(item);
+  });
+
+  return list.children.length ? list : null;
+}
+
 function createBody(game) {
   const body = document.createElement("div");
   body.className = "game-card-body";
@@ -73,6 +99,12 @@ function createBody(game) {
     text.textContent = game.description;
     body.appendChild(text);
   }
+
+  // Unter der Beschreibung, über dem Aufruf zum Spielen: die Chips sagen aus,
+  // was das Spiel kann, und gehören damit zum Beschreibungsteil der Karte —
+  // nicht zum Bild, auf dem schon Typ und Status sitzen.
+  const features = createFeatures(game);
+  if (features) body.appendChild(features);
 
   const cta = document.createElement("span");
   cta.className = "game-card-cta";

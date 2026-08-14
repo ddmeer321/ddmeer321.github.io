@@ -231,6 +231,33 @@ a { color: inherit; }
   font-size: 0.95rem;
 }
 
+/* Kleine Fähigkeits-Chips ("features" in config.json), z.B. "Multiplayer".
+   Bewusst ruhiger gestaltet als das Status-Badge im Bild: ein Status ist eine
+   Meldung und darf auffallen, eine Fähigkeit ist eine Sacheigenschaft und
+   soll die Karte nicht dominieren. Deshalb Umriss statt Vollfläche und
+   dieselbe Farbe für alle — die Chips unterscheiden sich über den Text,
+   nicht über Farbe. */
+.game-card-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.game-card-feature {
+  padding: 3px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: rgba(124, 92, 255, 0.06);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .game-card-cta {
   display: inline-flex;
   align-items: center;

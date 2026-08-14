@@ -12,6 +12,7 @@ in einer `config.json`. Die Startseite baut ihre Spielkarten daraus auf.
 | `config/schema.js` | **Ob** eine `config.json` gültig ist (Validierung) |
 | `config/types.js` | Bedeutung von `type` (Anzeigetext) |
 | `config/statuses.js` | Bedeutung von `status` (Anzeigetext + Badge-Klasse) |
+| `config/features.js` | Bedeutung von `features` (Anzeigetext + Reihenfolge) |
 | `assets/js/library-games.js` | **Wie** daraus eine Spielkarte wird (DOM) |
 | `assets/css/library.css` | Aussehen der Badges (`.status-*`) |
 
@@ -35,6 +36,7 @@ CSS-Klassen, HTML und Rendering-Logik stehen bewusst **nicht** darin.
 |---|---|
 | `status` | Veröffentlichungs-/Update-Status aus `config/statuses.js` (`stable`, `new`, `beta`, `updated`). Erscheint rechts auf der Karte. Fehlt das Feld oder steht `stable` drin, wird **kein** Badge angezeigt. |
 | `statusUntil` | Datum `JJJJ-MM-TT`, bis zu dem das Status-Badge angezeigt wird (siehe unten). Ohne dieses Feld bleibt der Status dauerhaft sichtbar. |
+| `features` | Liste der Fähigkeiten aus `config/features.js` (`multiplayer`, `leaderboard`, `mobile`, `offline`), z.B. `["multiplayer", "mobile"]`. Erscheint als kleine Chips im Textteil der Karte (siehe unten). |
 | `version` | Versionsnummer im Format `1.0.0`. |
 | `author` | Wer das Spiel gemacht hat. |
 | `description` | Kurzbeschreibung auf der Karte (max. 400 Zeichen). |
@@ -65,6 +67,61 @@ es von selbst ab — ohne dass jemand daran denken muss, es später zu entfernen
 Der Vergleich passiert über die lokale Uhrzeit des Besuchers. Ein Gerät mit
 falsch gestellter Uhr kann ein Badge daher einen Tag früher oder später
 ausblenden; für rein dekorative Badges ist das unkritisch.
+
+## Mini-Status / Fähigkeiten (`features`)
+
+`type`, `status` und `features` beantworten drei verschiedene Fragen und
+werden deshalb getrennt gehalten:
+
+| Feld | Frage | Anzahl | Wo auf der Karte |
+|---|---|---|---|
+| `type` | Was für ein Spiel ist es? | genau eins | links im Bild |
+| `status` | In welchem Zustand ist es? | genau einer, oft befristet | rechts im Bild |
+| `features` | Was kann es? | mehrere, dauerhaft | im Textteil, unter der Beschreibung |
+
+```json
+"features": ["multiplayer", "leaderboard", "mobile"]
+```
+
+- **Die Reihenfolge auf der Karte kommt aus `config/features.js`**, nicht aus
+  der `config.json`. Dadurch stehen gleiche Chips auf allen Karten an
+  derselben Stelle, egal wie ein Spiel sie einträgt.
+- **Höchstens 4 Chips je Karte.** Mehr wird abgeschnitten und in der Konsole
+  gemeldet — eine Karte mit acht Chips sagt nichts mehr aus.
+- **Alle Chips sehen gleich aus.** Sie unterscheiden sich über den Text, nicht
+  über die Farbe: ein Status ist eine Meldung und darf auffallen, eine
+  Fähigkeit ist eine Sacheigenschaft und soll die Karte nicht dominieren.
+  Deshalb braucht eine neue Fähigkeit auch kein eigenes CSS.
+- Unbekannte, doppelte oder leere Einträge kosten nur den einen Chip, nie das
+  ganze Spiel — sie werden ignoriert und in der Konsole gemeldet.
+
+Die Chips sind dafür gedacht, die Kurzbeschreibung zu **ergänzen oder zu
+ersetzen**. Ein Spiel darf also auch nur `features` und keine `description`
+haben.
+
+### Neue Fähigkeit hinzufügen
+
+In `config/features.js` einen Eintrag ergänzen — an der Stelle, an der der Chip
+auf der Karte erscheinen soll:
+
+```js
+controller: { label: "Gamepad" },
+```
+
+Danach ist `"features": ["controller"]` in jeder `config.json` gültig. CSS ist
+nicht nötig.
+
+### Was aktuell wo steht
+
+| Spiel | Fähigkeiten | Geprüft an |
+|---|---|---|
+| Neon Bot Arena | `multiplayer`, `leaderboard`, `mobile` | Koop mit Lobby-Codes, `online-leaderboard.js`, Touch-Steuerung mit Stick/Feuer/Spezial |
+| Snake | `mobile` | `touchstart` auf dem Spielfeld; Highscore nur lokal, deshalb keine `leaderboard` |
+
+`offline` ist in `config/features.js` definiert, aber **bei keinem Spiel
+gesetzt**: die Seite hat keinen Service Worker, ohne Netz lässt sich also nicht
+einmal die Seite laden. Der Chip wäre eine falsche Zusage. Sobald es echte
+Offline-Unterstützung gibt, reicht der Eintrag in der `config.json`.
 
 ## Neues Spiel hinzufügen
 
@@ -105,6 +162,7 @@ soon: { badge: true, label: "Bald", badgeClass: "status-soon" },
 - Ein fehlendes oder fehlerhaftes `config.json` betrifft immer nur **ein**
   Spiel — die restlichen Karten und die Seite laden normal weiter.
 - Unbekannter `status` → das Spiel wird angezeigt, nur ohne Badge.
+- Unbekannte Fähigkeit in `features` → nur dieser eine Chip entfällt.
 - Unbekannter `type` → das Spiel wird übersprungen (Pflichtfeld mit fester
   Auswahl), Meldung in der Browser-Konsole.
 - Config-Daten gelten nie als vertrauenswürdiges HTML: Texte werden

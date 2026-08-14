@@ -3,6 +3,7 @@
   "name": "Snake",
   "type": "minigame",
   "status": "stable",
+  "features": ["mobile"],
   "version": "1.0.0",
   "author": "Dodo",
   "description": "Der Klassiker: Schlange steuern, Futter sammeln, Wand und Schwanz meiden.",
