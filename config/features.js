@@ -57,12 +57,18 @@ export const CAVEAT_TINT = "rose";
 export const GAME_FEATURES = {
   multiplayer: { label: "Multiplayer", tint: "purple" },
   leaderboard: { label: "Online-Rangliste", tint: "amber" },
+  // Geräte absteigend nach Bildschirmgröße, damit sie auf der Karte immer in
+  // derselben Reihe stehen.
+  pc: { label: "PC", tint: "teal" },
   tablet: { label: "Tablet", tint: "teal" },
   mobile: { label: "Mobil", tint: "teal" },
   offline: { label: "Offline", tint: "neutral" },
 
   // --- Hinweise ---
-  "no-mobile": { label: "Nicht fürs Handy", kind: "caveat" },
+  // "unfertig", nicht "nicht dafür gedacht": Neon Bot Arena ist ausdrücklich
+  // auch fürs Handy gebaut (es hat Touch-Steuerung samt Geräteauswahl), das
+  // Layout ist dort nur noch nicht gut. Siehe ROADMAP.md.
+  "mobile-wip": { label: "Am Handy unfertig", kind: "caveat" },
 };
 
 // Höchstzahl der Chips je Karte, getrennt gezählt. Getrennt, weil sonst ein

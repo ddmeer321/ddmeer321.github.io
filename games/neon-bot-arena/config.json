@@ -3,7 +3,7 @@
   "name": "Neon Bot Arena",
   "type": "action",
   "status": "stable",
-  "features": ["multiplayer", "leaderboard", "tablet", "no-mobile"],
+  "features": ["multiplayer", "leaderboard", "pc", "tablet", "mobile-wip"],
   "version": "1.0.0",
   "author": "Dodo",
   "description": "Wähle einen Helden, überstehe immer stärkere Roboterwellen und kämpfe allein oder im Koop-Modus.",

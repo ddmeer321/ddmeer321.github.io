@@ -36,7 +36,7 @@ CSS-Klassen, HTML und Rendering-Logik stehen bewusst **nicht** darin.
 |---|---|
 | `status` | Veröffentlichungs-/Update-Status aus `config/statuses.js` (`stable`, `new`, `beta`, `updated`). Erscheint rechts auf der Karte. Fehlt das Feld oder steht `stable` drin, wird **kein** Badge angezeigt. |
 | `statusUntil` | Datum `JJJJ-MM-TT`, bis zu dem das Status-Badge angezeigt wird (siehe unten). Ohne dieses Feld bleibt der Status dauerhaft sichtbar. |
-| `features` | Liste der Fähigkeiten **und Hinweise** aus `config/features.js` (`multiplayer`, `leaderboard`, `tablet`, `mobile`, `offline`, `no-mobile`), z.B. `["multiplayer", "tablet", "no-mobile"]`. Erscheint als kleine Chips im Textteil der Karte (siehe unten). |
+| `features` | Liste der Fähigkeiten **und Hinweise** aus `config/features.js` (`multiplayer`, `leaderboard`, `pc`, `tablet`, `mobile`, `offline`, `mobile-wip`), z.B. `["multiplayer", "pc", "mobile-wip"]`. Erscheint als kleine Chips im Textteil der Karte (siehe unten). |
 | `version` | Versionsnummer im Format `1.0.0`. |
 | `author` | Wer das Spiel gemacht hat. |
 | `description` | Kurzbeschreibung auf der Karte (max. 400 Zeichen). |
@@ -80,20 +80,25 @@ werden deshalb getrennt gehalten:
 | `features` | Was kann es? | mehrere, dauerhaft | im Textteil, unter der Beschreibung |
 
 ```json
-"features": ["multiplayer", "leaderboard", "tablet", "no-mobile"]
+"features": ["multiplayer", "leaderboard", "pc", "tablet", "mobile-wip"]
 ```
 
 ### Zwei Sorten von Chips
 
 | Sorte | Sagt | Beispiel | Farbe |
 |---|---|---|---|
-| **Fähigkeit** (Vorgabe) | was das Spiel kann | „Multiplayer", „Tablet" | wählbarer Farbton |
-| **Hinweis** (`kind: "caveat"`) | wofür es eher **nicht** gedacht ist | „Nicht fürs Handy" | immer rot |
+| **Fähigkeit** (Vorgabe) | was das Spiel kann | „Multiplayer", „PC", „Tablet" | wählbarer Farbton |
+| **Hinweis** (`kind: "caveat"`) | wo es (noch) hakt | „Am Handy unfertig" | immer rot |
 
-Hinweise sind kein Mangel und kein Fehler — sie ersparen dem Besucher die
-Enttäuschung, ein Spiel auf einem Gerät zu öffnen, für das es nie gedacht war.
-Neon Bot Arena läuft auf dem iPad gut, war aber nie fürs Handy ausgelegt;
-genau das sagt der Hinweis, ohne dass die Beschreibung länger werden muss.
+Hinweise ersparen dem Besucher die Enttäuschung, ein Spiel auf einem Gerät zu
+öffnen, auf dem es (noch) nicht rund läuft. Neon Bot Arena ist ausdrücklich
+auch fürs Handy gebaut — es hat Touch-Steuerung samt Geräteauswahl —, das
+Layout dort ist nur noch nicht fertig. Genau das sagt der Hinweis, ohne dass
+die Beschreibung länger werden muss.
+
+Deshalb heißt der Chip „Am Handy unfertig" und nicht „Nicht fürs Handy": das
+eine ist ein Zwischenstand, das andere wäre eine Absichtserklärung. Was am
+Handy konkret klemmt, steht in `ROADMAP.md` der Kontext-Wissensbasis.
 
 ### Regeln
 
@@ -111,7 +116,7 @@ genau das sagt der Hinweis, ohne dass die Beschreibung länger werden muss.
   gar nicht erst auswählen (`FEATURE_TINTS` enthält es nicht). Dadurch heißt
   Rot auf der ganzen Seite dasselbe: „aufpassen", nie bloß „bunt".
 - **Der Text eines Hinweises muss die Einschränkung selbst benennen**
-  („Nicht fürs Handy", nicht bloß „Handy"). Die Farbe darf die Aussage nicht
+  („Am Handy unfertig", nicht bloß „Handy"). Die Farbe darf die Aussage nicht
   allein tragen — sonst geht sie verloren, sobald jemand Farben schlecht
   unterscheidet oder die Karte schwarzweiß gedruckt wird.
 - **Die Farbe der Fähigkeiten kommt aus einem festen kleinen Vorrat**
@@ -134,8 +139,8 @@ In `config/features.js` einen Eintrag ergänzen — an der Stelle, an der der Ch
 auf der Karte erscheinen soll:
 
 ```js
-controller: { label: "Gamepad", tint: "purple" },        // Fähigkeit
-"no-touch": { label: "Nicht für Touch", kind: "caveat" }, // Hinweis
+controller: { label: "Gamepad", tint: "purple" },          // Fähigkeit
+"touch-wip": { label: "Touch unfertig", kind: "caveat" },  // Hinweis
 ```
 
 Ein Hinweis bekommt **keinen** `tint` — sein Ton ist fest. Danach ist
@@ -151,14 +156,15 @@ je mehr Töne es gibt, desto unruhiger werden die Karten. Rot kommt dafür nicht
 in Frage, das gehört den Hinweisen.
 
 Aktuelle Zuordnung: `multiplayer` → purple, `leaderboard` → amber,
-`tablet`/`mobile` → teal, `offline` → neutral, alle Hinweise → rose.
+`pc`/`tablet`/`mobile` → teal (alle Geräte derselbe Ton, sie gehören
+zusammen), `offline` → neutral, alle Hinweise → rose.
 
 ### Was aktuell wo steht
 
 | Spiel | Chips | Grundlage |
 |---|---|---|
-| Neon Bot Arena | `multiplayer`, `leaderboard`, `tablet`, `no-mobile` | Koop mit Lobby-Codes, `online-leaderboard.js`, Touch-Steuerung mit Stick/Feuer/Spezial. Der Hinweis stammt aus der Einschätzung des Entwicklers: läuft auf dem iPad gut, war aber nie fürs Handy ausgelegt. |
-| Snake | `mobile` | `touchstart` auf dem Spielfeld; Highscore nur lokal, deshalb keine `leaderboard` |
+| Neon Bot Arena | `multiplayer`, `leaderboard`, `pc`, `tablet`, `mobile-wip` | Koop mit Lobby-Codes, `online-leaderboard.js`, Tastatur/Maus, Touch-Steuerung mit Stick/Feuer/Spezial. Der Hinweis stammt aus zwei im Testlauf gefundenen Fehlern (siehe `ROADMAP.md`), nicht aus einer Designentscheidung. |
+| Snake | `pc`, `mobile` | Pfeiltasten (`keydown`) und `touchstart` auf dem Spielfeld; Highscore nur lokal, deshalb keine `leaderboard` |
 
 `offline` ist in `config/features.js` definiert, aber **bei keinem Spiel
 gesetzt**: die Seite hat keinen Service Worker, ohne Netz lässt sich also nicht
