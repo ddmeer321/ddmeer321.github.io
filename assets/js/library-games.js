@@ -15,7 +15,7 @@
 import { loadPublicGames } from "../../config/games.js";
 import { getGameType } from "../../config/types.js";
 import { getStatusBadge } from "../../config/statuses.js";
-import { getGameFeature } from "../../config/features.js";
+import { getFeatureTint, getGameFeature } from "../../config/features.js";
 
 // Reiner Anzeigetext, für alle Karten gleich — bewusst hier und nicht in den
 // einzelnen config.json-Dateien.
@@ -78,7 +78,9 @@ function createFeatures(game) {
     const feature = getGameFeature(id);
     if (!feature) return; // sollte nach schema.js nicht vorkommen
     const item = document.createElement("li");
-    item.className = "game-card-feature";
+    // getFeatureTint() liefert nur Werte aus FEATURE_TINTS — die Klasse kann
+    // dadurch nicht aus einer config.json heraus gesetzt werden.
+    item.className = `game-card-feature tint-${getFeatureTint(id)}`;
     item.textContent = feature.label;
     list.appendChild(item);
   });

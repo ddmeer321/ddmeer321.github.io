@@ -234,9 +234,12 @@ a { color: inherit; }
 /* Kleine Fähigkeits-Chips ("features" in config.json), z.B. "Multiplayer".
    Bewusst ruhiger gestaltet als das Status-Badge im Bild: ein Status ist eine
    Meldung und darf auffallen, eine Fähigkeit ist eine Sacheigenschaft und
-   soll die Karte nicht dominieren. Deshalb Umriss statt Vollfläche und
-   dieselbe Farbe für alle — die Chips unterscheiden sich über den Text,
-   nicht über Farbe. */
+   soll die Karte nicht dominieren. Deshalb heller Grund mit kräftiger Schrift
+   statt Vollfläche.
+
+   Die Farbe kommt aus einem festen kleinen Vorrat an Farbtönen (.tint-*),
+   NICHT aus einer Klasse je Fähigkeit. Dadurch braucht eine neue Fähigkeit
+   kein neues CSS — sie wählt in config/features.js einen vorhandenen Ton. */
 .game-card-features {
   display: flex;
   flex-wrap: wrap;
@@ -247,15 +250,45 @@ a { color: inherit; }
 }
 
 .game-card-feature {
+  /* Vorbelegung = neutral. Eine .tint-*-Klasse überschreibt nur diese drei
+     Werte, dadurch bleibt ein Chip auch ohne gültigen Ton lesbar. */
+  --feature-bg: #f2f0f7;
+  --feature-line: var(--card-border);
+  --feature-ink: var(--muted);
+
   padding: 3px 10px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--feature-line);
   border-radius: 999px;
-  background: rgba(124, 92, 255, 0.06);
-  color: var(--muted);
+  background: var(--feature-bg);
+  color: var(--feature-ink);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   white-space: nowrap;
+}
+
+.game-card-feature.tint-purple {
+  --feature-bg: #efeaff;
+  --feature-line: rgba(124, 92, 255, 0.32);
+  --feature-ink: #553bc9;
+}
+
+.game-card-feature.tint-pink {
+  --feature-bg: #ffeaf2;
+  --feature-line: rgba(255, 95, 162, 0.34);
+  --feature-ink: #b02a63;
+}
+
+.game-card-feature.tint-amber {
+  --feature-bg: #fff3d9;
+  --feature-line: rgba(255, 194, 71, 0.5);
+  --feature-ink: #8a5a00;
+}
+
+.game-card-feature.tint-teal {
+  --feature-bg: #dcf7f2;
+  --feature-line: rgba(47, 214, 192, 0.45);
+  --feature-ink: #0e6459;
 }
 
 .game-card-cta {

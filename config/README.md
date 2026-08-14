@@ -88,10 +88,13 @@ werden deshalb getrennt gehalten:
   derselben Stelle, egal wie ein Spiel sie einträgt.
 - **Höchstens 4 Chips je Karte.** Mehr wird abgeschnitten und in der Konsole
   gemeldet — eine Karte mit acht Chips sagt nichts mehr aus.
-- **Alle Chips sehen gleich aus.** Sie unterscheiden sich über den Text, nicht
-  über die Farbe: ein Status ist eine Meldung und darf auffallen, eine
-  Fähigkeit ist eine Sacheigenschaft und soll die Karte nicht dominieren.
-  Deshalb braucht eine neue Fähigkeit auch kein eigenes CSS.
+- **Die Farbe kommt aus einem festen kleinen Vorrat an Farbtönen**
+  (`purple`, `pink`, `amber`, `teal`, `neutral`) — nicht aus einer Farbe je
+  Fähigkeit. Dadurch braucht eine neue Fähigkeit kein neues CSS, und die
+  Karten bleiben ruhig, auch wenn irgendwann zehn Fähigkeiten existieren.
+- **Chips sind nur eingefärbt, Status-Badges sind Vollflächen.** Ein Status
+  ist eine Meldung und darf auffallen, eine Fähigkeit ist eine
+  Sacheigenschaft und soll die Karte nicht dominieren.
 - Unbekannte, doppelte oder leere Einträge kosten nur den einen Chip, nie das
   ganze Spiel — sie werden ignoriert und in der Konsole gemeldet.
 
@@ -102,14 +105,24 @@ haben.
 ### Neue Fähigkeit hinzufügen
 
 In `config/features.js` einen Eintrag ergänzen — an der Stelle, an der der Chip
-auf der Karte erscheinen soll:
+auf der Karte erscheinen soll — und einen der vorhandenen Farbtöne wählen:
 
 ```js
-controller: { label: "Gamepad" },
+controller: { label: "Gamepad", tint: "purple" },
 ```
 
-Danach ist `"features": ["controller"]` in jeder `config.json` gültig. CSS ist
-nicht nötig.
+Danach ist `"features": ["controller"]` in jeder `config.json` gültig. **CSS
+ist nicht nötig**, solange ein vorhandener Farbton genügt. Ein Tippfehler im
+Farbton fällt auf `neutral` zurück, der Chip bleibt also lesbar.
+
+Ein wirklich neuer Farbton wäre der Ausnahmefall und braucht eine
+`.tint-<name>`-Regel in `assets/css/library.css` mit den drei Werten
+`--feature-bg`, `--feature-line` und `--feature-ink` — plus einen Eintrag in
+`FEATURE_TINTS`. Vorher lohnt die Frage, ob nicht ein bestehender Ton passt:
+je mehr Töne es gibt, desto unruhiger werden die Karten.
+
+Aktuelle Zuordnung: `multiplayer` → pink, `leaderboard` → amber,
+`mobile` → teal, `offline` → neutral.
 
 ### Was aktuell wo steht
 

@@ -17,17 +17,37 @@
 // gleiche Chips auf allen Karten an derselben Stelle, egal in welcher
 // Reihenfolge ein Spiel sie einträgt.
 //
-// NEUE FÄHIGKEIT ERGÄNZEN: einen Eintrag hinzufügen, fertig. Anders als bei
-// den Status braucht es dafür KEIN eigenes CSS — alle Chips sehen gleich aus.
-// Ein Status ist eine Meldung und darf auffallen; eine Fähigkeit ist eine
-// Sacheigenschaft und soll die Karte nicht dominieren.
+// NEUE FÄHIGKEIT ERGÄNZEN: einen Eintrag hinzufügen und einen der unten
+// definierten Farbtöne wählen — fertig. Anders als bei den Status braucht es
+// dafür KEIN eigenes CSS: die Farbtöne sind ein fester, kleiner Vorrat, keine
+// Farbe je Fähigkeit. Dadurch bleiben die Karten ruhig, auch wenn irgendwann
+// zehn Fähigkeiten existieren.
+//
+// Die Chips sind bewusst nur eingefärbt (heller Grund, kräftige Schrift),
+// während Status-Badges eine Vollfläche bekommen: ein Status ist eine Meldung
+// und darf auffallen, eine Fähigkeit ist eine Sacheigenschaft und soll die
+// Karte nicht dominieren.
+
+// Erlaubte Farbtöne. Jeder hat in assets/css/library.css eine
+// .tint-<name>-Regel; ein unbekannter Wert fällt auf "neutral" zurück.
+export const FEATURE_TINTS = ["purple", "pink", "amber", "teal", "neutral"];
+export const DEFAULT_FEATURE_TINT = "neutral";
 
 export const GAME_FEATURES = {
-  multiplayer: { label: "Multiplayer" },
-  leaderboard: { label: "Online-Rangliste" },
-  mobile: { label: "Mobil" },
-  offline: { label: "Offline" },
+  multiplayer: { label: "Multiplayer", tint: "pink" },
+  leaderboard: { label: "Online-Rangliste", tint: "amber" },
+  mobile: { label: "Mobil", tint: "teal" },
+  offline: { label: "Offline", tint: "neutral" },
 };
+
+// Farbton einer Fähigkeit, abgesichert gegen Tippfehler in dieser Datei.
+// Der Rückgabewert landet als CSS-Klasse im DOM — deshalb wird er gegen die
+// bekannte Liste geprüft und nicht einfach durchgereicht.
+export function getFeatureTint(id) {
+  const feature = getGameFeature(id);
+  const tint = feature && typeof feature.tint === "string" ? feature.tint : "";
+  return FEATURE_TINTS.includes(tint) ? tint : DEFAULT_FEATURE_TINT;
+}
 
 // Höchstzahl der Chips je Karte. Begrenzt, weil eine Karte mit acht Chips
 // nichts mehr aussagt — die Chips sollen die Kurzbeschreibung ergänzen oder
