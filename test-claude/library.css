@@ -198,6 +198,76 @@ a { color: inherit; }
   font-size: 0.95rem;
 }
 
+/* Mini-Status-Chips auf der Karte: was ein Spiel kann, in Stichworten.
+   Sie ersetzen die ausführliche Beschreibung — Minigames bekommen keine
+   eigene Beschreibungsseite mehr, also muss die Kachel allein tragen.
+   Stichworte lesen sich dort schneller als ein Fließtext.
+
+   Bewusst ruhiger als das Abzeichen im Bild: ein Status ist eine Meldung
+   und darf auffallen, eine Fähigkeit ist eine Sacheigenschaft und soll die
+   Karte nicht dominieren. Deshalb heller Grund statt Vollfläche.
+
+   Die Farbe kommt aus einem festen kleinen Vorrat an Tönen (.tint-*), nicht
+   aus einer Klasse je Fähigkeit — eine neue Fähigkeit braucht dadurch kein
+   neues CSS. Hier von Hand gepflegt; im Testbereich stehen die Kacheln als
+   festes HTML in index.html. Das config-getriebene Gegenstück liegt auf
+   Branch claude/cloud-session-test-vckxyz (config/features.js) und ist noch
+   nicht auf main — Klassennamen und Töne sind absichtlich identisch, damit
+   beim Zusammenführen nichts umbenannt werden muss. */
+.game-card-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.game-card-feature {
+  /* Vorbelegung = neutral. Eine .tint-*-Klasse überschreibt nur diese drei
+     Werte, dadurch bleibt ein Chip auch ohne gültigen Ton lesbar. */
+  --feature-bg: #f2f0f7;
+  --feature-line: var(--card-border);
+  --feature-ink: var(--muted);
+
+  padding: 3px 10px;
+  border: 1px solid var(--feature-line);
+  border-radius: 999px;
+  background: var(--feature-bg);
+  color: var(--feature-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.game-card-feature.tint-purple {
+  --feature-bg: #efeaff;
+  --feature-line: rgba(124, 92, 255, 0.32);
+  --feature-ink: #553bc9;
+}
+
+.game-card-feature.tint-amber {
+  --feature-bg: #fff3d9;
+  --feature-line: rgba(255, 194, 71, 0.5);
+  --feature-ink: #8a5a00;
+}
+
+.game-card-feature.tint-teal {
+  --feature-bg: #dcf7f2;
+  --feature-line: rgba(47, 214, 192, 0.45);
+  --feature-ink: #0e6459;
+}
+
+/* Reserviert für Hinweise („wofür das Spiel eher nicht gedacht ist"). Eine
+   Fähigkeit darf diesen Ton nicht wählen, damit Rot auf der ganzen Seite
+   dasselbe bedeutet. */
+.game-card-feature.tint-rose {
+  --feature-bg: #ffe8ea;
+  --feature-line: rgba(200, 40, 60, 0.32);
+  --feature-ink: #a51f36;
+}
+
 .game-card-cta {
   display: inline-flex;
   align-items: center;
