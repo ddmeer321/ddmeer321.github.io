@@ -16,6 +16,14 @@
 
 import { isKnownGameType, listGameTypeIds } from "./types.js";
 import { isKnownGameStatus, DEFAULT_STATUS } from "./statuses.js";
+import {
+  MAX_CAVEATS_PER_GAME,
+  MAX_FEATURES_PER_GAME,
+  isCaveatFeature,
+  isKnownGameFeature,
+  listGameFeatureIds,
+  orderGameFeatureIds,
+} from "./features.js";
 
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
@@ -43,6 +51,7 @@ const ALLOWED_FIELDS = [
   "type",
   "status",
   "statusUntil",
+  "features",
   "version",
   "author",
   "description",
@@ -161,6 +170,54 @@ export function validateGameConfig(raw, source = "config.json") {
     }
   }
 
+  // Fähigkeiten des Spiels. Durchgehend nur Warnungen: eine falsch geschriebene
+  // Fähigkeit soll höchstens einen Chip kosten, niemals das ganze Spiel.
+  let features = [];
+  if (raw.features !== undefined && raw.features !== null) {
+    if (!Array.isArray(raw.features)) {
+      warnings.push(`${source}: "features" ist keine Liste und wird ignoriert.`);
+    } else {
+      const seen = new Set();
+      raw.features.forEach((entry) => {
+        const value = typeof entry === "string" ? entry.trim() : "";
+        if (!value) {
+          warnings.push(`${source}: leerer Eintrag in "features" wird ignoriert.`);
+        } else if (!isKnownGameFeature(value)) {
+          warnings.push(
+            `${source}: unbekannte Fähigkeit "${value}" in "features" — bekannt sind: ${listGameFeatureIds().join(", ")}.`
+          );
+        } else if (seen.has(value)) {
+          warnings.push(`${source}: "${value}" steht mehrfach in "features" und wird nur einmal angezeigt.`);
+        } else {
+          seen.add(value);
+        }
+      });
+      // Erst sortieren, dann kürzen: so bleiben bei zu vielen Angaben die
+      // wichtigsten übrig und nicht die, die zufällig oben in der Datei standen.
+      //
+      // Fähigkeiten und Hinweise werden GETRENNT gedeckelt. Bei einer
+      // gemeinsamen Obergrenze könnte ein Spiel mit vielen Fähigkeiten seinen
+      // Hinweis verlieren — und der ist die wichtigere der beiden Angaben.
+      const ordered = orderGameFeatureIds([...seen]);
+      const abilities = ordered.filter((id) => !isCaveatFeature(id));
+      const caveats = ordered.filter(isCaveatFeature);
+      if (abilities.length > MAX_FEATURES_PER_GAME) {
+        warnings.push(
+          `${source}: mehr als ${MAX_FEATURES_PER_GAME} Fähigkeiten angegeben — nur die ersten ${MAX_FEATURES_PER_GAME} werden angezeigt.`
+        );
+      }
+      if (caveats.length > MAX_CAVEATS_PER_GAME) {
+        warnings.push(
+          `${source}: mehr als ${MAX_CAVEATS_PER_GAME} Hinweise angegeben — nur die ersten ${MAX_CAVEATS_PER_GAME} werden angezeigt.`
+        );
+      }
+      features = [
+        ...abilities.slice(0, MAX_FEATURES_PER_GAME),
+        ...caveats.slice(0, MAX_CAVEATS_PER_GAME),
+      ];
+    }
+  }
+
   let version = null;
   if (raw.version !== undefined && raw.version !== null && raw.version !== "") {
     if (isPlainString(raw.version) && VERSION_RE.test(raw.version.trim())) {
@@ -233,6 +290,7 @@ export function validateGameConfig(raw, source = "config.json") {
       type,
       status,
       statusUntil,
+      features,
       version,
       author,
       description,
