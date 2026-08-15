@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="stylesheet" href="css/style.css?v=1" />
+    <title>Tic-Tac-Toe – Testbereich Claude</title>
+  </head>
+  <body>
+    <div class="test-banner">
+      🧪 Testbereich „Claude" — nur für Tester/Admin/Owner sichtbar
+    </div>
+
+    <main class="ttt">
+      <!-- ---------- Hauptmenü ---------- -->
+      <section id="screen-menu" class="screen">
+        <h1 class="title">Tic-Tac-Toe</h1>
+
+        <div class="difficulty">
+          <div id="difficulty-emoji" class="difficulty-emoji" aria-hidden="true">🤔</div>
+
+          <label class="difficulty-label" for="difficulty-slider">Schwierigkeit</label>
+          <input
+            id="difficulty-slider"
+            class="difficulty-slider"
+            type="range"
+            min="1"
+            max="4"
+            step="1"
+            value="2"
+            list="difficulty-steps"
+          />
+          <!-- Vier feste Rastpunkte; step="1" lässt den Regler dazwischen gar
+               nicht erst stehenbleiben. -->
+          <datalist id="difficulty-steps">
+            <option value="1"></option>
+            <option value="2"></option>
+            <option value="3"></option>
+            <option value="4"></option>
+          </datalist>
+
+          <p id="difficulty-name" class="difficulty-name">Mittel</p>
+          <p id="difficulty-description" class="difficulty-description"></p>
+        </div>
+
+        <button id="btn-start" class="btn btn-primary" type="button">Spiel starten</button>
+      </section>
+
+      <!-- ---------- Spiel ---------- -->
+      <section id="screen-game" class="screen" hidden>
+        <div class="players">
+          <span class="player player-x">Du<b>X</b></span>
+          <span class="player player-o">Computer<b>O</b></span>
+          <span id="game-difficulty" class="player player-badge">🤔 Mittel</span>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite" data-tone="neutral">
+          Du bist am Zug.
+        </p>
+
+        <div id="board" class="board" role="grid" aria-label="Spielfeld"></div>
+
+        <div class="actions">
+          <button id="btn-again" class="btn btn-primary" type="button">Neue Runde</button>
+          <button id="btn-menu" class="btn btn-ghost" type="button">Hauptmenü</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../../assets/js/supabase-client.js"></script>
+    <script src="../../assets/js/test-gate.js?v=1"></script>
+    <script src="../../assets/js/auth.js?v=3"></script>
+    <script type="module" src="js/main.js?v=1"></script>
+  </body>
+</html>

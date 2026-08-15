@@ -1,0 +1,239 @@
+/* Tic-Tac-Toe — bewusst schlicht.
+   Wenige Farben, eine Schriftgröße pro Ebene, keine Effekte ohne Zweck. */
+
+:root {
+  color-scheme: light;
+  --bg: #fff6ea;
+  --surface: #ffffff;
+  --ink: #241c3d;
+  --muted: #6b6285;
+  --line: rgba(36, 28, 61, 0.1);
+  --accent: #7c5cff;
+  --x: #7c5cff;
+  --o: #ff5fa2;
+  --win: #2fd6c0;
+  font-family: "Baloo 2", Poppins, ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.test-banner {
+  padding: 8px 14px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ttt {
+  display: grid;
+  place-items: center;
+  width: min(440px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: clamp(24px, 6vw, 56px) 0 48px;
+}
+
+.screen {
+  display: grid;
+  justify-items: center;
+  gap: 26px;
+  width: 100%;
+}
+
+.screen[hidden] { display: none; }
+
+.title {
+  margin: 0;
+  font-size: clamp(2.1rem, 9vw, 2.9rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Schwierigkeit ---------- */
+
+.difficulty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 26px 22px 22px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+}
+
+.difficulty-emoji {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+/* Kleiner Sprung beim Wechsel der Stufe. */
+.difficulty-emoji.pop { animation: pop 260ms ease-out; }
+
+@keyframes pop {
+  0%   { transform: scale(0.6) rotate(-8deg); opacity: 0.4; }
+  60%  { transform: scale(1.12) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.difficulty-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.difficulty-slider {
+  width: 100%;
+  margin: 4px 0 2px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.difficulty-name {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.difficulty-description {
+  margin: 0;
+  min-height: 2.6em;      /* verhindert Springen beim Textwechsel */
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ---------- Knöpfe ---------- */
+
+.btn {
+  min-height: 52px;
+  padding: 0 30px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 1.02rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, background 160ms ease;
+}
+
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: #6a49f5; }
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--muted);
+}
+.btn-ghost:hover { color: var(--ink); border-color: var(--muted); }
+
+/* ---------- Spiel ---------- */
+
+.players {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.player {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.player b { font-size: 1rem; }
+.player-x b { color: var(--x); }
+.player-o b { color: var(--o); }
+
+.status {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.status[data-tone="win"]  { color: #17a08c; }
+.status[data-tone="lose"] { color: #d1477e; }
+.status[data-tone="draw"] { color: var(--muted); }
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  font: inherit;
+  font-size: clamp(2.6rem, 15vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.cell:disabled { cursor: default; }
+.cell:not(:disabled):hover { background: #f6f3ff; border-color: var(--accent); }
+.cell:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.cell.is-x { color: var(--x); }
+.cell.is-o { color: var(--o); }
+
+.cell.is-win {
+  border-color: var(--win);
+  background: rgba(47, 214, 192, 0.14);
+}
+
+/* Zeichen wächst kurz auf, wenn es gesetzt wird. */
+.cell.just-placed { animation: place 200ms ease-out; }
+
+@keyframes place {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Wer Animationen abgeschaltet hat, bekommt keine. */
+@media (prefers-reduced-motion: reduce) {
+  .difficulty-emoji.pop,
+  .cell.just-placed { animation: none; }
+  .btn { transition: none; }
+}

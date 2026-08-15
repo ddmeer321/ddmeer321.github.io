@@ -1,0 +1,11 @@
+{
+  "id": "tic-tac-toe",
+  "name": "Tic-Tac-Toe",
+  "type": "minigame",
+  "status": "beta",
+  "version": "1.0.0",
+  "author": "Dodo",
+  "description": "Der Klassiker gegen einen Computergegner in vier Stärken — von harmlos bis mathematisch unschlagbar.",
+  "icon": "⭕",
+  "entry": "test-claude/tic-tac-toe/index.html"
+}
