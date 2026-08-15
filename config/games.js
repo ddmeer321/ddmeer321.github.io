@@ -14,6 +14,7 @@ import { validateGameConfig } from "./schema.js";
 export const PUBLIC_GAME_CONFIGS = [
   "games/neon-bot-arena/config.json",
   "games/snake/config.json",
+  "games/tic-tac-toe/config.json",
 ];
 
 async function fetchGameConfig(path) {

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover: nur damit lösen sich die env(safe-area-*)-Werte
+         überhaupt auf. Ohne sie bleiben sie 0 und die Statusleiste schiebt
+         sich auf iPhones mit Notch über die oberste Zeile. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Tic-Tac-Toe im Browser: gegen den Computer in vier Stärken von einfach bis unschlagbar, oder zu zweit an einem Gerät. Kostenlos, ohne Installation." />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="canonical" href="https://ddmeer321.github.io/tic-tac-toe/" />
+    <link rel="stylesheet" href="css/style.css?v=1" />
+    <title>Tic-Tac-Toe – Spielebibliothek</title>
+  </head>
+  <body>
+    <!-- Der Weg zurück muss auf jedem Bildschirm sichtbar sein, nicht nur im
+         Hauptmenü: "Hauptmenü" führt zurück ins Spielmenü, dieser Pfeil aus
+         dem Spiel heraus. Deshalb steht er außerhalb der <section>-Bildschirme. -->
+    <div class="topline">
+      <a class="back-link" href="../index.html">← Zur Spielebibliothek</a>
+    </div>
+
+    <main class="ttt">
+      <!-- ---------- Hauptmenü ---------- -->
+      <section id="screen-menu" class="screen">
+        <h1 class="title">Tic-Tac-Toe</h1>
+
+        <div class="difficulty">
+          <div id="difficulty-emoji" class="difficulty-emoji" aria-hidden="true">🤔</div>
+
+          <label class="difficulty-label" for="difficulty-slider">Schwierigkeit</label>
+          <input
+            id="difficulty-slider"
+            class="difficulty-slider"
+            type="range"
+            min="1"
+            max="4"
+            step="1"
+            value="2"
+            list="difficulty-steps"
+          />
+          <!-- Vier feste Rastpunkte; step="1" lässt den Regler dazwischen gar
+               nicht erst stehenbleiben. -->
+          <datalist id="difficulty-steps">
+            <option value="1"></option>
+            <option value="2"></option>
+            <option value="3"></option>
+            <option value="4"></option>
+          </datalist>
+
+          <p id="difficulty-name" class="difficulty-name">Mittel</p>
+          <p id="difficulty-description" class="difficulty-description"></p>
+        </div>
+
+        <div class="menu-actions">
+          <button id="btn-start-bot" class="btn btn-primary" type="button">Gegen Bot spielen</button>
+          <button id="btn-start-friend" class="btn btn-secondary" type="button">Gegen Freund spielen</button>
+          <p class="menu-hint">Zu zweit an einem Gerät — abwechselnd tippen. Die Schwierigkeit gilt nur für den Bot.</p>
+        </div>
+      </section>
+
+      <!-- ---------- Spiel ---------- -->
+      <section id="screen-game" class="screen" hidden>
+        <div class="players">
+          <span id="player-x" class="player player-x">Du<b>X</b></span>
+          <span id="player-o" class="player player-o">Computer<b>O</b></span>
+          <span id="game-mode" class="player player-badge">🤔 Mittel</span>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite" data-tone="neutral">
+          Du bist am Zug.
+        </p>
+
+        <div id="board" class="board" role="grid" aria-label="Spielfeld"></div>
+
+        <div class="actions">
+          <button id="btn-again" class="btn btn-primary" type="button">Neue Runde</button>
+          <button id="btn-menu" class="btn btn-ghost" type="button">Hauptmenü</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Kein Supabase, kein Gate, kein Login: Tic-Tac-Toe speichert nichts und
+         braucht kein Konto. Die Seite lädt damit genau eine eigene Datei. -->
+    <script type="module" src="js/main.js?v=1"></script>
+  </body>
+</html>

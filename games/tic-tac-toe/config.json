@@ -1,0 +1,14 @@
+{
+  "id": "tic-tac-toe",
+  "name": "Tic-Tac-Toe",
+  "type": "minigame",
+  "status": "new",
+  "statusUntil": "2026-09-15",
+  "version": "1.0.0",
+  "author": "Dodo",
+  "description": "Abwechselnd X und O setzen, wer zuerst drei in einer Reihe hat, gewinnt. Gegen den Computer in vier Stärken oder zu zweit an einem Gerät.",
+  "thumbnail": "assets/img/tic-tac-toe-keyart.webp",
+  "thumbnailAlt": "Tic-Tac-Toe-Schriftzug über einem Spielfeld mit zwei blauen X und einem roten O",
+  "icon": "⭕",
+  "entry": "tic-tac-toe/index.html"
+}
