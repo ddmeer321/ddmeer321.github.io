@@ -105,6 +105,34 @@ p {
   z-index: 20;
 }
 
+/* Pfeil und Titel bilden zusammen die linke Seite der Kopfleiste, damit
+   deren space-between weiterhin nur zwei Blöcke auseinanderschiebt. */
+.cc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.cc-back {
+  display: inline-flex;
+  align-items: center;
+  /* 44 px hohe Trefferfläche — als reiner Textlink wäre der Pfeil auf dem
+     Handy zu knapp zum Treffen. */
+  min-height: 44px;
+  /* accent-2 statt accent: das Violett der Marke kommt auf dem dunklen
+     Kopf nur auf 4,5:1 und liegt damit genau auf der AA-Grenze. Cyan ist
+     in dieser Oberfläche ohnehin die Farbe für Interaktion (Fokusrahmen). */
+  color: var(--accent-2);
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cc-back:hover,
+.cc-back:focus-visible { text-decoration: underline; }
+
 .cc-brand {
   display: inline-flex;
   align-items: center;
@@ -117,6 +145,12 @@ p {
 
 .cc-brand-mark {
   font-size: 1.3rem;
+}
+
+/* Auf schmalen Geräten ist der Rückweg wichtiger als der Spieltitel — der
+   steht ohnehin schon im Browser-Tab. */
+@media (max-width: 560px) {
+  .cc-brand { display: none; }
 }
 
 /* HUD-Leiste: Coins / Coins pro Klick / Ausgerüsteter Cursor / gesammelte Cursor */

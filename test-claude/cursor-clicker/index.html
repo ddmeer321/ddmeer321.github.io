@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#0b0d14" />
-    <link rel="stylesheet" href="css/style.css?v=2" />
+    <link rel="stylesheet" href="css/style.css?v=3" />
     <link rel="stylesheet" href="css/panels.css?v=2" />
     <link rel="stylesheet" href="css/modals.css?v=2" />
     <link rel="stylesheet" href="css/cursor-glyph.css?v=2" />
@@ -21,10 +21,16 @@
     <div class="cc-test-banner">🧪 Testbereich „Claude" — unabhängige Testkopie, nur für Tester/Admin/Owner sichtbar</div>
 
     <header class="cc-header">
-      <a class="cc-brand" href="../index.html" aria-label="Zurück zur Testbibliothek">
-        <span class="cc-brand-mark" aria-hidden="true">🖱️</span>
-        <span>Cursor Clicker</span>
-      </a>
+      <div class="cc-header-left">
+        <a class="cc-back" href="../index.html">← Zur Spielebibliothek</a>
+        <!-- Der Titel daneben ist bewusst kein Link mehr: er zeigte auf
+             dasselbe Ziel wie der Pfeil, und zwei benachbarte Links auf
+             dieselbe Seite sagt ein Screenreader zweimal an. -->
+        <span class="cc-brand">
+          <span class="cc-brand-mark" aria-hidden="true">🖱️</span>
+          <span>Cursor Clicker</span>
+        </span>
+      </div>
       <div id="auth-status"></div>
     </header>
 

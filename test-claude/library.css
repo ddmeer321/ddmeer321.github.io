@@ -340,7 +340,15 @@ a { color: inherit; }
 }
 .mini-back {
   display: inline-flex;
+  align-items: center;
+  /* 44 px Trefferfläche, gleiche Größe wie der Pfeil in Tic-Tac-Toe und
+     Cursor Clicker — der Rückweg soll sich überall gleich anfühlen. */
+  min-height: 44px;
   margin-bottom: 20px;
+  /* Bewusst var(--purple) und keine feste Farbe: snake.css setzt --purple
+     für seine dunkle Seite auf Grün um. Eine hier fest eingetragene Farbe
+     würde diese Umfärbung aushebeln — auf dem dunklen Grün fiele der Link
+     von 10,7:1 auf 2,5:1. */
   color: var(--purple);
   font-weight: 700;
   text-decoration: none;

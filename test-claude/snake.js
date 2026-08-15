@@ -49,10 +49,13 @@
     Object.keys(views).forEach(function (key) {
       views[key].classList.toggle("hidden", key !== id);
     });
-    document.body.classList.toggle("in-game", id !== "view-intro");
   }
 
-  document.getElementById("open-menu-button").addEventListener("click", function () { showView("view-menu"); });
+  // Früher gab es einen Beschreibungs-Bildschirm vor dem Menü; nur dort war
+  // die Seite noch "Seite" und zeigte den Footer. Den gibt es nicht mehr
+  // (RULES.md, Beschreibungs-Regeln), also ist ab dem ersten Bild gespielt.
+  document.body.classList.add("in-game");
+
   document.querySelectorAll("[data-back-to-menu]").forEach(function (btn) {
     btn.addEventListener("click", function () { stopGame(); showView("view-menu"); renderCoins(); });
   });

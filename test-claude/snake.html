@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#fff6ea" />
-    <link rel="stylesheet" href="library.css?v=3" />
+    <link rel="stylesheet" href="library.css?v=4" />
     <link rel="stylesheet" href="snake.css?v=1" />
     <link rel="stylesheet" href="auth.css?v=1" />
     <title>Snake (Test: Claude) – Spielebibliothek</title>
@@ -25,14 +25,10 @@
     </header>
 
     <main>
-      <section id="view-intro" class="mini-view mini-hero">
-        <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
-        <h1>Snake</h1>
-        <p>Der Klassiker: Steuere die Schlange zum Futter, ohne die Wand, ein Hindernis oder dich selbst zu berühren. Sammle goldenes Bonus-Futter für Extrapunkte, wische auf dem Spielfeld oder nutze Pfeiltasten/WASD. Mit Punkten verdienst du Münzen für neue Skins im Shop.</p>
-        <button class="mini-btn" id="open-menu-button">Spiel öffnen</button>
-      </section>
-
-      <section id="view-menu" class="mini-view mini-menu hidden">
+      <!-- Kein Zwischenbildschirm mit Beschreibung mehr: Minigames werden
+           ausschließlich in ihrer Kachel beschrieben (siehe RULES.md,
+           Beschreibungs-Regeln). Der Einstieg ist direkt das Menü. -->
+      <section id="view-menu" class="mini-view mini-menu">
         <h1>Snake</h1>
         <span class="coin-pill" id="menu-coins">🪙 0 Münzen</span>
         <button class="menu-btn primary" id="start-button"><span>▶ Start</span></button>
@@ -146,6 +142,6 @@
     <script src="../assets/js/supabase-client.js"></script>
     <script src="../assets/js/test-gate.js?v=1"></script>
     <script src="../assets/js/auth.js?v=3"></script>
-    <script src="snake.js?v=1"></script>
+    <script src="snake.js?v=2"></script>
   </body>
 </html>

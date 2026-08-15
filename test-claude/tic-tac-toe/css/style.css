@@ -9,6 +9,10 @@
   --muted: #6b6285;
   --line: rgba(36, 28, 61, 0.1);
   --accent: #7c5cff;
+  /* Dunklere Variante nur für kleinen Text auf hellem Grund: --accent kommt
+     dort auf 4,06:1 und reißt damit WCAG AA (4,5:1). Als Fläche, Rahmen und
+     Fokusring bleibt --accent richtig, da gilt die Textschwelle nicht. */
+  --accent-ink: #553bc9;
   --x: #7c5cff;
   --o: #ff5fa2;
   --win: #2fd6c0;
@@ -37,14 +41,40 @@ body {
   text-align: center;
 }
 
+/* Rückweg in die Bibliothek. Gleiche Spaltenbreite wie das Spiel darunter,
+   damit der Pfeil bündig über dem Titel sitzt und nicht am Fensterrand
+   klebt. */
+.topline {
+  width: min(440px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-top: 10px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  /* 44 px hohe Trefferfläche: als reiner Textlink wäre der Pfeil auf dem
+     Handy zu knapp zum Treffen. */
+  min-height: 44px;
+  color: var(--accent-ink);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.back-link:hover,
+.back-link:focus-visible { text-decoration: underline; }
+
 .ttt {
   display: grid;
   place-items: center;
   width: min(440px, calc(100% - 32px));
   margin: 0 auto;
-  /* unten Platz für die Safe Area (iOS-Homebar) plus die Zugriffsplakette,
+  /* oben weniger als vorher: der Rückweg-Pfeil steht jetzt darüber und
+     bringt seinen eigenen Abstand mit.
+     unten Platz für die Safe Area (iOS-Homebar) plus die Zugriffsplakette,
      die test-gate.js links unten einblendet */
-  padding: clamp(24px, 6vw, 56px) 0 calc(64px + env(safe-area-inset-bottom));
+  padding: clamp(8px, 3vw, 28px) 0 calc(64px + env(safe-area-inset-bottom));
 }
 
 .screen {
