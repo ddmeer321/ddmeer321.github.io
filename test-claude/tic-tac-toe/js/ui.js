@@ -13,10 +13,13 @@ const el = {
   emoji: document.getElementById("difficulty-emoji"),
   name: document.getElementById("difficulty-name"),
   description: document.getElementById("difficulty-description"),
-  badge: document.getElementById("game-difficulty"),
+  badge: document.getElementById("game-mode"),
+  playerX: document.getElementById("player-x"),
+  playerO: document.getElementById("player-o"),
   status: document.getElementById("status"),
   board: document.getElementById("board"),
-  start: document.getElementById("btn-start"),
+  startBot: document.getElementById("btn-start-bot"),
+  startFriend: document.getElementById("btn-start-friend"),
   again: document.getElementById("btn-again"),
   back: document.getElementById("btn-menu"),
 };
@@ -96,14 +99,24 @@ export function renderDifficulty(difficulty) {
   el.slider.setAttribute("aria-valuetext", difficulty.label);
 }
 
-export function setGameBadge(difficulty) {
-  el.badge.textContent = `${difficulty.emoji} ${difficulty.label}`;
+/**
+ * Kopfzeile der Partie: wer ist X, wer ist O, und in welchem Modus.
+ *
+ * Gegen den Bot heißen die beiden „Du" und „Computer", zu zweit dagegen
+ * „Spieler 1" und „Spieler 2" — sonst stünde bei einem Spiel zu zweit
+ * „Computer" über einem Zug, den ein Mensch gemacht hat.
+ */
+export function renderPlayers(mode, difficulty) {
+  const friend = mode === "friend";
+  el.playerX.firstChild.textContent = friend ? "Spieler 1" : "Du";
+  el.playerO.firstChild.textContent = friend ? "Spieler 2" : "Computer";
+  el.badge.textContent = friend ? "👥 Zu zweit" : `${difficulty.emoji} ${difficulty.label}`;
 }
 
 export function showMenu() {
   el.game.hidden = true;
   el.menu.hidden = false;
-  el.start.focus();
+  el.startBot.focus();
 }
 
 export function showGame() {

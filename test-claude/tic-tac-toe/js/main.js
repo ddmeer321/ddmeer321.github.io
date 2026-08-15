@@ -3,6 +3,12 @@
 //
 // Hier steht bewusst keine Spiellogik (board.js), keine Bot-Logik (bot.js)
 // und kein DOM-Aufbau (ui.js) — nur die Frage, was wann passiert.
+//
+// Zwei Modi teilen sich denselben Ablauf:
+//   "bot"    — X ist der Spieler, O der Computer
+//   "friend" — X ist Spieler 1, O ist Spieler 2, beide an einem Gerät
+// Der Unterschied ist genau eine Stelle: Wer zieht, nachdem X gesetzt hat.
+// Alles andere — Regeln, Gewinnerkennung, Sperren, Anzeige — ist identisch.
 
 import { BOT, HUMAN, applyMove, createBoard, getOutcome, isValidMove } from "./board.js";
 import { DEFAULT_STEP, getDifficultyByStep } from "./difficulty.js";
@@ -14,22 +20,33 @@ import * as ui from "./ui.js";
 const BOT_DELAY_MS = 380;
 
 const state = {
+  mode: "bot",            // "bot" | "friend"
   board: createBoard(),
   difficulty: getDifficultyByStep(DEFAULT_STEP),
-  locked: true,   // true, solange der Spieler nicht am Zug ist
+  turn: HUMAN,            // wer ist am Zug (im Freundesmodus: X = Spieler 1)
+  locked: true,           // true, solange niemand tippen darf
   over: false,
   botTimer: null,
 };
+
+const NAMES = { [HUMAN]: "Spieler 1", [BOT]: "Spieler 2" };
+
+/** „Wer ist dran"-Text, je nach Modus. */
+function turnText() {
+  if (state.mode === "friend") return `${NAMES[state.turn]} ist am Zug.`;
+  return state.turn === HUMAN ? "Du bist am Zug." : "Computer denkt …";
+}
 
 // --- Spielablauf -----------------------------------------------------------
 
 function startRound() {
   clearTimeout(state.botTimer);
   state.board = createBoard();
+  state.turn = HUMAN;
   state.over = false;
   state.locked = false;
-  ui.setGameBadge(state.difficulty);
-  ui.setStatus("Du bist am Zug.");
+  ui.renderPlayers(state.mode, state.difficulty);
+  ui.setStatus(turnText());
   ui.renderBoard(state.board, { locked: false });
 }
 
@@ -37,9 +54,15 @@ function finish(outcome) {
   state.over = true;
   state.locked = true;
 
-  if (outcome.winner === HUMAN) ui.setStatus("Gewonnen! 🎉", "win");
-  else if (outcome.winner === BOT) ui.setStatus("Verloren.", "lose");
-  else ui.setStatus("Unentschieden.", "draw");
+  if (outcome.winner === null) {
+    ui.setStatus("Unentschieden.", "draw");
+  } else if (state.mode === "friend") {
+    ui.setStatus(`${NAMES[outcome.winner]} gewinnt! 🎉`, "win");
+  } else if (outcome.winner === HUMAN) {
+    ui.setStatus("Gewonnen! 🎉", "win");
+  } else {
+    ui.setStatus("Verloren.", "lose");
+  }
 
   ui.renderBoard(state.board, { locked: true, winningLine: outcome.line });
 }
@@ -62,8 +85,9 @@ function botTurn() {
   state.board = applyMove(state.board, move, BOT);
   if (settle(move)) return;
 
+  state.turn = HUMAN;
   state.locked = false;
-  ui.setStatus("Du bist am Zug.");
+  ui.setStatus(turnText());
   ui.renderBoard(state.board, { locked: false, lastMove: move });
 }
 
@@ -73,11 +97,22 @@ function handleCellClick(index) {
   // nichts bewirken.
   if (state.locked || state.over || !isValidMove(state.board, index)) return;
 
-  state.board = applyMove(state.board, index, HUMAN);
-  state.locked = true;
+  const mark = state.turn;
+  state.board = applyMove(state.board, index, mark);
   if (settle(index)) return;
 
-  ui.setStatus("Computer denkt …");
+  if (state.mode === "friend") {
+    // Zu zweit: einfach der andere ist dran, das Feld bleibt sofort offen.
+    state.turn = mark === HUMAN ? BOT : HUMAN;
+    ui.setStatus(turnText());
+    ui.renderBoard(state.board, { locked: false, lastMove: index });
+    return;
+  }
+
+  // Gegen den Bot: sperren, bis er gezogen hat.
+  state.turn = BOT;
+  state.locked = true;
+  ui.setStatus(turnText());
   ui.renderBoard(state.board, { locked: true, lastMove: index });
   state.botTimer = setTimeout(botTurn, BOT_DELAY_MS);
 }
@@ -87,6 +122,12 @@ function handleCellClick(index) {
 function applySliderValue() {
   state.difficulty = getDifficultyByStep(ui.elements.slider.value);
   ui.renderDifficulty(state.difficulty);
+}
+
+function startGame(mode) {
+  state.mode = mode;
+  ui.showGame();
+  startRound();
 }
 
 function openMenu() {
@@ -102,10 +143,8 @@ ui.buildBoard(handleCellClick);
 // "input" statt "change": der Regler muss sich schon beim Ziehen aktualisieren,
 // nicht erst beim Loslassen.
 ui.elements.slider.addEventListener("input", applySliderValue);
-ui.elements.start.addEventListener("click", () => {
-  ui.showGame();
-  startRound();
-});
+ui.elements.startBot.addEventListener("click", () => startGame("bot"));
+ui.elements.startFriend.addEventListener("click", () => startGame("friend"));
 ui.elements.again.addEventListener("click", startRound);
 ui.elements.back.addEventListener("click", openMenu);
 

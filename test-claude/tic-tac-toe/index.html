@@ -3,7 +3,10 @@
   <head>
     <style>html{visibility:hidden;}</style>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- viewport-fit=cover: nur damit lösen sich die env(safe-area-*)-Werte
+         überhaupt auf. Ohne sie schiebt sich auf iPhones mit Notch die
+         Statusleiste über das Testbanner. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#fff6ea" />
     <link rel="stylesheet" href="css/style.css?v=1" />
@@ -46,15 +49,19 @@
           <p id="difficulty-description" class="difficulty-description"></p>
         </div>
 
-        <button id="btn-start" class="btn btn-primary" type="button">Spiel starten</button>
+        <div class="menu-actions">
+          <button id="btn-start-bot" class="btn btn-primary" type="button">Gegen Bot spielen</button>
+          <button id="btn-start-friend" class="btn btn-secondary" type="button">Gegen Freund spielen</button>
+          <p class="menu-hint">Zu zweit an einem Gerät — abwechselnd tippen. Die Schwierigkeit gilt nur für den Bot.</p>
+        </div>
       </section>
 
       <!-- ---------- Spiel ---------- -->
       <section id="screen-game" class="screen" hidden>
         <div class="players">
-          <span class="player player-x">Du<b>X</b></span>
-          <span class="player player-o">Computer<b>O</b></span>
-          <span id="game-difficulty" class="player player-badge">🤔 Mittel</span>
+          <span id="player-x" class="player player-x">Du<b>X</b></span>
+          <span id="player-o" class="player player-o">Computer<b>O</b></span>
+          <span id="game-mode" class="player player-badge">🤔 Mittel</span>
         </div>
 
         <p id="status" class="status" role="status" aria-live="polite" data-tone="neutral">

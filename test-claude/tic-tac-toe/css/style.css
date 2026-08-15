@@ -25,8 +25,11 @@ body {
   line-height: 1.5;
 }
 
+/* Der obere Abstand ist der Platz für Notch bzw. Statusleiste. Ohne ihn
+   zeichnet iOS die Uhrzeit über den Bannertext. env() wirkt nur zusammen
+   mit viewport-fit=cover im <meta viewport>. */
 .test-banner {
-  padding: 8px 14px;
+  padding: max(8px, env(safe-area-inset-top)) 14px 8px;
   background: var(--ink);
   color: #fff;
   font-size: 0.8rem;
@@ -39,7 +42,9 @@ body {
   place-items: center;
   width: min(440px, calc(100% - 32px));
   margin: 0 auto;
-  padding: clamp(24px, 6vw, 56px) 0 48px;
+  /* unten Platz für die Safe Area (iOS-Homebar) plus die Zugriffsplakette,
+     die test-gate.js links unten einblendet */
+  padding: clamp(24px, 6vw, 56px) 0 calc(64px + env(safe-area-inset-bottom));
 }
 
 .screen {
@@ -138,12 +143,33 @@ body {
 }
 .btn-primary:hover { background: #6a49f5; }
 
+.btn-secondary {
+  width: 100%;
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-secondary:hover { background: #f4f0ff; }
+
 .btn-ghost {
   background: transparent;
   border-color: var(--line);
   color: var(--muted);
 }
 .btn-ghost:hover { color: var(--ink); border-color: var(--muted); }
+
+.menu-actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.menu-hint {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
 
 /* ---------- Spiel ---------- */
 
