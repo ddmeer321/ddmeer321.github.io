@@ -1,3 +1,10 @@
+/* Signal an auth.js: Dieses Stylesheet kennt das Konto-Menü, es darf hier
+   gezeichnet werden. Seiten mit einem der anderen auth-Stylesheets
+   (auth-nba.css, auth-badge.css) setzen das noch nicht und behalten deshalb
+   die bisherige Zeile — siehe Erklärung oben in auth.js. Beim Umstellen einer
+   weiteren Umgebung wandert diese Zeile mit dem Menü-CSS dorthin. */
+:root { --auth-menu: ready; }
+
 .lib-topbar-right {
   display: flex;
   align-items: center;
@@ -7,14 +14,7 @@
 #auth-status {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
-
-.auth-user {
-  font-size: 0.88rem;
-  color: var(--muted);
-}
-.auth-user strong { color: var(--ink); }
 
 .auth-login-btn {
   padding: 9px 18px;
@@ -22,19 +22,148 @@
   margin-top: 0;
 }
 
-.auth-logout-btn {
-  padding: 7px 14px;
-  border: 1px solid var(--card-border);
+/* --- Profilbild in der Leiste ------------------------------------------- */
+
+.auth-menu-wrap { position: relative; }
+
+.auth-avatar-btn {
+  display: block;
+  padding: 0;
+  border: 0;
   border-radius: 999px;
   background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 700;
+  line-height: 0;
   cursor: pointer;
 }
-.auth-logout-btn:hover, .auth-logout-btn:focus-visible { border-color: var(--purple); color: var(--purple); }
+.auth-avatar-btn:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 
-@media (max-width: 560px) {
-  .auth-user { display: none; }
+.auth-avatar {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+  background: var(--bg-2);
+  /* Der Rand ist der Grund, warum ein leerer Kreis auf dem hellen
+     Seitenhintergrund überhaupt zu sehen ist. */
+  border: 1px solid var(--card-border);
 }
+
+/* Noch kein Bild hochgeladen: der Kreis bleibt leer. Die Auswahl aus
+   fertigen Bildern kommt später — bis dahin ist "leer" ehrlicher als ein
+   Platzhalter, den man für ein Bild halten könnte. */
+.auth-avatar.is-empty { background: #fff; }
+
+.auth-avatar-lg { width: 64px; height: 64px; }
+
+/* --- Das Menü ----------------------------------------------------------- */
+
+.auth-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  width: 244px;
+  padding: 18px;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(36, 28, 61, 0.16);
+}
+.auth-menu[hidden] { display: none; }
+
+.auth-menu-head {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.auth-menu-name {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--ink);
+  /* Benutzernamen sind auf 12 Zeichen begrenzt, aber ohne diese drei Zeilen
+     würde ein langer Name das Menü trotzdem breiter ziehen. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Das Bild im Menü ist zugleich der Knopf zum Ändern. */
+.auth-avatar-edit {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+}
+.auth-avatar-edit:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+
+.auth-avatar-edit-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(36, 28, 61, 0.62);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.auth-avatar-edit:hover .auth-avatar-edit-hint,
+.auth-avatar-edit:focus-visible .auth-avatar-edit-hint { opacity: 1; }
+
+/* Auf Geräten ohne Mauszeiger gibt es kein Hover — dort steht der Hinweis
+   dauerhaft, sonst wäre das Ändern unauffindbar. */
+@media (hover: none) {
+  .auth-avatar-edit-hint { opacity: 1; }
+}
+
+.auth-menu-msg {
+  margin: 14px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.auth-menu-msg[hidden] { display: none; }
+.auth-menu-msg[data-tone="error"] { color: #a51f36; }
+
+.auth-menu-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.auth-menu-btn {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--purple);
+  color: #fff;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.auth-menu-btn:hover { background: #6a49f5; }
+.auth-menu-btn:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+
+.auth-menu-btn-quiet {
+  background: none;
+  border-color: var(--card-border);
+  color: var(--muted);
+}
+.auth-menu-btn-quiet:hover { background: none; border-color: var(--purple); color: var(--purple); }
+
+.auth-file-input { display: none; }
