@@ -1,3 +1,7 @@
+/* Signal an auth.js: Dieses Stylesheet kennt das Konto-Menue, es darf hier
+   gezeichnet werden. Siehe die Erklaerung oben in auth.js. */
+:root { --auth-menu: ready; }
+
 .topbar-right {
   display: flex;
   align-items: center;
@@ -7,11 +11,7 @@
 #auth-status {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
-
-.auth-user { font-size: 0.86rem; color: var(--muted); }
-.auth-user strong { color: var(--text); }
 
 .auth-login-btn {
   display: inline-flex;
@@ -26,19 +26,143 @@
 }
 .auth-login-btn:hover, .auth-login-btn:focus-visible { background: rgba(56, 216, 255, 0.1); }
 
-.auth-logout-btn {
-  padding: 7px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+/* --- Profilbild und Menue ------------------------------------------------
+   Gleiche Klassennamen wie in der Spielebibliothek und im Spiel selbst,
+   damit alle drei als dieselbe Sache erkennbar bleiben — hier in den
+   Farben der Neon-Bot-Arena-Seite. */
+
+.auth-menu-wrap { position: relative; }
+
+.auth-avatar-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
   background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 700;
+  line-height: 0;
   cursor: pointer;
 }
-.auth-logout-btn:hover, .auth-logout-btn:focus-visible { border-color: var(--cyan); color: var(--cyan); }
+.auth-avatar-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
-@media (max-width: 560px) {
-  .auth-user { display: none; }
+.auth-avatar {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+  /* Dunkle Fuellung plus heller Rand: auf dunklem Grund waere ein leerer
+     Kreis sonst gar nicht zu sehen. */
+  background: rgba(8, 12, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.28);
 }
+
+.auth-avatar-lg { width: 64px; height: 64px; }
+
+.auth-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 90;
+  width: 232px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(10, 14, 22, 0.97);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+}
+.auth-menu[hidden] { display: none; }
+
+.auth-menu-head {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.auth-menu-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+  /* Ohne diese drei Zeilen zieht ein langer Name das Menue breiter. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Das Bild im Menue ist zugleich der Knopf zum Aendern. */
+.auth-avatar-edit {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+}
+.auth-avatar-edit:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+.auth-avatar-edit-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.66);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.auth-avatar-edit:hover .auth-avatar-edit-hint,
+.auth-avatar-edit:focus-visible .auth-avatar-edit-hint { opacity: 1; }
+
+/* Ohne Mauszeiger gibt es kein Hover — dort steht der Hinweis dauerhaft,
+   sonst waere das Aendern unauffindbar. */
+@media (hover: none) {
+  .auth-avatar-edit-hint { opacity: 1; }
+}
+
+.auth-menu-msg {
+  margin: 12px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.auth-menu-msg[hidden] { display: none; }
+.auth-menu-msg[data-tone="error"] { color: #ff8fa8; }
+
+.auth-menu-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.auth-menu-btn {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--cyan);
+  border-radius: 10px;
+  background: rgba(56, 216, 255, 0.12);
+  color: var(--cyan);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.auth-menu-btn:hover { background: rgba(56, 216, 255, 0.2); }
+.auth-menu-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+.auth-menu-btn-quiet {
+  border-color: var(--line);
+  background: none;
+  color: var(--muted);
+}
+.auth-menu-btn-quiet:hover { background: rgba(255, 255, 255, 0.06); color: var(--text); }
+
+.auth-file-input { display: none; }
