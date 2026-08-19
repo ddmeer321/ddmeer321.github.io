@@ -209,11 +209,10 @@ a { color: inherit; }
 
    Die Farbe kommt aus einem festen kleinen Vorrat an Tönen (.tint-*), nicht
    aus einer Klasse je Fähigkeit — eine neue Fähigkeit braucht dadurch kein
-   neues CSS. Hier von Hand gepflegt; im Testbereich stehen die Kacheln als
-   festes HTML in index.html. Das config-getriebene Gegenstück liegt auf
-   Branch claude/cloud-session-test-vckxyz (config/features.js) und ist noch
-   nicht auf main — Klassennamen und Töne sind absichtlich identisch, damit
-   beim Zusammenführen nichts umbenannt werden muss. */
+   neues CSS. Das Verzeichnis der Fähigkeiten liegt seit dem 15.08. in
+   config/features.js auf main; im Testbereich stehen die Kacheln aber als
+   festes HTML in index.html und tragen ihre Chips deshalb von Hand.
+   Klassennamen und Töne sind in beiden Fällen dieselben. */
 .game-card-features {
   display: flex;
   flex-wrap: wrap;
@@ -555,3 +554,71 @@ body.in-game .lib-footer { display: none; }
 .shop-card p { margin: 0; color: var(--muted); font-size: 0.8rem; }
 .shop-card .mini-btn { width: 100%; margin-top: 12px; padding: 9px; font-size: 0.85rem; }
 .shop-card .mini-btn:disabled { opacity: 0.55; cursor: default; filter: none; }
+
+/* --- Ladezustand der Spielkarten ----------------------------------------
+
+   Zwei Wartezeiten, zwei Antworten (siehe assets/js/bild-laden.js):
+   das Schimmern auf der Bildfläche, solange ein Bild lädt, und ganze
+   Platzhalter-Karten, solange die Karten selbst noch geholt werden.
+
+   Der Platz ist durch aspect-ratio auf .game-card-art ohnehin reserviert,
+   es springt also nichts — das Schimmern beantwortet nur die Frage
+   „kommt da noch was?", die ein stiller Farbverlauf offen lässt. */
+
+@keyframes kachel-schimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+.game-card-art[data-laedt] {
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0) 20%,
+      rgba(255, 255, 255, 0.45) 50%,
+      rgba(255, 255, 255, 0) 80%
+    ),
+    linear-gradient(145deg, var(--purple), var(--pink));
+  background-size: 200% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  animation: kachel-schimmer 1.6s linear infinite;
+}
+
+/* Das Bild liegt über der Fläche: sobald es gezeichnet ist, deckt es das
+   Schimmern ab. Bis dahin darf es nicht schon halb sichtbar sein. */
+.game-card-art[data-laedt] img { opacity: 0; }
+.game-card-art img { transition: opacity 220ms ease; }
+
+.game-card-platzhalter {
+  /* Nicht anklickbar und für Screenreader unsichtbar (aria-hidden im JS):
+     ein Platzhalter ist kein Spiel. */
+  pointer-events: none;
+}
+
+.platzhalter-zeile {
+  display: block;
+  height: 12px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: var(--card-border);
+  animation: kachel-schimmer 1.6s linear infinite;
+  background-image:
+    linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0) 20%,
+      rgba(255, 255, 255, 0.7) 50%,
+      rgba(255, 255, 255, 0) 80%
+    );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+}
+.platzhalter-titel { height: 18px; width: 55%; margin-bottom: 14px; }
+.platzhalter-kurz  { width: 70%; }
+
+/* Dauerbewegung ist für manche Menschen unangenehm bis auslösend. Ohne
+   Animation bleibt der Zustand trotzdem erkennbar: die Fläche ist gefüllt,
+   nur eben still. */
+@media (prefers-reduced-motion: reduce) {
+  .game-card-art[data-laedt],
+  .platzhalter-zeile { animation: none; }
+}
