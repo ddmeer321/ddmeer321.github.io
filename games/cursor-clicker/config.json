@@ -7,8 +7,8 @@
   "version": "0.4.0",
   "author": "Dodo",
   "description": "Sammle Cursor, fusioniere Mutationen, rüste Auren aus und steigere deinen Klick-Ertrag.",
-  "thumbnail": "test-claude/cursor-clicker/keyart.webp",
+  "thumbnail": "assets/img/cursor-clicker-keyart.webp",
   "thumbnailAlt": "Leuchtende Cursor verschiedener Seltenheiten, eine Truhe und eine Fusion vor dunklem Hintergrund",
   "icon": "🖱️",
-  "entry": "test-claude/cursor-clicker/index.html"
+  "entry": "cursor-clicker-beschreibung.html"
 }

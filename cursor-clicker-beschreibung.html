@@ -1,28 +1,24 @@
 <!doctype html>
 <html lang="de">
   <head>
-    <style>html{visibility:hidden;}</style>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#090b12" />
     <meta
       name="description"
-      content="Cursor Clicker ist ein dunkles Sammel-Clicker-Spiel mit Cursor-Boxen, Fusionen, Auren, Cosmetics und Achievements."
+      content="Cursor Clicker ist ein dunkles Sammel-Clicker-Spiel mit Cursor-Boxen, Fusionen, Auren, Cosmetics und Achievements. Kostenlos, ohne Installation."
     />
-    <link rel="stylesheet" href="style.css?v=1" />
-    <link rel="stylesheet" href="../../assets/css/auth-badge.css?v=1" />
-    <link rel="stylesheet" href="../../test-claude/cursor-clicker/css/cursor-glyph.css" />
-    <title>Cursor Clicker – Spielbeschreibung</title>
+    <link rel="canonical" href="https://ddmeer321.github.io/cursor-clicker-beschreibung.html" />
+    <link rel="stylesheet" href="assets/css/cursor-clicker-beschreibung.css?v=1" />
+    <link rel="stylesheet" href="assets/css/auth-badge.css?v=1" />
+    <link rel="stylesheet" href="cursor-clicker/css/cursor-glyph.css" />
+    <title>Cursor Clicker – Kostenloser Sammel-Clicker im Browser</title>
   </head>
   <body>
-    <div class="cc-info-testbar">
-      <span aria-hidden="true">🧪</span>
-      Beschreibungsvorschlag im geschützten ChatGPT-Testbereich
-    </div>
+    <script src="assets/js/wartung.js?v=1"></script>
 
     <header class="cc-info-header">
-      <a class="cc-info-back" href="../index.html">← Testbibliothek</a>
+      <a class="cc-info-back" href="index.html">← Zur Spielebibliothek</a>
       <a class="cc-info-brand" href="#top" aria-label="Cursor Clicker – Seitenanfang">
         <span class="cc-info-brand-mark" aria-hidden="true">↖</span>
         <span>Cursor Clicker</span>
@@ -48,8 +44,8 @@
             dir aus 14 Cursor-Funden, Mutationen und Auren dein stärkstes Set.
           </p>
           <div class="cc-info-actions">
-            <a class="cc-info-btn cc-info-btn-primary" href="../../test-claude/cursor-clicker/index.html">
-              Jetzt im Testbereich spielen <span aria-hidden="true">→</span>
+            <a class="cc-info-btn cc-info-btn-primary" href="cursor-clicker/index.html">
+              Jetzt spielen <span aria-hidden="true">→</span>
             </a>
             <a class="cc-info-btn cc-info-btn-ghost" href="#spielprinzip">So funktioniert es</a>
           </div>
@@ -63,7 +59,7 @@
 
         <figure class="cc-info-keyart">
           <img
-            src="keyart.webp"
+            src="assets/img/cursor-clicker-keyart.webp"
             width="800"
             height="450"
             alt="Leuchtende Cursor verschiedener Seltenheiten, eine Cursor-Box und eine Fusion"
@@ -219,33 +215,31 @@
       <section class="cc-info-final-cta" aria-labelledby="final-cta-title">
         <p class="cc-info-eyebrow">Bereit für den ersten Klick?</p>
         <h2 id="final-cta-title">Deine Sammlung beginnt mit einem Cursor.</h2>
-        <p>Cursor Clicker befindet sich im Test. Fortschritt und Balance können sich noch verändern.</p>
-        <a class="cc-info-btn cc-info-btn-primary" href="../../test-claude/cursor-clicker/index.html">Spiel öffnen <span aria-hidden="true">→</span></a>
+        <p>Cursor Clicker befindet sich im Beta-Test. Fortschritt und Balance können sich noch verändern.</p>
+        <a class="cc-info-btn cc-info-btn-primary" href="cursor-clicker/index.html">Spiel öffnen <span aria-hidden="true">→</span></a>
       </section>
     </main>
 
     <footer class="cc-info-footer">
       <div>
         <strong>Cursor Clicker</strong>
-        <span>Beschreibungsvorschlag · Test: ChatGPT</span>
       </div>
       <nav aria-label="Rechtliche Informationen">
         <a href="/datenschutz.html">Datenschutz</a>
         <a href="/impressum.html">Impressum</a>
-        <a href="../index.html">Testbibliothek</a>
+        <a href="index.html">Spielebibliothek</a>
       </nav>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="../../assets/js/supabase-client.js"></script>
-    <script src="../../assets/js/test-gate.js?v=1"></script>
-    <script src="../../assets/js/auth.js?v=4"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/auth.js?v=4"></script>
     <script type="module">
-      // Echte Cursor-Glyphen statt Platzhalter-Pfeil — importiert direkt aus
-      // dem echten Spiel (test-claude/cursor-clicker), damit die Vorschau nie
-      // von der tatsächlichen Optik abweichen kann.
-      import { renderCursorGlyph } from "../../test-claude/cursor-clicker/js/ui/cursorGlyph.js";
-      import { getCursorMaterial } from "../../test-claude/cursor-clicker/js/data/cursorMaterials.js";
+      // Echte Cursor-Glyphen statt Platzhalter — importiert direkt aus dem
+      // echten (öffentlichen) Spiel, damit diese Vorschau nie von der
+      // tatsächlichen Optik abweichen kann.
+      import { renderCursorGlyph } from "./cursor-clicker/js/ui/cursorGlyph.js";
+      import { getCursorMaterial } from "./cursor-clicker/js/data/cursorMaterials.js";
 
       document.querySelectorAll(".cc-info-cursor-symbol[data-cursor-id]").forEach((el) => {
         const material = getCursorMaterial(el.dataset.cursorId);

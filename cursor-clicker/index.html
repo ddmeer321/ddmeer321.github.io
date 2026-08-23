@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0d14" />
+    <meta
+      name="description"
+      content="Cursor Clicker: sammle Cursor von Common bis Secret, fusioniere Mutationen, rüste Auren aus und steigere deinen Klick-Ertrag. Kostenlos, ohne Installation."
+    />
+    <link rel="canonical" href="https://ddmeer321.github.io/cursor-clicker/" />
+    <link rel="stylesheet" href="css/style.css?v=3" />
+    <link rel="stylesheet" href="css/panels.css?v=2" />
+    <link rel="stylesheet" href="css/modals.css?v=2" />
+    <link rel="stylesheet" href="css/cursor-glyph.css?v=2" />
+    <link rel="stylesheet" href="css/mutations-cosmetics.css?v=1" />
+    <link rel="stylesheet" href="css/fusion.css?v=1" />
+    <link rel="stylesheet" href="css/auras.css?v=1" />
+    <link rel="stylesheet" href="css/effects.css?v=1" />
+    <link rel="stylesheet" href="../assets/css/auth-badge.css?v=1" />
+    <title>Cursor Clicker – Spielebibliothek</title>
+  </head>
+  <body>
+    <script src="../assets/js/wartung.js?v=1"></script>
+
+    <header class="cc-header">
+      <div class="cc-header-left">
+        <a class="cc-back" href="../index.html">← Zur Spielebibliothek</a>
+        <!-- Der Titel daneben ist bewusst kein Link mehr: er zeigte auf
+             dasselbe Ziel wie der Pfeil, und zwei benachbarte Links auf
+             dieselbe Seite sagt ein Screenreader zweimal an. -->
+        <span class="cc-brand">
+          <span class="cc-brand-mark" aria-hidden="true">🖱️</span>
+          <span>Cursor Clicker</span>
+        </span>
+      </div>
+      <div id="auth-status"></div>
+    </header>
+
+    <div class="cc-hud">
+      <div class="cc-hud-stat">
+        <span class="cc-hud-label">Coins</span>
+        <span class="cc-hud-value" id="hud-coins">0</span>
+      </div>
+      <div class="cc-hud-stat">
+        <span class="cc-hud-label">Coins / Klick</span>
+        <span class="cc-hud-value" id="hud-cpc">1</span>
+      </div>
+      <div class="cc-hud-stat">
+        <span class="cc-hud-label">Ausgerüstet</span>
+        <span class="cc-hud-value" id="hud-equipped">—</span>
+      </div>
+      <div class="cc-hud-stat">
+        <span class="cc-hud-label">Aura</span>
+        <span class="cc-hud-value" id="hud-aura">—</span>
+      </div>
+      <div class="cc-hud-stat">
+        <span class="cc-hud-label">Cursor gesammelt</span>
+        <span class="cc-hud-value" id="hud-collected">0 / 0</span>
+      </div>
+      <button class="cc-daily-btn" id="daily-reward-btn" type="button">🎁 Täglich</button>
+    </div>
+
+    <nav class="cc-tabs" aria-label="Bereiche">
+      <button class="cc-tab active" data-tab="home" type="button">Home</button>
+      <button class="cc-tab" data-tab="boxes" type="button">Boxen</button>
+      <button class="cc-tab" data-tab="aura" type="button">Aura</button>
+      <button class="cc-tab" data-tab="fusion" type="button">Fusion</button>
+      <button class="cc-tab" data-tab="inventory" type="button">Inventar</button>
+      <button class="cc-tab" data-tab="cosmetics" type="button">Cosmetics</button>
+      <button class="cc-tab" data-tab="stats" type="button">Statistiken</button>
+      <button class="cc-tab" data-tab="achievements" type="button">Achievements</button>
+      <button class="cc-tab" data-tab="settings" type="button">Einstellungen</button>
+    </nav>
+
+    <main>
+      <section id="tab-home" class="cc-panel">
+        <div class="cc-click-stage">
+          <div class="cc-combo-pill" id="combo-pill">Klickserie <strong id="combo-value">0</strong></div>
+          <div id="aura-layer-slot"></div>
+          <button class="cc-big-cursor" id="big-cursor-btn" type="button" aria-label="Klicken für Coins">
+            <span id="big-cursor-icon">🖱️</span>
+          </button>
+          <div id="click-float-layer" class="cc-float-layer" aria-hidden="true"></div>
+        </div>
+        <p class="cc-hint">Klicke auf den Cursor, um Coins zu verdienen.</p>
+      </section>
+
+      <section id="tab-boxes" class="cc-panel hidden">
+        <h1>Cursor-Boxen</h1>
+        <p class="cc-lead">Öffne Boxen für eine zufällige Chance auf neue Cursor — von Common bis Secret.</p>
+        <div class="cc-box-grid" id="box-grid"></div>
+      </section>
+
+      <section id="tab-aura" class="cc-panel hidden">
+        <h1>Aura</h1>
+        <p class="cc-lead"><span class="cc-tag cc-tag-gameplay">✦ Aura — mit Gameplay-Effekt</span> Multipliziert deinen gesamten Klick-Ertrag zusätzlich. Maximal eine Aura gleichzeitig ausgerüstet.</p>
+        <h2 class="cc-subheading">Aura-Boxen</h2>
+        <div class="cc-box-grid" id="aura-box-grid"></div>
+        <h2 class="cc-subheading">Deine Auren</h2>
+        <div class="cc-aura-inventory-grid" id="aura-inventory-grid"></div>
+        <p class="cc-empty-hint hidden" id="aura-inventory-empty">Noch keine Aura gezogen. Öffne eine Aura-Box, um loszulegen!</p>
+      </section>
+
+      <section id="tab-fusion" class="cc-panel hidden">
+        <h1>Fusion</h1>
+        <p class="cc-lead">Fusioniere 3 gleiche Cursor zu einer zusätzlichen, mutierten Variante. Der Basis-Cursor bleibt erhalten.</p>
+        <div class="cc-fusion-layout">
+          <div class="cc-fusion-picker">
+            <h2>Cursor wählen</h2>
+            <div id="fusion-cursor-list" class="cc-fusion-cursor-list"></div>
+            <p class="cc-empty-hint hidden" id="fusion-empty">Noch keine Duplikate genug. Öffne mehr Boxen!</p>
+          </div>
+          <div class="cc-fusion-detail" id="fusion-detail"></div>
+        </div>
+      </section>
+
+      <section id="tab-inventory" class="cc-panel hidden">
+        <h1>Inventar</h1>
+        <div class="cc-inventory-controls">
+          <input type="search" id="inventory-search" placeholder="Cursor suchen…" aria-label="Cursor suchen" />
+          <select id="inventory-sort" aria-label="Sortieren nach">
+            <option value="rarity-desc">Seltenheit (hoch → niedrig)</option>
+            <option value="rarity-asc">Seltenheit (niedrig → hoch)</option>
+            <option value="name">Name (A–Z)</option>
+            <option value="count">Anzahl (Duplikate)</option>
+            <option value="favorite">Favoriten zuerst</option>
+          </select>
+        </div>
+        <div class="cc-inventory-grid" id="inventory-grid"></div>
+        <p class="cc-empty-hint hidden" id="inventory-empty">Noch keine Cursor gezogen. Öffne eine Box, um loszulegen!</p>
+      </section>
+
+      <section id="tab-cosmetics" class="cc-panel hidden">
+        <h1>Cosmetics</h1>
+        <p class="cc-lead"><span class="cc-tag cc-tag-cosmetic">◆ Cosmetic — nur optisch</span> Verändert kleine Details direkt am Cursor. Kein Einfluss auf Coins oder Multiplikator. Weitere Cosmetics gibt es über Achievements; eigene Cosmetic-Boxen folgen später.</p>
+        <div class="cc-cosmetics-grid" id="cosmetics-grid"></div>
+      </section>
+
+      <section id="tab-stats" class="cc-panel hidden">
+        <h1>Statistiken</h1>
+        <div class="cc-stat-grid" id="stats-grid"></div>
+      </section>
+
+      <section id="tab-achievements" class="cc-panel hidden">
+        <h1>Achievements</h1>
+        <p class="cc-lead" id="achievements-progress">0 / 0 freigeschaltet</p>
+        <div class="cc-achievement-grid" id="achievement-grid"></div>
+      </section>
+
+      <section id="tab-settings" class="cc-panel hidden">
+        <h1>Einstellungen</h1>
+        <div class="cc-settings-row">
+          <span><strong>Musik</strong><br /><span>Leiser Ambient-Loop im Hintergrund.</span></span>
+          <button class="cc-toggle" id="toggle-music" type="button" aria-pressed="false"></button>
+        </div>
+        <div class="cc-settings-row">
+          <span><strong>Soundeffekte</strong><br /><span>Klick-, Box- und Achievement-Sounds.</span></span>
+          <button class="cc-toggle" id="toggle-sfx" type="button" aria-pressed="true"></button>
+        </div>
+        <div class="cc-settings-row">
+          <span><strong>Animationen</strong><br /><span>Weiche Übergänge, Partikel und Pop-ups.</span></span>
+          <button class="cc-toggle" id="toggle-animations" type="button" aria-pressed="true"></button>
+        </div>
+        <div class="cc-settings-row cc-settings-danger">
+          <span><strong>Spielstand zurücksetzen</strong><br /><span>Löscht deinen kompletten Fortschritt unwiderruflich.</span></span>
+          <button class="cc-btn cc-btn-danger" id="reset-save-btn" type="button">Zurücksetzen</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="cc-footer">
+      <div><strong>Cursor Clicker</strong></div>
+      <nav aria-label="Rechtliche Informationen">
+        <a href="/datenschutz.html">Datenschutz</a>
+        <a href="/impressum.html">Impressum</a>
+        <a href="https://github.com/ddmeer321">GitHub</a>
+      </nav>
+    </footer>
+
+    <div class="cc-modal-overlay hidden" id="modal-box-opening">
+      <div class="cc-modal cc-box-modal">
+        <div class="cc-box-spin" id="box-spin-icon">📦</div>
+        <p class="cc-box-modal-text" id="box-modal-text">Box wird geöffnet…</p>
+      </div>
+    </div>
+
+    <div class="cc-modal-overlay hidden" id="modal-drop-reveal">
+      <div class="cc-modal cc-drop-modal" id="drop-modal-card">
+        <div class="cc-drop-rarity" id="drop-rarity-label">Common</div>
+        <div class="cc-drop-icon" id="drop-icon"></div>
+        <h2 id="drop-name">Cursor</h2>
+        <p id="drop-description"></p>
+        <p class="cc-drop-multiplier" id="drop-multiplier"></p>
+        <p class="cc-drop-new-badge hidden" id="drop-new-badge">✨ Neu!</p>
+        <p class="cc-drop-dupe-badge hidden" id="drop-dupe-badge"></p>
+        <div class="cc-drop-actions">
+          <button class="cc-btn cc-btn-ghost" id="drop-continue-btn" type="button">Weiter</button>
+          <button class="cc-btn cc-btn-primary" id="drop-equip-btn" type="button">Ausrüsten</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-modal-overlay hidden" id="modal-fusion-opening">
+      <div class="cc-modal cc-fusion-modal">
+        <div class="cc-fusion-orbit" id="fusion-orbit-icon">🖱️</div>
+        <p class="cc-box-modal-text">Fusion läuft…</p>
+      </div>
+    </div>
+
+    <div class="cc-modal-overlay hidden" id="modal-fusion-reveal">
+      <div class="cc-modal cc-drop-modal" id="fusion-reveal-card">
+        <div class="cc-drop-rarity" id="fusion-reveal-label">Fusion</div>
+        <div class="cc-drop-icon" id="fusion-reveal-icon"></div>
+        <h2 id="fusion-reveal-name">Cursor</h2>
+        <p id="fusion-reveal-description"></p>
+        <p class="cc-drop-multiplier" id="fusion-reveal-bonus"></p>
+        <div class="cc-drop-actions">
+          <button class="cc-btn cc-btn-ghost" id="fusion-reveal-continue-btn" type="button">Weiter</button>
+          <button class="cc-btn cc-btn-primary" id="fusion-reveal-equip-btn" type="button">Ausrüsten</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-modal-overlay hidden" id="modal-aura-box-opening">
+      <div class="cc-modal cc-box-modal">
+        <div class="cc-box-spin" id="aura-box-spin-icon">◐</div>
+        <p class="cc-box-modal-text" id="aura-box-modal-text">Aura-Box wird geöffnet…</p>
+      </div>
+    </div>
+
+    <div class="cc-modal-overlay hidden" id="modal-aura-reveal">
+      <div class="cc-modal cc-drop-modal" id="aura-reveal-card">
+        <div class="cc-drop-rarity" id="aura-reveal-rarity">Common</div>
+        <div class="cc-aura-preview" id="aura-reveal-preview"></div>
+        <h2 id="aura-reveal-name">Aura</h2>
+        <p id="aura-reveal-description"></p>
+        <p class="cc-drop-multiplier" id="aura-reveal-bonus"></p>
+        <p class="cc-drop-new-badge hidden" id="aura-reveal-new-badge">✨ Neu!</p>
+        <p class="cc-drop-dupe-badge hidden" id="aura-reveal-dupe-badge"></p>
+        <div class="cc-drop-actions">
+          <button class="cc-btn cc-btn-ghost" id="aura-reveal-continue-btn" type="button">Weiter</button>
+          <button class="cc-btn cc-btn-primary" id="aura-reveal-equip-btn" type="button">Ausrüsten</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-modal-overlay hidden" id="modal-daily-reward">
+      <div class="cc-modal cc-daily-modal">
+        <h2>🎁 Tägliche Belohnung</h2>
+        <p id="daily-modal-text">Komm jeden Tag wieder für steigende Belohnungen!</p>
+        <p class="cc-daily-streak" id="daily-modal-streak"></p>
+        <button class="cc-btn cc-btn-primary" id="daily-modal-claim-btn" type="button">Abholen</button>
+        <button class="cc-btn cc-btn-ghost" id="daily-modal-close-btn" type="button">Später</button>
+      </div>
+    </div>
+
+    <div class="cc-modal-overlay hidden" id="modal-confirm">
+      <div class="cc-modal cc-confirm-modal">
+        <h2 id="confirm-title">Bist du sicher?</h2>
+        <p id="confirm-text"></p>
+        <div class="cc-confirm-actions">
+          <button class="cc-btn cc-btn-ghost" id="confirm-cancel-btn" type="button">Abbrechen</button>
+          <button class="cc-btn cc-btn-danger" id="confirm-ok-btn" type="button">Bestätigen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-toast-container" id="toast-container" aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js?v=4"></script>
+    <script type="module" src="js/main.js?v=4"></script>
+  </body>
+</html>
