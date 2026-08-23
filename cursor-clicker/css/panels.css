@@ -1,0 +1,627 @@
+/* Cursor Clicker — Inhalte der einzelnen Tabs (Home, Boxen, Inventar, Statistiken,
+   Achievements, Einstellungen). */
+
+.cc-lead {
+  margin-bottom: 18px;
+}
+
+.cc-subheading {
+  font-size: 1rem;
+  margin: 26px 0 12px;
+  color: var(--text);
+}
+
+/* Klare Kennzeichnung: Auren beeinflussen Gameplay, Cosmetics nie. */
+.cc-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.cc-tag-gameplay {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.cc-tag-cosmetic {
+  background: rgba(34, 211, 238, 0.15);
+  color: var(--accent-2);
+  border: 1px solid rgba(34, 211, 238, 0.4);
+}
+
+/* Home: großer klickbarer Cursor */
+.cc-click-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 60px 0 30px;
+}
+
+.cc-combo-pill {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--muted);
+  font-size: 0.72rem;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.cc-combo-pill-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cc-combo-pill strong {
+  color: var(--accent-2);
+}
+
+.cc-big-cursor {
+  --equipped-color: #7c5cff;
+  --equipped-glow: rgba(124, 92, 255, 0.55);
+  width: clamp(160px, 32vw, 260px);
+  height: clamp(160px, 32vw, 260px);
+  border-radius: 50%;
+  border: 2px solid var(--equipped-color);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.12), var(--bg-card) 70%);
+  box-shadow: 0 0 60px var(--equipped-glow), inset 0 0 40px rgba(255, 255, 255, 0.04);
+  font-size: clamp(64px, 12vw, 104px);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.08s ease, box-shadow 0.2s ease;
+  /* Layering (siehe auras.css): Cursor muss immer über der Aura liegen. */
+  position: relative;
+  z-index: 2;
+}
+
+.cc-big-cursor:hover {
+  box-shadow: 0 0 80px var(--equipped-glow), inset 0 0 40px rgba(255, 255, 255, 0.06);
+}
+
+/* Tablets haben deutlich mehr Platz als Handys, aber die 260px-Obergrenze
+   greift dort genauso wie am Desktop — der Cursor wirkt kleiner, als der
+   Bildschirm hergibt. Eigene, größere Stufe nur für den Tablet-Bereich
+   (die Aura-Ebene skaliert in auras.css identisch mit, sonst wirkt sie zu klein). */
+@media (min-width: 600px) and (max-width: 1024px) {
+  .cc-big-cursor {
+    width: clamp(220px, 38vw, 320px);
+    height: clamp(220px, 38vw, 320px);
+  }
+}
+
+#big-cursor-icon {
+  display: block;
+  width: 68%;
+  height: 68%;
+}
+
+.cc-big-cursor:active {
+  transform: scale(0.94);
+}
+
+.cc-cursor-pulse {
+  animation: cc-cursor-pulse 0.25s ease;
+}
+
+@keyframes cc-cursor-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+.cc-hint {
+  text-align: center;
+}
+
+.cc-float-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* Layering (siehe auras.css): Klick-Burst/Coin-Zahl liegen über allem anderen
+     in der Klick-Bühne (Aura z-index 1, Cursor z-index 2). */
+  z-index: 3;
+}
+
+.cc-float-gain {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  color: var(--accent-2);
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  animation: cc-float-up 0.9s ease-out forwards;
+}
+
+@keyframes cc-float-up {
+  0% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateY(-64px); }
+}
+
+/* Boxen */
+.cc-box-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.cc-box-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.cc-box-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-2);
+}
+
+.cc-box-icon {
+  font-size: 2.6rem;
+}
+
+.cc-box-desc {
+  font-size: 0.85rem;
+  min-height: 40px;
+}
+
+.cc-box-buy {
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* Wahrscheinlichkeits-Balken — von Boxen und Fusion genutzt (oddsDisplay.js) */
+.cc-odds-list {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 4px 0 14px;
+}
+
+.cc-odds-row {
+  display: grid;
+  grid-template-columns: minmax(78px, 128px) 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.68rem;
+}
+
+.cc-odds-label {
+  font-weight: 800;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Nur bei Fusion belegt (siehe fusionPanel.js): zeigt den echten Bonus jeder
+   möglichen Mutation direkt in der Odds-Vorschau, nicht erst nach dem Würfeln. */
+.cc-odds-subtitle {
+  font-weight: 600;
+  font-size: 0.85em;
+  color: var(--muted);
+  white-space: normal;
+}
+
+.cc-odds-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.cc-odds-bar::after {
+  content: "";
+  display: block;
+  width: var(--odds, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--odds-color, var(--accent-2));
+}
+
+.cc-odds-value {
+  color: var(--text);
+  text-align: right;
+}
+
+/* Inventar */
+.cc-inventory-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.cc-inventory-controls input,
+.cc-inventory-controls select {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.88rem;
+}
+
+.cc-inventory-controls input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.cc-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.cc-inv-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--rarity-color, var(--border));
+  box-shadow: 0 0 22px var(--rarity-glow, transparent);
+  border-radius: var(--radius);
+  padding: 18px 14px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.cc-inv-card-equipped {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.cc-inv-fav {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #fbbf24;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.cc-inv-count {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.cc-inv-icon {
+  width: 64px;
+  height: 64px;
+  font-size: 1.4rem;
+}
+
+.cc-inv-upgrade {
+  width: 100%;
+  font-size: 0.78rem;
+}
+
+.cc-inv-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.cc-inv-variant {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-inv-variant:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent-2);
+}
+
+.cc-inv-variant-active {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+  cursor: default;
+}
+
+.cc-inv-rarity {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rarity-color, var(--muted));
+}
+
+.cc-inv-desc {
+  font-size: 0.78rem;
+  min-height: 34px;
+}
+
+.cc-inv-multiplier {
+  font-weight: 800;
+  color: var(--text);
+}
+
+.cc-inv-multiplier-detail {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.cc-inv-next {
+  font-size: 0.72rem;
+  color: var(--accent-2);
+  margin: -4px 0 2px;
+}
+
+.cc-inv-equip {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.cc-empty-hint {
+  text-align: center;
+  padding: 30px 0;
+}
+
+/* Statistiken */
+.cc-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.cc-stat-card {
+  --stat-color: var(--accent-2);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cc-stat-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.cc-stat-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--stat-color);
+}
+
+/* Achievements */
+.cc-achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.cc-achievement-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.cc-achievement-locked {
+  opacity: 0.5;
+}
+
+.cc-achievement-unlocked {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.2);
+}
+
+.cc-achievement-icon {
+  font-size: 2rem;
+}
+
+.cc-achievement-desc {
+  font-size: 0.78rem;
+}
+
+.cc-achievement-reward {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.cc-achievement-date {
+  font-size: 0.72rem;
+  color: var(--accent-2);
+  margin-top: 4px;
+}
+
+/* Aura */
+.cc-aura-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.cc-aura-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--rarity-color, var(--border));
+  box-shadow: 0 0 18px var(--rarity-glow, transparent);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-aura-card-equipped {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.cc-aura-count {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.cc-aura-rarity {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rarity-color, var(--muted));
+}
+
+.cc-aura-desc {
+  font-size: 0.78rem;
+  min-height: 34px;
+}
+
+.cc-aura-bonus {
+  font-weight: 800;
+  color: var(--text);
+}
+
+.cc-aura-bonus-detail {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.cc-aura-equip {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Cosmetics */
+.cc-cosmetics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.cc-cosmetic-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-cosmetic-locked {
+  opacity: 0.55;
+}
+
+.cc-cosmetic-equipped {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.2);
+}
+
+/* Mini-Kreis, dieselbe optische Sprache wie .cc-big-cursor — Cosmetics
+   zeigen hier direkt, wie sie den Kreis verändern (siehe mutations-cosmetics.css). */
+.cc-cosmetic-preview {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.1), var(--bg-card) 70%);
+  display: grid;
+  place-items: center;
+}
+
+.cc-cosmetic-desc {
+  font-size: 0.76rem;
+  min-height: 34px;
+}
+
+.cc-cosmetic-locked-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.cc-cosmetic-equip {
+  width: 100%;
+}
+
+/* Einstellungen */
+.cc-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cc-settings-row:last-child {
+  border-bottom: none;
+}
+
+.cc-settings-row span > span {
+  font-size: 0.82rem;
+}
+
+.cc-settings-danger strong {
+  color: var(--danger);
+}
+
+@media (max-width: 560px) {
+  .cc-settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

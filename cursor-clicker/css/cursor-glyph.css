@@ -1,0 +1,36 @@
+/* Cursor Clicker — gemeinsame Cursor-Silhouette (js/ui/cursorGlyph.js). Immer
+   dieselbe Pfeil-Zeiger-Form; Individualität kommt über Material-Farbverlauf
+   (Fill direkt am <path>, siehe cursorGlyph.js), Textur-Akzente und Glow. */
+
+.cc-cursor-glyph {
+  position: relative;
+  display: inline-grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+.cc-cursor-svg {
+  width: 62%;
+  height: 62%;
+  fill: var(--glyph-color, #7c5cff);
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 16px var(--glyph-glow, color-mix(in srgb, var(--glyph-color, #7c5cff) 45%, transparent)));
+  transition: filter 0.2s ease;
+}
+
+/* "Instabile" Materialien (z.B. Quantum) bekommen einen dezenten Doppel-
+   Versatz statt einer komplett neuen Form — die Silhouette bleibt exakt gleich. */
+.cc-cursor-unstable .cc-cursor-svg {
+  animation: cc-cursor-unstable 2.6s ease-in-out infinite;
+}
+
+@keyframes cc-cursor-unstable {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-0.6px) translateY(0.4px); }
+  50% { transform: translateX(0.5px) translateY(-0.3px); }
+  75% { transform: translateX(-0.3px); }
+}
+
+body.cc-no-animations .cc-cursor-unstable .cc-cursor-svg {
+  animation: none;
+}

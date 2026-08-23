@@ -1,0 +1,251 @@
+/* Cursor Clicker — visuelle Overlays für Mutationen (Fusion) und Cosmetics.
+   Mutationen = der Cursor selbst (::before/::after auf .cc-cursor-glyph).
+   Cosmetics = Hintergrund/Rahmen des Kreises drumherum (.cos-* auf
+   .cc-big-cursor bzw. .cc-cosmetic-preview, siehe weiter unten) — beide
+   Systeme sitzen auf komplett unterschiedlichen Elementen und können sich
+   dadurch nie gegenseitig überschreiben oder optisch vermischen. */
+
+.cc-cursor-glyph {
+  position: relative;
+}
+
+/* ---------- Mutationen (data/mutations.js) ---------- */
+
+.cc-cursor-glyph.mut-lucky,
+.cc-cursor-glyph.mut-golden,
+.cc-cursor-glyph.mut-frozen,
+.cc-cursor-glyph.mut-toxic,
+.cc-cursor-glyph.mut-shiny,
+.cc-cursor-glyph.mut-inferno,
+.cc-cursor-glyph.mut-corrupted,
+.cc-cursor-glyph.mut-rainbow,
+.cc-cursor-glyph.mut-galaxy,
+.cc-cursor-glyph.mut-void {
+  --mut-glow: transparent;
+}
+.cc-cursor-glyph.mut-lucky::before,
+.cc-cursor-glyph.mut-golden::before,
+.cc-cursor-glyph.mut-frozen::before,
+.cc-cursor-glyph.mut-toxic::before,
+.cc-cursor-glyph.mut-shiny::before,
+.cc-cursor-glyph.mut-inferno::before,
+.cc-cursor-glyph.mut-corrupted::before,
+.cc-cursor-glyph.mut-rainbow::before,
+.cc-cursor-glyph.mut-galaxy::before,
+.cc-cursor-glyph.mut-void::before {
+  content: "";
+  position: absolute;
+  inset: -26%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--mut-glow) 0%, transparent 72%);
+  animation: mut-aura-pulse 2.1s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes mut-aura-pulse {
+  0%, 100% { opacity: 0.65; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Gemeinsamer Ring für Mutationen ohne eigenes ::after (Frozen/Shiny/Galaxy
+   haben schon ein spezifisches Muster, siehe unten) — macht jede Fusion sofort
+   als "das ist nicht der Basis-Cursor" erkennbar, nicht nur über die Fill-Farbe.
+   Sitzt eng am Glyphen (z-index 1, innerhalb des Buttons) und damit klar VOR
+   der Aura-Ebene dahinter — beide können sich nie verdecken (siehe auras.css). */
+.mut-lucky::after,
+.mut-golden::after,
+.mut-toxic::after,
+.mut-inferno::after,
+.mut-corrupted::after,
+.mut-void::after {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: 1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+@keyframes mut-ring-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes mut-ring-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+.mut-lucky { --mut-glow: rgba(250, 204, 21, 0.5); animation: mut-bounce 1.8s ease-in-out infinite; }
+.mut-lucky .cc-cursor-svg { fill: color-mix(in srgb, var(--glyph-color) 55%, #facc15); }
+.mut-lucky::after { border: 2px dotted #facc15; animation: mut-ring-spin 5s linear infinite; }
+@keyframes mut-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6%); } }
+
+.mut-golden { --mut-glow: rgba(251, 191, 36, 0.65); }
+.mut-golden .cc-cursor-svg { fill: #fbbf24; }
+.mut-golden::after { border: 2px solid #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.7); animation: mut-ring-spin 9s linear infinite; }
+
+.mut-frozen { --mut-glow: rgba(191, 231, 255, 0.5); }
+.mut-frozen .cc-cursor-svg { fill: #bfe7ff; }
+.mut-frozen::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.65) 50%, transparent 58%);
+  background-size: 260% 260%;
+  animation: mut-shimmer 2.8s ease-in-out infinite;
+}
+@keyframes mut-shimmer { 0% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
+
+.mut-toxic { --mut-glow: rgba(132, 204, 22, 0.55); }
+.mut-toxic .cc-cursor-svg { fill: #84cc16; }
+.mut-toxic::after { border: 2px dashed #84cc16; animation: mut-ring-spin 4s linear infinite reverse, mut-ring-pulse 1.6s ease-in-out infinite; }
+
+.mut-shiny .cc-cursor-svg { fill: #f8fafc; }
+.mut-shiny::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(120deg, transparent 44%, rgba(255, 255, 255, 0.9) 50%, transparent 56%);
+  background-size: 300% 300%;
+  animation: mut-shimmer 3.6s ease-in-out infinite;
+}
+
+.mut-inferno { --mut-glow: rgba(251, 113, 60, 0.65); }
+.mut-inferno .cc-cursor-svg { fill: #fb5f1a; }
+.mut-inferno::after { border: 2px solid #fb5f1a; animation: mut-ring-flicker 0.9s ease-in-out infinite; }
+@keyframes mut-ring-flicker { 0%, 100% { opacity: 0.7; } 45% { opacity: 1; } 55% { opacity: 0.45; } }
+
+.mut-corrupted { --mut-glow: rgba(217, 70, 239, 0.5); animation: mut-aura-pulse 2.1s ease-in-out infinite, mut-glitch 3.4s steps(1) infinite; }
+.mut-corrupted .cc-cursor-svg { fill: #d946ef; }
+.mut-corrupted::after { border: 2px dashed #d946ef; animation: mut-ring-spin 3s steps(8) infinite; }
+@keyframes mut-glitch {
+  0%, 92%, 100% { transform: translate(0, 0); filter: none; }
+  93% { transform: translate(-2%, 1%); }
+  95% { transform: translate(2%, -1%); }
+  97% { transform: translate(-1%, 0); }
+}
+
+.mut-rainbow { --mut-glow: rgba(255, 255, 255, 0.4); }
+.mut-rainbow .cc-cursor-svg { animation: mut-hue-cycle 4s linear infinite; }
+@keyframes mut-hue-cycle { from { filter: hue-rotate(0deg) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4)); } to { filter: hue-rotate(360deg) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4)); } }
+
+.mut-galaxy { --mut-glow: rgba(124, 58, 237, 0.6); }
+.mut-galaxy .cc-cursor-svg { fill: #7c3aed; }
+.mut-galaxy::after {
+  content: ""; position: absolute; inset: -10%; z-index: 1; pointer-events: none; border-radius: 50%;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1.4px), radial-gradient(circle, #fff 1px, transparent 1.4px), radial-gradient(circle, #fff 1px, transparent 1.4px);
+  background-size: 40% 40%, 55% 55%, 30% 30%;
+  background-position: 15% 25%, 70% 60%, 40% 80%;
+  animation: mut-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes mut-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.95; } }
+
+.mut-void { --mut-glow: rgba(76, 29, 149, 0.75); }
+.mut-void .cc-cursor-svg { fill: #1e1033; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 22px rgba(124, 58, 237, 0.85)); }
+.mut-void::before { animation: mut-aura-pulse 1.5s ease-in-out infinite; }
+.mut-void::after { border: 3px solid #a855f7; box-shadow: 0 0 16px rgba(168, 85, 247, 0.8); animation: mut-ring-spin 7s linear infinite reverse, mut-ring-pulse 2s ease-in-out infinite; }
+
+/* ---------- Cosmetics (data/cosmetics.js) ----------
+   Cosmetics = Hintergrund/Rahmen/Muster DES KREISES, nie des Cursor-Glyphen.
+   Die Klasse sitzt auf .cc-big-cursor (großer Klick-Kreis, siehe mainPanel.js)
+   und gespiegelt auf .cc-cosmetic-preview (Karten-Vorschau im Cosmetics-Tab,
+   siehe cosmeticsPanel.js/panels.css) — beide sind "der Kreis", nur in
+   unterschiedlicher Größe. Rein optisch, kein Bezug zu Mutation oder Aura. */
+
+.cc-big-cursor.cos-glow, .cc-cosmetic-preview.cos-glow {
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--equipped-color, #7c5cff) 45%, transparent);
+  animation: cos-glow-pulse 2.6s ease-in-out infinite;
+}
+@keyframes cos-glow-pulse {
+  0%, 100% { box-shadow: 0 0 14px 2px color-mix(in srgb, var(--equipped-color, #7c5cff) 40%, transparent); }
+  50% { box-shadow: 0 0 20px 4px color-mix(in srgb, var(--equipped-color, #7c5cff) 60%, transparent); }
+}
+
+.cc-big-cursor.cos-outline, .cc-cosmetic-preview.cos-outline {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #ffffff;
+}
+
+.cc-big-cursor.cos-border, .cc-cosmetic-preview.cos-border {
+  border-width: 3px;
+  border-style: double;
+  border-color: color-mix(in srgb, var(--equipped-color, #7c5cff) 70%, white 15%);
+}
+
+.cc-big-cursor.cos-neon, .cc-cosmetic-preview.cos-neon {
+  border-color: #22d3ee;
+  box-shadow: 0 0 8px 1px rgba(34, 211, 238, 0.55), inset 0 0 14px 2px rgba(34, 211, 238, 0.4);
+  animation: cos-neon-flicker 1.6s ease-in-out infinite;
+}
+@keyframes cos-neon-flicker {
+  0%, 100% { box-shadow: 0 0 8px 1px rgba(34, 211, 238, 0.55), inset 0 0 14px 2px rgba(34, 211, 238, 0.4); }
+  50% { box-shadow: 0 0 4px 1px rgba(34, 211, 238, 0.3), inset 0 0 8px 1px rgba(34, 211, 238, 0.2); }
+}
+
+.cc-big-cursor.cos-fire, .cc-cosmetic-preview.cos-fire {
+  background: radial-gradient(circle at 50% 68%, #fb923c 0%, #7c2d12 62%, var(--bg-card) 88%);
+  border-color: #fb923c;
+  animation: cos-fire-flicker 1.3s ease-in-out infinite;
+}
+@keyframes cos-fire-flicker {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  50% { filter: brightness(1.15) saturate(1.2); }
+}
+
+.cc-big-cursor.cos-ice, .cc-cosmetic-preview.cos-ice {
+  background: radial-gradient(circle at 35% 30%, #e0f2fe 0%, #38bdf8 48%, #0c4a6e 88%);
+  border-color: #bfe7ff;
+}
+
+.cc-big-cursor.cos-galaxy, .cc-cosmetic-preview.cos-galaxy {
+  background: radial-gradient(circle at 40% 35%, #2e1065 0%, #0b0d14 78%);
+  border-color: #7c3aed;
+  overflow: hidden;
+}
+.cc-big-cursor.cos-galaxy::before, .cc-cosmetic-preview.cos-galaxy::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1.4px), radial-gradient(circle, #fff 1px, transparent 1.4px), radial-gradient(circle, #fff 1px, transparent 1.4px);
+  background-size: 35% 35%, 50% 50%, 28% 28%;
+  background-position: 18% 22%, 68% 58%, 40% 78%;
+  animation: cos-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes cos-twinkle { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.95; } }
+
+.cc-big-cursor.cos-rainbow, .cc-cosmetic-preview.cos-rainbow {
+  border-color: transparent;
+}
+.cc-big-cursor.cos-rainbow::before, .cc-cosmetic-preview.cos-rainbow::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  padding: 3px;
+  background: conic-gradient(from 0deg, #f43f5e, #f59e0b, #4ade80, #38bdf8, #a855f7, #f43f5e);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: cos-rotate 5s linear infinite;
+}
+@keyframes cos-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.cc-big-cursor.cos-matrix, .cc-cosmetic-preview.cos-matrix {
+  background: radial-gradient(circle at 35% 30%, rgba(74, 222, 128, 0.14), #05140a 78%);
+  border-color: #4ade80;
+  overflow: hidden;
+}
+.cc-big-cursor.cos-matrix::before, .cc-cosmetic-preview.cos-matrix::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: repeating-linear-gradient(90deg, rgba(74, 222, 128, 0.4) 0 2px, transparent 2px 12px);
+  background-size: 100% 200%;
+  animation: cos-matrix-scroll 2.2s linear infinite;
+  opacity: 0.55;
+}
+@keyframes cos-matrix-scroll { from { background-position: 0 0; } to { background-position: 0 100%; } }
+
+.cc-big-cursor.cos-sakura, .cc-cosmetic-preview.cos-sakura {
+  background: radial-gradient(circle at 35% 30%, #fdf2f8 0%, #fbcfe8 55%, #f9a8d4 88%);
+  border-color: #f9a8d4;
+  overflow: hidden;
+}
+.cc-big-cursor.cos-sakura::before, .cc-cosmetic-preview.cos-sakura::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background-image: radial-gradient(circle, #fff 2px, transparent 2.6px), radial-gradient(circle, #fff 2px, transparent 2.6px);
+  background-size: 32% 32%, 44% 44%;
+  background-position: 20% 25%, 68% 65%;
+  animation: cos-sakura-drift 4s ease-in-out infinite;
+  opacity: 0.6;
+}
+@keyframes cos-sakura-drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4%); } }
+
+body.cc-no-animations [class*="mut-"],
+body.cc-no-animations [class*="mut-"]::before,
+body.cc-no-animations [class*="mut-"]::after,
+body.cc-no-animations [class*="cos-"],
+body.cc-no-animations [class*="cos-"]::before {
+  animation: none !important;
+}

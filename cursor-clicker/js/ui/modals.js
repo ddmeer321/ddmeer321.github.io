@@ -1,0 +1,304 @@
+// Modale Dialoge: Box-Öffnung, Fusion-Sequenz (mit Extra-Feier bei spektakulären
+// Mutationen), täglicher Bonus und ein generischer Bestätigungsdialog.
+import { state } from "../core/state.js";
+import { getRarity, isRareDrop } from "../data/rarities.js";
+import { formatNumber } from "./format.js";
+import { renderCursorGlyph } from "./cursorGlyph.js";
+import { renderAuraLayer } from "./auraGlyph.js";
+import { getCursorMaterial } from "../data/cursorMaterials.js";
+import { getAuraFactor } from "../data/auras.js";
+import { getMutationBonusParts } from "../data/mutations.js";
+import { equipCursor } from "../core/loadout.js";
+import { equipAura } from "../core/auras.js";
+import { playBoxOpenSound, playRareDropSound, playFusionChargeSound, playFusionRevealSound } from "../audio.js";
+
+function show(el) {
+  el.classList.remove("hidden");
+}
+function hide(el) {
+  el.classList.add("hidden");
+}
+
+function spawnCelebrationParticles(container, color) {
+  if (!state.settings.animations) return;
+  for (let i = 0; i < 18; i++) {
+    const particle = document.createElement("span");
+    particle.className = "cc-particle";
+    particle.style.setProperty("--angle", Math.random() * 360 + "deg");
+    particle.style.setProperty("--distance", 60 + Math.random() * 90 + "px");
+    particle.style.background = color;
+    container.appendChild(particle);
+    setTimeout(() => particle.remove(), 1200);
+  }
+}
+
+// ---------- Box-Öffnung ----------
+
+export function playBoxOpen(result) {
+  const { box, cursor, isNew } = result;
+  const openingModal = document.getElementById("modal-box-opening");
+  const spinIcon = document.getElementById("box-spin-icon");
+  const modalText = document.getElementById("box-modal-text");
+
+  spinIcon.textContent = box.icon;
+  modalText.textContent = box.name + " wird geöffnet…";
+  show(openingModal);
+  playBoxOpenSound();
+
+  const spinDuration = state.settings.animations ? 1100 : 200;
+  setTimeout(() => {
+    hide(openingModal);
+    revealDrop(cursor, isNew);
+  }, spinDuration);
+}
+
+function revealDrop(cursor, isNew) {
+  const rarity = getRarity(cursor.rarity);
+  const modal = document.getElementById("modal-drop-reveal");
+  const card = document.getElementById("drop-modal-card");
+
+  document.getElementById("drop-rarity-label").textContent = rarity.label;
+  document.getElementById("drop-rarity-label").style.color = rarity.color;
+  document.getElementById("drop-icon").innerHTML = renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color: rarity.color });
+  document.getElementById("drop-name").textContent = cursor.name;
+  document.getElementById("drop-description").textContent = cursor.description;
+  document.getElementById("drop-multiplier").textContent = "×" + cursor.multiplier + " Coins pro Klick";
+
+  const newBadge = document.getElementById("drop-new-badge");
+  const dupeBadge = document.getElementById("drop-dupe-badge");
+  newBadge.classList.toggle("hidden", !isNew);
+  dupeBadge.classList.toggle("hidden", isNew);
+  if (!isNew) {
+    const count = state.ownedCursors[cursor.id]?.count || 1;
+    dupeBadge.textContent = "Duplikat (x" + count + ")";
+  }
+
+  card.style.setProperty("--rarity-color", rarity.color);
+  card.style.setProperty("--rarity-glow", rarity.glow);
+  card.classList.toggle("cc-drop-rare", isRareDrop(cursor.rarity));
+  card.classList.toggle("cc-drop-secret", cursor.rarity === "secret");
+
+  card.querySelectorAll(".cc-particle").forEach((p) => p.remove());
+  if (isRareDrop(cursor.rarity)) {
+    spawnCelebrationParticles(card, rarity.color);
+    playRareDropSound(rarity.order);
+  }
+
+  show(modal);
+
+  const continueBtn = document.getElementById("drop-continue-btn");
+  const equipBtn = document.getElementById("drop-equip-btn");
+  const cleanup = () => {
+    hide(modal);
+    continueBtn.removeEventListener("click", onContinue);
+    equipBtn.removeEventListener("click", onEquip);
+  };
+  const onContinue = () => cleanup();
+  const onEquip = () => {
+    equipCursor(cursor.id, null);
+    cleanup();
+  };
+  continueBtn.addEventListener("click", onContinue);
+  equipBtn.addEventListener("click", onEquip);
+}
+
+// ---------- Aura-Box ----------
+
+export function playAuraBoxOpen(result) {
+  const { box, aura, isNew } = result;
+  const openingModal = document.getElementById("modal-box-opening");
+  const spinIcon = document.getElementById("box-spin-icon");
+  const modalText = document.getElementById("box-modal-text");
+
+  spinIcon.textContent = box.icon;
+  modalText.textContent = box.name + " wird geöffnet…";
+  show(openingModal);
+  playBoxOpenSound();
+
+  const spinDuration = state.settings.animations ? 1100 : 200;
+  setTimeout(() => {
+    hide(openingModal);
+    revealAura(aura, isNew);
+  }, spinDuration);
+}
+
+function revealAura(aura, isNew) {
+  const rarity = getRarity(aura.rarity);
+  const modal = document.getElementById("modal-aura-reveal");
+  const card = document.getElementById("aura-reveal-card");
+  const factor = getAuraFactor(aura);
+
+  document.getElementById("aura-reveal-rarity").textContent = rarity.label;
+  document.getElementById("aura-reveal-rarity").style.color = rarity.color;
+  document.getElementById("aura-reveal-preview").innerHTML = renderAuraLayer(aura);
+  document.getElementById("aura-reveal-name").textContent = aura.name;
+  document.getElementById("aura-reveal-description").textContent = aura.description;
+  document.getElementById("aura-reveal-bonus").textContent =
+    "Klick-Ertrag: +" + aura.clickBonus.toLocaleString("de-DE") + "× · Endgültiger Aura-Faktor: " + factor.toLocaleString("de-DE") + "×";
+
+  const newBadge = document.getElementById("aura-reveal-new-badge");
+  const dupeBadge = document.getElementById("aura-reveal-dupe-badge");
+  newBadge.classList.toggle("hidden", !isNew);
+  dupeBadge.classList.toggle("hidden", isNew);
+  if (!isNew) {
+    const count = state.ownedAuras[aura.id]?.count || 1;
+    dupeBadge.textContent = "Duplikat (x" + count + ")";
+  }
+
+  card.style.setProperty("--rarity-color", rarity.color);
+  card.style.setProperty("--rarity-glow", rarity.glow);
+  card.classList.toggle("cc-drop-rare", isRareDrop(aura.rarity));
+  card.classList.toggle("cc-drop-secret", aura.rarity === "secret");
+
+  card.querySelectorAll(".cc-particle").forEach((p) => p.remove());
+  if (isRareDrop(aura.rarity)) {
+    spawnCelebrationParticles(card, rarity.color);
+    playRareDropSound(rarity.order);
+  }
+
+  show(modal);
+
+  const continueBtn = document.getElementById("aura-reveal-continue-btn");
+  const equipBtn = document.getElementById("aura-reveal-equip-btn");
+  const cleanup = () => {
+    hide(modal);
+    continueBtn.removeEventListener("click", onContinue);
+    equipBtn.removeEventListener("click", onEquip);
+  };
+  const onContinue = () => cleanup();
+  const onEquip = () => {
+    equipAura(aura.id);
+    cleanup();
+  };
+  continueBtn.addEventListener("click", onContinue);
+  equipBtn.addEventListener("click", onEquip);
+}
+
+// ---------- Fusion ----------
+
+export function playFusionSequence(result, onComplete) {
+  const { cursor, spectacular } = result;
+  const rarity = getRarity(cursor.rarity);
+  const openingModal = document.getElementById("modal-fusion-opening");
+  const orbitIcon = document.getElementById("fusion-orbit-icon");
+
+  orbitIcon.innerHTML = renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color: rarity.color });
+  openingModal.classList.toggle("cc-fusion-spectacular", spectacular);
+  show(openingModal);
+  playFusionChargeSound(spectacular);
+
+  const duration = !state.settings.animations ? 200 : spectacular ? 2200 : 1400;
+  setTimeout(() => {
+    hide(openingModal);
+    revealFusion(result);
+    if (onComplete) onComplete();
+  }, duration);
+}
+
+function revealFusion(result) {
+  const { cursorId, cursor, instance, majorMutation, minorMutation, spectacular } = result;
+  const modal = document.getElementById("modal-fusion-reveal");
+  const card = document.getElementById("fusion-reveal-card");
+
+  const label = [majorMutation?.name, minorMutation?.name].filter(Boolean).join(" + ") || "Mutation";
+  const color = majorMutation?.color || minorMutation?.color || "#7c5cff";
+  const glow = color + "88";
+  const mutationClasses = [majorMutation?.visualClass, minorMutation?.visualClass].filter(Boolean);
+
+  document.getElementById("fusion-reveal-label").textContent = label;
+  document.getElementById("fusion-reveal-label").style.color = color;
+  document.getElementById("fusion-reveal-icon").innerHTML = renderCursorGlyph({ cursor, material: getCursorMaterial(cursor.id), color, extraClasses: mutationClasses });
+  document.getElementById("fusion-reveal-name").textContent = cursor.name + " (" + label + ")";
+
+  const descParts = [majorMutation?.description, minorMutation?.description].filter(Boolean);
+  document.getElementById("fusion-reveal-description").textContent = descParts.join(" ") || "Mutation ohne weitere Details.";
+
+  // Alle drei Effekt-Arten berücksichtigen (nicht nur Multiplikator/Coins) —
+  // sonst würde z.B. eine reine Lucky-Fusion (nur Fusionschance-Bonus) hier
+  // fälschlich als "rein kosmetisch" erscheinen, siehe data/mutations.js.
+  const bonusParts = [...getMutationBonusParts(majorMutation), ...getMutationBonusParts(minorMutation)];
+  document.getElementById("fusion-reveal-bonus").textContent = bonusParts.length ? bonusParts.join(" · ") : "Rein kosmetisch";
+
+  card.style.setProperty("--rarity-color", color);
+  card.style.setProperty("--rarity-glow", glow);
+  card.classList.toggle("cc-drop-secret", spectacular);
+
+  card.querySelectorAll(".cc-particle").forEach((p) => p.remove());
+  if (spectacular) spawnCelebrationParticles(card, color);
+  playFusionRevealSound(spectacular);
+
+  show(modal);
+
+  const continueBtn = document.getElementById("fusion-reveal-continue-btn");
+  const equipBtn = document.getElementById("fusion-reveal-equip-btn");
+  const cleanup = () => {
+    hide(modal);
+    continueBtn.removeEventListener("click", onContinue);
+    equipBtn.removeEventListener("click", onEquip);
+  };
+  const onContinue = () => cleanup();
+  const onEquip = () => {
+    equipCursor(cursorId, instance.instanceId);
+    cleanup();
+  };
+  continueBtn.addEventListener("click", onContinue);
+  equipBtn.addEventListener("click", onEquip);
+}
+
+// ---------- Täglicher Bonus ----------
+
+export function showDailyRewardModal({ amount, streak, alreadyClaimed }, onClaim) {
+  const modal = document.getElementById("modal-daily-reward");
+  const text = document.getElementById("daily-modal-text");
+  const streakText = document.getElementById("daily-modal-streak");
+  const claimBtn = document.getElementById("daily-modal-claim-btn");
+  const closeBtn = document.getElementById("daily-modal-close-btn");
+
+  if (alreadyClaimed) {
+    text.textContent = "Du hast deine Belohnung heute schon abgeholt. Komm morgen wieder!";
+    streakText.textContent = "Aktuelle Serie: " + streak + " Tag(e)";
+    claimBtn.classList.add("hidden");
+  } else {
+    text.textContent = "Hol dir deine Belohnung für heute ab!";
+    streakText.textContent = "Serie: Tag " + streak + " · +" + formatNumber(amount) + " Coins";
+    claimBtn.classList.remove("hidden");
+  }
+
+  show(modal);
+
+  const claimHandler = () => {
+    onClaim();
+    hide(modal);
+    claimBtn.removeEventListener("click", claimHandler);
+  };
+  const closeHandler = () => {
+    hide(modal);
+    closeBtn.removeEventListener("click", closeHandler);
+  };
+  claimBtn.addEventListener("click", claimHandler);
+  closeBtn.addEventListener("click", closeHandler);
+}
+
+// ---------- Generischer Bestätigungsdialog ----------
+
+export function showConfirm(title, text) {
+  const modal = document.getElementById("modal-confirm");
+  document.getElementById("confirm-title").textContent = title;
+  document.getElementById("confirm-text").textContent = text;
+  show(modal);
+
+  return new Promise((resolve) => {
+    const okBtn = document.getElementById("confirm-ok-btn");
+    const cancelBtn = document.getElementById("confirm-cancel-btn");
+    const cleanup = (result) => {
+      hide(modal);
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      resolve(result);
+    };
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+  });
+}
