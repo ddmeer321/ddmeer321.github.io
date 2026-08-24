@@ -301,7 +301,7 @@
 
     if (profile) {
       profile.addEventListener("click", function () {
-        showMessage("Die Profilseite kommt bald.");
+        window.location.href = "/profil.html";
       });
     }
 
@@ -324,6 +324,11 @@
     }
 
     state.userId = session.user.id;
+
+    // Nicht abgewartet: "zuletzt gesehen" ist eine Nebensache, keine Zeile
+    // im Menü soll je auf sie warten. Fehler bewusst verschluckt, es gibt
+    // dafuer keine sinnvolle Anzeige an dieser Stelle.
+    sb.rpc("touch_last_seen").catch(function () {});
 
     var pr = await sb
       .from("profiles")

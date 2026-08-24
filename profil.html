@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="stylesheet" href="assets/css/library.css?v=4" />
+    <link rel="stylesheet" href="assets/css/auth.css?v=2" />
+    <link rel="stylesheet" href="assets/css/profil.css?v=1" />
+    <title>Mein Profil – Spielebibliothek</title>
+  </head>
+  <body>
+    <script src="assets/js/wartung.js?v=1"></script>
+    <header class="lib-topbar">
+      <a class="lib-brand" href="index.html" aria-label="Zur Spielebibliothek">
+        <span class="lib-brand-mark" aria-hidden="true">D</span>
+        <span>Spielebibliothek</span>
+      </a>
+      <div id="auth-status"></div>
+    </header>
+
+    <main class="profil-main">
+      <a class="profil-back" href="index.html">← Zur Spielebibliothek</a>
+
+      <div id="profil-loading" class="profil-loading">Lädt …</div>
+
+      <div id="profil-no-session" class="profil-no-session" hidden>
+        <p>Du bist nicht angemeldet.</p>
+        <a class="mini-btn" href="/login.html">Zum Login</a>
+      </div>
+
+      <div id="profil-app" class="profil-app" hidden>
+        <section class="profil-hero">
+          <div class="profil-biti-card">
+            <div class="profil-biti-placeholder" aria-hidden="true">
+              <span class="profil-biti-mark">?</span>
+            </div>
+            <p class="profil-biti-caption">Bitis Design kommt bald — hier steht später dein Charakter.</p>
+          </div>
+
+          <div class="profil-identity">
+            <div class="profil-identity-top">
+              <span class="profil-avatar-wrap" id="profil-avatar-wrap"></span>
+              <div>
+                <p class="profil-name" id="profil-name">—</p>
+                <p class="profil-handle">
+                  <span class="profil-online-dot" aria-hidden="true"></span>
+                  <span id="profil-player-id">—</span>
+                </p>
+              </div>
+            </div>
+
+            <p class="profil-hint">
+              Ein eigener Status-Satz und ein austauschbarer Hintergrund kommen in einem
+              späteren Schritt.
+            </p>
+
+            <div class="profil-setting-row">
+              <div>
+                <strong>„Zuletzt gesehen" anzeigen</strong>
+                <p class="profil-setting-desc">
+                  Gilt erst, sobald Profile auch für andere sichtbar sind — bis dahin siehst
+                  nur du diese Seite. Aktuell:
+                  <span id="profil-last-seen">wird geladen …</span>
+                </p>
+              </div>
+              <button
+                class="profil-toggle"
+                id="profil-last-seen-toggle"
+                type="button"
+                role="switch"
+                aria-checked="true"
+              >
+                <span class="profil-toggle-knob" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="profil-section" aria-labelledby="profil-showcase-title">
+          <h2 id="profil-showcase-title">Profil-Schaufenster</h2>
+          <p class="profil-section-lead">
+            Noch leer — ein eigenes Item-System für die Bibliothek gibt es noch nicht.
+          </p>
+          <div class="profil-showcase-grid" aria-hidden="true">
+            <div class="profil-showcase-slot"></div>
+            <div class="profil-showcase-slot"></div>
+            <div class="profil-showcase-slot"></div>
+            <div class="profil-showcase-slot"></div>
+            <div class="profil-showcase-slot"></div>
+            <div class="profil-showcase-slot"></div>
+          </div>
+        </section>
+
+        <section class="profil-section" aria-labelledby="profil-stats-title">
+          <h2 id="profil-stats-title">Über dich</h2>
+          <div class="profil-stat-grid">
+            <div class="profil-stat-tile">
+              <span class="profil-stat-label">Mitglied seit</span>
+              <span class="profil-stat-value" id="profil-created-at">—</span>
+            </div>
+            <div class="profil-stat-tile">
+              <span class="profil-stat-label">Rolle</span>
+              <span class="profil-stat-value" id="profil-role">—</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/auth.js?v=4"></script>
+    <script src="assets/js/profil.js?v=1"></script>
+  </body>
+</html>
