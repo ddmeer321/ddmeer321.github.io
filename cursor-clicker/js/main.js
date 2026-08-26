@@ -1,7 +1,7 @@
 // Einstiegspunkt: lädt den Spielstand, initialisiert alle UI-Module und verdrahtet
 // globale Abläufe (Autosave, Achievement-Toasts, tägliche Belohnung).
 import { state, SAVE_VERSION } from "./core/state.js";
-import { loadGame, saveGame, quickSaveGame } from "./core/save.js";
+import { loadGame, saveGame, quickSaveGame, syncFromCloud } from "./core/save.js";
 import { events } from "./core/events.js";
 import { startPlaytimeTracking } from "./core/stats.js";
 import { checkAchievements } from "./core/achievements.js";
@@ -132,6 +132,7 @@ function init() {
   wireGlobalEvents();
   exposeExternalApi();
   checkAchievements();
+  syncFromCloud();
 
   if (canClaimDailyReward()) {
     openDailyRewardModal();

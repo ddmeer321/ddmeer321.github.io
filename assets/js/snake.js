@@ -34,6 +34,49 @@
   var soundEnabled = localStorage.getItem(KEYS.sound) !== "0";
   var records = JSON.parse(localStorage.getItem(KEYS.records) || "[]");
 
+  // Cloud-Sync: highscore/coins/owned/skin/records sind "Spielstand" und
+  // werden fuer eingeloggte Accounts (mit aktiviertem Cloud-Speichern)
+  // gespiegelt. wrap/obstacles/difficulty/sound sind Geraete-Einstellungen,
+  // keine Fortschrittsdaten, und bleiben bewusst rein lokal.
+  function collectSaveState() {
+    return { highscore: highscore, coins: coins, owned: owned, skin: skin, records: records };
+  }
+
+  function applyCloudState(data) {
+    if (!data) return;
+    highscore = Number(data.highscore) || 0;
+    coins = Number(data.coins) || 0;
+    owned = Array.isArray(data.owned) && data.owned.length ? data.owned : ["classic"];
+    skin = typeof data.skin === "string" ? data.skin : "classic";
+    records = Array.isArray(data.records) ? data.records : [];
+    localStorage.setItem(KEYS.highscore, String(highscore));
+    localStorage.setItem(KEYS.coins, String(coins));
+    localStorage.setItem(KEYS.owned, JSON.stringify(owned));
+    localStorage.setItem(KEYS.skin, skin);
+    localStorage.setItem(KEYS.records, JSON.stringify(records));
+    if (highscoreEl) highscoreEl.textContent = highscore;
+    renderCoins();
+  }
+
+  var cloudSyncTimer = null;
+  function scheduleCloudSync() {
+    if (!window.CloudSave) return;
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(function () {
+      window.CloudSave.save("snake", collectSaveState());
+    }, 800);
+  }
+
+  if (window.CloudSave) {
+    window.CloudSave.load("snake").then(function (data) {
+      if (data) {
+        applyCloudState(data);
+      } else {
+        window.CloudSave.migrateLocalOnce("snake", collectSaveState);
+      }
+    });
+  }
+
   var views = {};
   document.querySelectorAll(".mini-view").forEach(function (el) { views[el.id] = el; });
 
@@ -90,6 +133,7 @@
     localStorage.setItem(KEYS.highscore, "0");
     localStorage.setItem(KEYS.records, "[]");
     document.getElementById("highscore").textContent = "0";
+    scheduleCloudSync();
   });
 
   function renderShop() {
@@ -121,6 +165,7 @@
         localStorage.setItem(KEYS.skin, id);
         renderCoins();
         renderShop();
+        scheduleCloudSync();
       });
       grid.appendChild(card);
     });
@@ -149,6 +194,7 @@
     records.sort(function (a, b) { return b.score - a.score; });
     records = records.slice(0, 5);
     localStorage.setItem(KEYS.records, JSON.stringify(records));
+    scheduleCloudSync();
   }
 
   var audioCtx = null;
