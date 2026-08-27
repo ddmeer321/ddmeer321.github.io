@@ -12,6 +12,13 @@ import { MAX_LEVEL } from "./upgrades.js";
 const IS_TEST_ENV = location.pathname.includes("/test-claude/");
 const STORAGE_KEY = IS_TEST_ENV ? "cursorClicker.save.v1" : "cursorClicker.save.v1.live";
 
+// Cloud-Sync nur fuer den echten Live-Spielstand - gleiches Prinzip wie beim
+// Storage-Key oben: die test-claude-Sandbox darf einen echten Cloud-Spielstand
+// nie ueberschreiben. Falls diese Datei je wieder 1:1 nach test-claude/
+// kopiert wird (siehe WORKFLOW.md), bleibt der Schutz automatisch bestehen.
+const CLOUD_GAME_ID = "cursor-clicker";
+const CLOUD_SYNC_ENABLED = !IS_TEST_ENV;
+
 // Leichtgewichtiger Zwischenstand für den häufigen Autosave-Takt: nur die
 // Felder, die sich bei praktisch jedem Klick ändern. Vermeidet, den kompletten
 // (mit wachsendem Inventar immer größeren) State alle paar Sekunden neu zu
@@ -134,6 +141,33 @@ export function saveGame() {
   } catch (err) {
     console.warn("Cursor Clicker: Speicherstand konnte nicht gespeichert werden.", err);
   }
+  // Momentaufnahme statt der live-mutierbaren state-Referenz: der eigentliche
+  // Netzwerk-Request laeuft asynchron, structuredClone friert den Stand von
+  // jetzt ein (gleiches Muster wie window.CursorClicker.getSnapshot()).
+  if (CLOUD_SYNC_ENABLED && window.CloudSave) {
+    window.CloudSave.save(CLOUD_GAME_ID, structuredClone(state));
+  }
+}
+
+// Hintergrund-Abgleich nach dem synchronen lokalen Start (siehe loadGame()
+// in main.js:init() - laeuft bewusst NICHT blockierend vor dem ersten
+// Render, damit das Spiel nicht auf einen Netzwerk-Request warten muss).
+// Findet sie einen Cloud-Spielstand, ersetzt sie den gerade lokal geladenen
+// Stand damit (replaceState loest state:changed -> renderAll() aus). Sonst
+// wird der lokale Stand einmalig hochgeladen (siehe CloudSave.migrateLocalOnce).
+export async function syncFromCloud() {
+  if (!CLOUD_SYNC_ENABLED || !window.CloudSave) return;
+  try {
+    const cloudData = await window.CloudSave.load(CLOUD_GAME_ID);
+    if (cloudData) {
+      replaceState(migrate(cloudData));
+      saveGame();
+    } else {
+      await window.CloudSave.migrateLocalOnce(CLOUD_GAME_ID, () => structuredClone(state));
+    }
+  } catch (err) {
+    console.warn("Cursor Clicker: Cloud-Abgleich fehlgeschlagen.", err);
+  }
 }
 
 // Günstige Teilspeicherung für den 8s-Takt: nur die Felder, die sich bei
@@ -153,4 +187,9 @@ export function hardReset() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(QUICK_KEY);
   replaceState(createDefaultState());
+  // Ohne das wuerde der naechste syncFromCloud() den alten Cloud-Spielstand
+  // wiederherstellen - ein "Zuruecksetzen" muss ueberall gelten, nicht nur lokal.
+  if (CLOUD_SYNC_ENABLED && window.CloudSave) {
+    window.CloudSave.save(CLOUD_GAME_ID, structuredClone(state));
+  }
 }

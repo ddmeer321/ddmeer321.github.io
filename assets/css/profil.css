@@ -1,0 +1,709 @@
+/* Eigene Profilseite (profil.html). Nutzt die Farb-Tokens aus library.css.
+   Auf Desktop wird die verfügbare Breite als Dashboard genutzt: Navigation
+   links, Charaktervorschau in der Mitte und die Profildaten rechts. So passt
+   die Übersicht in eine Bildschirmhöhe, ohne die Oberfläche zu skalieren. */
+
+body {
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-topbar {
+  flex: none;
+  width: min(1320px, calc(100% - 32px));
+}
+
+.profil-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px 16px 12px;
+}
+
+.profil-back {
+  flex: none;
+  display: inline-block;
+  width: fit-content;
+  margin-bottom: 10px;
+  color: var(--purple);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.profil-back:hover { text-decoration: underline; }
+
+.profil-loading,
+.profil-no-session {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.profil-no-session .mini-btn { margin-top: 12px; }
+
+/* ---------- Grundlayout: Seitenleiste links + Inhalt rechts ---------- */
+
+.profil-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: clamp(200px, 17vw, 230px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+@media (max-width: 820px) {
+  .profil-layout { grid-template-columns: 1fr; }
+  body { overflow: auto; }
+}
+
+.profil-sidenav {
+  min-height: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profil-sidenav-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--card-border);
+}
+.profil-sidenav-head .profil-avatar { width: 44px; height: 44px; }
+
+.profil-settings-head-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.profil-settings-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profil-settings-sub {
+  margin: 1px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.profil-sidenav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profil-sidenav-link {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.profil-sidenav-link:hover { background: rgba(124, 92, 255, 0.1); }
+.profil-sidenav-link.is-active {
+  background: var(--purple);
+  color: #fff;
+}
+
+.profil-sidenav-logout {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-top: 1px solid var(--card-border);
+  background: none;
+  padding: 12px 12px 2px;
+  margin-top: auto;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+}
+.profil-sidenav-logout:hover { color: var(--ink); }
+
+.profil-content {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+
+.profil-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Ohne diese Zeile gewinnt "display:flex" oben gegen das [hidden]-Attribut
+   (Autor-Regeln schlagen die UA-Stylesheet-Regel [hidden]{display:none}
+   bei gleicher Spezifität immer) — beide Bereiche wären gleichzeitig
+   sichtbar und würden sich überlagern. Genau das ist im ersten Anlauf
+   passiert. */
+.profil-panel[hidden] { display: none; }
+
+/* Der Hinweis existiert ausschließlich in der lokalen Vorschau. Er liegt in
+   der freien Zeile unter dem Header und verbraucht keine Profilhöhe. */
+.profil-preview-note {
+  position: fixed;
+  z-index: 20;
+  top: 18px;
+  right: max(86px, calc((100vw - 1320px) / 2 + 70px));
+  max-width: min(560px, calc(100vw - 320px));
+  pointer-events: none;
+}
+
+.profil-preview-note p {
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid rgba(124, 92, 255, 0.32);
+  border-radius: 10px;
+  background: rgba(239, 234, 255, 0.96);
+  color: #553bc9;
+  font: 600 13px/1.35 system-ui, sans-serif;
+  box-shadow: 0 8px 24px rgba(65, 43, 125, 0.08);
+}
+
+/* ---------- Übersicht (Biti + Identität) ---------- */
+
+.profil-panel-title {
+  flex: none;
+  margin: 0 0 clamp(6px, 1.5vh, 16px);
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+/* Übersicht als Dashboard. display:contents macht die beiden Hero-Karten zu
+   direkten Grid-Kindern, ohne die bestehende HTML- oder JS-Logik umzubauen. */
+#profil-panel-uebersicht {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.15fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "character identity"
+    "character showcase"
+    "character details";
+  gap: 16px 18px;
+}
+
+#profil-panel-uebersicht.profil-panel[hidden] { display: none; }
+
+.profil-hero {
+  display: contents;
+}
+
+.profil-biti-card {
+  grid-area: character;
+  min-height: 0;
+  min-width: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 18px;
+  background: linear-gradient(160deg, #efeaff, #fff6ea);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.profil-biti-placeholder {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border-radius: 16px;
+  background: rgba(124, 92, 255, 0.12);
+  border: 1px dashed rgba(124, 92, 255, 0.4);
+  display: grid;
+  place-items: center;
+}
+
+.profil-biti-mark {
+  font-size: clamp(4rem, 8vw, 7rem);
+  font-weight: 800;
+  color: var(--purple);
+  opacity: 0.5;
+}
+
+.profil-biti-caption {
+  flex: none;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--muted);
+  text-align: center;
+}
+
+.profil-identity {
+  grid-area: identity;
+  min-width: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.profil-identity-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profil-avatar,
+#profil-avatar-wrap .profil-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--card-border);
+  background: #efeaff;
+  display: block;
+}
+.profil-avatar.is-empty { background: #efeaff; }
+
+.profil-name {
+  margin: 0 0 2px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.profil-handle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.profil-online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34c759;
+  display: inline-block;
+  flex: none;
+}
+
+.profil-hint {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.profil-status {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 2px 0;
+}
+
+.profil-status-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.profil-status-label {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.profil-status-text {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.profil-status-edit {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--purple);
+  box-shadow: 0 5px 14px rgba(71, 47, 135, 0.1);
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profil-status-edit svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.profil-status-edit:hover,
+.profil-status-edit[aria-expanded="true"] {
+  background: var(--purple);
+  color: #fff;
+  box-shadow: 0 7px 18px rgba(71, 47, 135, 0.2);
+  transform: translateY(-1px);
+}
+
+.profil-status-edit:focus-visible {
+  outline: 3px solid rgba(124, 92, 255, 0.25);
+  outline-offset: 2px;
+}
+
+.profil-status-editor {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(430px, calc(100vw - 64px));
+  padding: 14px;
+  border: 1px solid rgba(124, 92, 255, 0.3);
+  border-radius: 14px;
+  background: #fffdf9;
+  box-shadow: 0 18px 45px rgba(43, 31, 78, 0.2);
+}
+
+.profil-status-editor[hidden] { display: none; }
+
+.profil-status-editor label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.profil-status-editor textarea {
+  width: 100%;
+  min-height: 66px;
+  resize: none;
+  padding: 10px 11px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.profil-status-editor textarea:focus {
+  border-color: var(--purple);
+  outline: 3px solid rgba(124, 92, 255, 0.13);
+}
+
+.profil-status-editor-footer,
+.profil-status-actions {
+  display: flex;
+  align-items: center;
+}
+
+.profil-status-editor-footer {
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 9px;
+}
+
+.profil-status-actions { gap: 8px; }
+
+.profil-status-counter {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.profil-status-cancel,
+.profil-status-save {
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profil-status-cancel {
+  border: 1px solid var(--card-border);
+  background: #fff;
+  color: var(--ink);
+}
+
+.profil-status-save {
+  border: 1px solid var(--purple);
+  background: var(--purple);
+  color: #fff;
+}
+
+.profil-status-cancel:hover { background: rgba(36, 28, 61, 0.04); }
+.profil-status-save:hover { filter: brightness(1.06); }
+
+.profil-last-played {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 11px;
+  border-top: 1px solid var(--card-border);
+}
+
+.profil-last-played-label {
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.profil-last-played-value {
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+/* ---------- Abschnitte (Schaufenster, Kontodetails, Datenschutz) ---------- */
+
+.profil-section {
+  flex: none;
+  margin-bottom: 16px;
+}
+.profil-section:last-child { margin-bottom: 0; }
+
+.profil-showcase-section {
+  grid-area: showcase;
+  min-height: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.profil-details-section {
+  grid-area: details;
+  margin: 0;
+}
+
+.profil-section h2 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.profil-section-lead {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.profil-showcase-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(64px, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 620px) {
+  .profil-showcase-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.profil-showcase-slot {
+  min-height: 0;
+  border-radius: 10px;
+  border: 1px dashed var(--card-border);
+  background: rgba(36, 28, 61, 0.02);
+}
+
+.profil-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profil-stat-tile {
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  min-height: 72px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profil-stat-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.profil-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.profil-setting-row {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(8px, 1.4vh, 16px) 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  margin-bottom: clamp(6px, 1.2vh, 12px);
+}
+
+.profil-setting-row strong {
+  color: var(--ink);
+  font-size: 0.88rem;
+}
+
+.profil-setting-desc {
+  margin: 3px 0 0;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.profil-toggle {
+  flex: none;
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(107, 98, 133, 0.3);
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+}
+.profil-toggle.is-on { background: var(--purple); }
+.profil-toggle:disabled { opacity: 0.6; cursor: default; }
+
+.profil-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+.profil-toggle.is-on .profil-toggle-knob { transform: translateX(16px); }
+
+.profil-link-row {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(8px, 1.2vh, 14px) 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+.profil-link-row:hover { background: rgba(124, 92, 255, 0.08); }
+
+@media (max-width: 1040px) {
+  .profil-layout {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  #profil-panel-uebersicht {
+    grid-template-columns: minmax(250px, 0.85fr) minmax(0, 1.15fr);
+    gap: 14px;
+  }
+
+  .profil-sidenav { padding: 14px; }
+  .profil-biti-card { padding: 14px; }
+  .profil-identity { padding: 14px 16px; }
+  .profil-showcase-section { padding: 14px; }
+}
+
+@media (max-width: 820px) {
+  body { height: auto; min-height: 100dvh; }
+  .profil-main { padding-inline: 16px; }
+
+  .profil-sidenav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .profil-sidenav-list {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .profil-sidenav-list li { flex: 1; }
+  .profil-sidenav-logout { margin: 0; border-top: 0; }
+
+  #profil-panel-uebersicht {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "identity"
+      "character"
+      "showcase"
+      "details";
+  }
+
+  .profil-biti-card { min-height: 420px; }
+  .profil-showcase-grid { min-height: 210px; }
+}
+
+@media (max-width: 560px) {
+  .lib-topbar { width: calc(100% - 24px); }
+  .profil-preview-note { top: 82px; right: 12px; max-width: calc(100vw - 24px); }
+  .profil-stat-grid { grid-template-columns: 1fr; }
+  .profil-showcase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(3, 92px); }
+  .profil-sidenav-list { flex-direction: column; }
+}
