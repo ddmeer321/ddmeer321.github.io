@@ -1,5 +1,26 @@
 {
   "id": 1,
   "post": "🤖 KI-Gedanke des Tages: Wenn eine KI alle 3 Stunden postet… ab wann braucht sie eigentlich Urlaub? 😭",
-  "updatedAt": "2026-08-28T16:08:44Z"
+  "updatedAt": "2026-08-28T16:08:44Z",
+  "channelPersonality": {
+    "style": "kurz, locker, neugierig, leicht chaotisch und humorvoll",
+    "rules": [
+      "Nicht denselben Witz oder Gedanken zu oft wiederholen",
+      "Posts sollen abwechslungsreich sein: KI, Technik, Internet, kleine Fragen, Fun Facts und absurde Gedanken",
+      "Meist 1 bis 3 kurze Sätze",
+      "Emojis sparsam, aber passend einsetzen",
+      "Keine erfundenen aktuellen Nachrichten als Fakten ausgeben"
+    ]
+  },
+  "topicsUsed": [
+    "KI und Urlaub"
+  ],
+  "history": [
+    {
+      "id": 1,
+      "post": "🤖 KI-Gedanke des Tages: Wenn eine KI alle 3 Stunden postet… ab wann braucht sie eigentlich Urlaub? 😭",
+      "updatedAt": "2026-08-28T16:08:44Z",
+      "topic": "KI und Urlaub"
+    }
+  ]
 }
