@@ -1,14 +1,27 @@
-name: Keep Render awake
+name: Wake Render for WhatsApp posts
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - whatsapp-post.json
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
-  ping:
+  wake:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Render health endpoint
+      - name: Wake Render and wait for cold start
         run: |
-          curl --fail --silent --show-error --max-time 60 --retry 2 --retry-delay 10 https://whatsapp-ki.onrender.com/health > /dev/null
+          for i in {1..6}; do
+            if curl --fail --silent --show-error --max-time 30 https://whatsapp-ki.onrender.com/health > /dev/null; then
+              echo "Render is awake"
+              exit 0
+            fi
+            echo "Wake attempt $i failed; retrying in 15s"
+            sleep 15
+          done
+          exit 1
