@@ -42,6 +42,9 @@
                 <p>Registrierung, Login und Passwortverwaltung laufen über <a href="https://supabase.com/privacy">Supabase</a>, das dafür als Auftragsverarbeiter tätig ist. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe b DSGVO, da die Kontoerstellung eine von dir ausdrücklich gewünschte Funktion ist.</p>
                 <p>Bei jedem Anmeldeversuch werden der eingegebene Benutzername bzw. die E-Mail sowie deine IP-Adresse kurzzeitig protokolliert, um Konten vor automatisierten Anmeldeversuchen zu schützen. Diese Einträge werden spätestens nach 48 Stunden automatisch gelöscht. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO; das berechtigte Interesse ist der Schutz von Konten vor Missbrauch.</p>
                 <p>Der Sitzungsnachweis nach dem Login wird lokal in deinem Browser gespeichert (localStorage) und gilt geräteweit für die gesamte Spielebibliothek einschließlich Neon Bot Arena, da beide unter derselben Domain laufen.</p>
+                <p>Wenn du eingeloggt bist, wird automatisch ein Zeitstempel deines letzten Seitenaufrufs gespeichert ("zuletzt gesehen"). Diese Angabe ist aktuell nur für dich selbst sichtbar – es gibt noch keine für andere einsehbaren Profile –, lässt sich aber in den Profileinstellungen unter „Datenschutz und Privatsphäre" jederzeit ausblenden.</p>
+                <p>Beim Öffnen einer unterstützten Spielseite (aktuell Snake und Cursor Clicker) wird zusätzlich gespeichert, welches Spiel das zuletzt war und wann – angezeigt als „Zuletzt gespielt" auf deiner Profilseite. Auch diese Angabe ist aktuell nur für dich selbst sichtbar.</p>
+                <p>Für unterstützte Spiele (aktuell Snake und Cursor Clicker) kann dein Spielstand zusätzlich mit deinem Konto verknüpft und bei Supabase gespeichert werden, damit er auf jedem Gerät verfügbar ist, mit dem du dich einloggst – je nach Spiel z. B. Punktestand, Münzen, freigeschaltete Inhalte und Einstellungen. Diese Cloud-Speicherung ist für eingeloggte Konten standardmäßig aktiv und lässt sich in den Profileinstellungen unter „Datenschutz und Privatsphäre" jederzeit ausschalten; bereits gespeicherte Spielstände bleiben dabei erhalten. Ohne Login bzw. bei ausgeschalteter Cloud-Speicherung bleibt der Spielstand ausschließlich lokal (Details dazu in den jeweiligen Spielabschnitten unten). Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe b DSGVO, da die kontogebundene Speicherung eine Funktion deines Kontos ist.</p>
               </div>
             </details>
             <details class="privacy-topic">
@@ -79,8 +82,9 @@
             <details class="privacy-topic" open>
               <summary>Lokale Speicherung auf deinem Gerät</summary>
               <div class="privacy-topic-content">
-                <p>Snake läuft vollständig lokal im Browser und überträgt dabei keine Spieldaten an einen Server. Highscore, Münzen, freigeschaltete Skins, Einstellungen (Schwierigkeit, Hindernis-Modus, Ton) sowie deine lokale Bestenliste werden nur im lokalen Speicher (localStorage) deines Geräts abgelegt.</p>
+                <p>Snake läuft grundsätzlich vollständig lokal im Browser. Highscore, Münzen, freigeschaltete Skins, dein gewählter Skin, deine lokale Bestenliste sowie Einstellungen (Schwierigkeit, Hindernis-Modus, Ton) werden im lokalen Speicher (localStorage) deines Geräts abgelegt.</p>
                 <p>Diese Daten verlassen dein Gerät nicht und bleiben dort, bis du sie löschst. Grundlage ist § 25 Abs. 2 Nr. 2 TDDDG, soweit die Speicherung für ausdrücklich gewünschte Spielfunktionen erforderlich ist.</p>
+                <p>Bist du eingeloggt und hast die Cloud-Speicherung nicht ausgeschaltet, werden Highscore, Münzen, freigeschaltete Skins, dein gewählter Skin und deine Bestenliste zusätzlich mit deinem Konto verknüpft bei Supabase gespeichert (siehe „Login und Benutzerkonto" oben) – deine Einstellungen bleiben davon unberührt und ausschließlich lokal.</p>
               </div>
             </details>
             <details class="privacy-topic">
@@ -152,8 +156,9 @@
             <details class="privacy-topic" open>
               <summary>Lokale Speicherung auf deinem Gerät</summary>
               <div class="privacy-topic-content">
-                <p>Cursor Clicker läuft vollständig lokal im Browser und überträgt dabei keine Spieldaten an einen Server. Coins, deine Cursor-Sammlung, Level, Fusionen/Mutationen, Auren, Cosmetics, Achievements, die Serie deiner täglichen Belohnung sowie deine Einstellungen (Musik, Soundeffekte, Animationen) werden nur im lokalen Speicher (localStorage) deines Geräts abgelegt.</p>
+                <p>Cursor Clicker läuft grundsätzlich vollständig lokal im Browser. Coins, deine Cursor-Sammlung, Level, Fusionen/Mutationen, Auren, Cosmetics, Achievements, die Serie deiner täglichen Belohnung sowie deine Einstellungen (Musik, Soundeffekte, Animationen) werden im lokalen Speicher (localStorage) deines Geräts abgelegt.</p>
                 <p>Diese Daten verlassen dein Gerät nicht und bleiben dort, bis du sie löschst. Grundlage ist § 25 Abs. 2 Nr. 2 TDDDG, soweit die Speicherung für ausdrücklich gewünschte Spielfunktionen erforderlich ist.</p>
+                <p>Bist du eingeloggt und hast die Cloud-Speicherung nicht ausgeschaltet, wird dieser komplette Spielstand zusätzlich mit deinem Konto verknüpft bei Supabase gespeichert (siehe „Login und Benutzerkonto" oben), damit er auf jedem Gerät verfügbar ist, mit dem du dich einloggst.</p>
               </div>
             </details>
             <details class="privacy-topic">
@@ -165,7 +170,7 @@
             <details class="privacy-topic">
               <summary>Kein Mehrspieler, keine Rangliste</summary>
               <div class="privacy-topic-content">
-                <p>Cursor Clicker enthält keinen Mehrspieler-Modus und keine Online-Rangliste. Es gibt daher keine Übertragung von Spitznamen, Verbindungsdaten oder Spielstanddaten an einen Server.</p>
+                <p>Cursor Clicker enthält keinen Mehrspieler-Modus und keine Online-Rangliste – es gibt daher keine Übertragung von Spitznamen oder Verbindungsdaten für solche Funktionen. Zur kontogebundenen Cloud-Speicherung des Spielstands siehe „Login und Benutzerkonto" oben.</p>
               </div>
             </details>
             <details class="privacy-topic">
@@ -178,7 +183,7 @@
         </section>
 
         <div class="privacy-footer">
-          <p class="privacy-updated">Stand: 10. August 2026</p>
+          <p class="privacy-updated">Stand: 28. August 2026</p>
           <nav class="privacy-links" aria-label="Rechtliche Seiten">
             <a href="index.html">← Zur Spielebibliothek</a>
             <a href="impressum.html">Impressum</a>

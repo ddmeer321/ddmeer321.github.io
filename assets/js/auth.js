@@ -340,6 +340,23 @@
       /* Nebensache, siehe oben - darf render() nie blockieren */
     }
 
+    // "Zuletzt gespielt": nur auf echten Spielseiten, nicht bei jedem
+    // Seitenaufruf wie bei touch_last_seen oben. Eine Spielseite markiert
+    // sich dafuer selbst mit <meta name="game-id" content="...">; ohne diese
+    // Markierung (Startseite, Profil, ...) passiert hier nichts.
+    var gameIdMeta = document.querySelector('meta[name="game-id"]');
+    var gameId = gameIdMeta && gameIdMeta.content;
+    if (gameId) {
+      try {
+        var lastPlayedCall = sb.rpc("touch_last_played", { game_id: gameId });
+        if (lastPlayedCall && typeof lastPlayedCall.catch === "function") {
+          lastPlayedCall.catch(function () {});
+        }
+      } catch (err) {
+        /* Nebensache, gleiches Prinzip wie touch_last_seen oben */
+      }
+    }
+
     var pr = await sb
       .from("profiles")
       .select("username, avatar_path, avatar_updated_at")
