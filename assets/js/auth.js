@@ -327,8 +327,18 @@
 
     // Nicht abgewartet: "zuletzt gesehen" ist eine Nebensache, keine Zeile
     // im Menü soll je auf sie warten. Fehler bewusst verschluckt, es gibt
-    // dafuer keine sinnvolle Anzeige an dieser Stelle.
-    sb.rpc("touch_last_seen").catch(function () {});
+    // dafuer keine sinnvolle Anzeige an dieser Stelle. try/catch statt nur
+    // .catch(): in freier Wildbahn beobachtet, dass sb.rpc(...) in manchen
+    // Browsern/Situationen kein Promise mit .catch zurueckgibt - das riss
+    // sonst die ganze render()-Funktion ab, bevor sie beim Profilbild ankam.
+    try {
+      var lastSeenCall = sb.rpc("touch_last_seen");
+      if (lastSeenCall && typeof lastSeenCall.catch === "function") {
+        lastSeenCall.catch(function () {});
+      }
+    } catch (err) {
+      /* Nebensache, siehe oben - darf render() nie blockieren */
+    }
 
     var pr = await sb
       .from("profiles")
