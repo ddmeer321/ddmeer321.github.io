@@ -17,6 +17,10 @@
   if (!loadingEl || !noSessionEl || !appEl) return;
 
   var ROLE_LABELS = { user: "Nutzer", tester: "Tester", admin: "Admin", owner: "Owner" };
+  // Anzeigename je game-id (siehe <meta name="game-id"> auf den Spielseiten
+  // + touch_last_played() in auth.js). Neue Spiele hier eintragen, sobald sie
+  // die Meta-Markierung bekommen.
+  var GAME_LABELS = { snake: "Snake", "cursor-clicker": "Cursor Clicker" };
   var STATUS_MAX_LENGTH = 80;
   var EMPTY_STATUS_TEXT = "Ich liebe Spiele";
   // Identisch zu USERNAME_RE in assets/js/login.js — nur fuer die sofortige
@@ -133,6 +137,22 @@
       });
     } catch (e) {
       return "—";
+    }
+  }
+
+  function formatLastPlayed(gameId, iso) {
+    if (!gameId || !iso) return "Noch nicht verfügbar";
+    var label = GAME_LABELS[gameId] || gameId;
+    try {
+      var when = new Date(iso).toLocaleString("de-DE", {
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return label + " · " + when;
+    } catch (e) {
+      return label;
     }
   }
 
@@ -627,7 +647,7 @@
     var pr = await sb
       .from("profiles")
       .select(
-        "username, player_id, avatar_path, avatar_updated_at, created_at, role, last_seen, last_seen_visible, cloud_save_enabled"
+        "username, player_id, avatar_path, avatar_updated_at, created_at, role, last_seen, last_seen_visible, cloud_save_enabled, last_played_game, last_played_at"
       )
       .eq("id", session.user.id)
       .maybeSingle();
@@ -651,6 +671,7 @@
     document.getElementById("profil-created-at").textContent = formatDate(profile.created_at);
     document.getElementById("profil-role").textContent = roleLabel;
     document.getElementById("profil-last-seen").textContent = formatLastSeen(profile.last_seen);
+    document.getElementById("profil-last-played").textContent = formatLastPlayed(profile.last_played_game, profile.last_played_at);
 
     document.getElementById("profil-settings-name").textContent = profile.username || "Spieler";
     document.getElementById("profil-settings-sub").textContent = playerIdText + " · " + roleLabel;
