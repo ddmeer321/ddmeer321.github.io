@@ -482,6 +482,136 @@ body {
 .profil-status-cancel:hover { background: rgba(36, 28, 61, 0.04); }
 .profil-status-save:hover { filter: brightness(1.06); }
 
+.profil-name-block { min-width: 0; }
+
+.profil-name-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profil-name-edit {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--purple);
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profil-name-edit svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.profil-name-edit:hover,
+.profil-name-edit[aria-expanded="true"] {
+  background: var(--purple);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.profil-name-edit:focus-visible {
+  outline: 3px solid rgba(124, 92, 255, 0.25);
+  outline-offset: 2px;
+}
+
+.profil-name-editor {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(280px, calc(100vw - 64px));
+  padding: 14px;
+  border: 1px solid rgba(124, 92, 255, 0.3);
+  border-radius: 14px;
+  background: #fffdf9;
+  box-shadow: 0 18px 45px rgba(43, 31, 78, 0.2);
+}
+
+.profil-name-editor[hidden] { display: none; }
+
+.profil-name-editor label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.profil-name-editor input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.profil-name-editor input:focus {
+  border-color: var(--purple);
+  outline: 3px solid rgba(124, 92, 255, 0.13);
+}
+
+.profil-name-hint {
+  min-height: 1.2em;
+  margin: 6px 0 0;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.profil-name-hint.is-error { color: #d33f5a; }
+.profil-name-hint.is-ok { color: #2f9e57; }
+
+.profil-name-editor-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.profil-name-cancel,
+.profil-name-save {
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profil-name-cancel {
+  border: 1px solid var(--card-border);
+  background: #fff;
+  color: var(--ink);
+}
+
+.profil-name-save {
+  border: 1px solid var(--purple);
+  background: var(--purple);
+  color: #fff;
+}
+
+.profil-name-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.profil-name-cancel:hover { background: rgba(36, 28, 61, 0.04); }
+.profil-name-save:hover:not(:disabled) { filter: brightness(1.06); }
+
 .profil-last-played {
   display: flex;
   align-items: center;
@@ -554,9 +684,350 @@ body {
 
 .profil-showcase-slot {
   min-height: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   border-radius: 10px;
   border: 1px dashed var(--card-border);
   background: rgba(36, 28, 61, 0.02);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.profil-showcase-slot:not(.has-item):hover {
+  border-color: rgba(124, 92, 255, 0.45);
+  background: rgba(124, 92, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.profil-showcase-slot:focus-visible {
+  outline: 3px solid rgba(124, 92, 255, 0.25);
+  outline-offset: 2px;
+}
+
+/* Belegte Plaetze: das Item-Bild fuellt den GESAMTEN Platz aus (kein
+   verschachtelter kleinerer Kasten mehr) auf einer dunklen lila-blauen Karte,
+   Name/Spiel liegen als Beschriftung UNTEN drauf — wie im Blox-Fruits-Vorbild
+   aus ROADMAP.md. */
+.profil-showcase-slot.has-item {
+  display: block;
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  background: linear-gradient(150deg, #352a68 0%, #1c1f4a 100%);
+  box-shadow: 0 10px 24px rgba(20, 14, 46, 0.35);
+}
+
+.profil-showcase-slot.has-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(20, 14, 46, 0.45);
+}
+
+.profil-showcase-slot-art {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.profil-showcase-slot-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 14px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  background: linear-gradient(to top, rgba(10, 8, 24, 0.88) 20%, rgba(10, 8, 24, 0));
+  text-align: center;
+}
+
+.profil-showcase-slot.has-item .profil-showcase-item-name { color: #f5f2ff; }
+.profil-showcase-slot.has-item .profil-showcase-item-game { color: rgba(226, 220, 255, 0.65); }
+
+.profil-showcase-plus {
+  color: var(--muted);
+  font-size: 1.4rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.profil-showcase-slot:hover .profil-showcase-plus { color: var(--purple); }
+
+/* Echte Spiel-Visuals statt Emoji: pro Item-Typ die tatsaechliche Optik aus
+   dem jeweiligen Spiel nachgebaut (Snake-Farbverlauf, Cursor-Clicker-SVG-
+   Zeigersilhouette, Neon-Bot-Arena-Portrait/Begleiter-Form). Zwei Kontexte:
+   .profil-showcase-slot-art (oben, fuellt den ganzen Platz) fuer belegte
+   Schaufenster-Plaetze, .profil-showcase-visual (quadratischer Rahmen) fuer
+   die Zeilen im Auswahl-Dialog.
+   Obwohl Portrait/Begleiter im echten Spiel ein breiteres Seitenverhaeltnis
+   haben, werden sie hier auf ein Quadrat gestaucht. */
+.profil-showcase-visual {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.profil-showcase-visual-none {
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.profil-showcase-visual-snake {
+  width: 100%;
+  height: 100%;
+}
+
+.profil-showcase-visual-cursor {
+  width: 100%;
+  height: 100%;
+}
+
+/* Kopiert aus cursor-clicker/css/cursor-glyph.css (js/ui/cursorGlyph.js) */
+.cc-cursor-glyph {
+  position: relative;
+  display: inline-grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+.cc-cursor-svg {
+  width: 62%;
+  height: 62%;
+  fill: var(--glyph-color, #7c5cff);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 10px var(--glyph-glow, rgba(124, 92, 255, 0.45)));
+}
+
+.cc-cursor-unstable .cc-cursor-svg { animation: cc-cursor-unstable 2.6s ease-in-out infinite; }
+
+@keyframes cc-cursor-unstable {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-0.6px) translateY(0.4px); }
+  50% { transform: translateX(0.5px) translateY(-0.3px); }
+  75% { transform: translateX(-0.3px); }
+}
+
+/* Kopiert aus neon-bot-arena/style.css (.portrait + Helden-Klassen
+   .volt/.titan/.nova) - behaelt das echte 1.8:1 Seitenverhaeltnis bei (vorher
+   auf ein Quadrat gestaucht, dadurch sah die Koerperform lang gezogen aus)
+   und wird stattdessen mittig in den quadratischen Platz eingepasst. */
+.profil-showcase-visual-portrait {
+  width: 84%;
+  aspect-ratio: 1.8;
+  max-height: 68%;
+  position: relative;
+}
+
+.profil-showcase-visual-portrait::before,
+.profil-showcase-visual-portrait::after {
+  content: "";
+  position: absolute;
+  inset: 18% 30% 10%;
+  border-radius: 45% 45% 8px 8px;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.profil-showcase-visual-portrait::after {
+  inset: 37% 20% auto;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+/* Kein eigener Karten-Hintergrund hier (anders als im echten Spiel) — der
+   waere jetzt, wo die Figur kleiner als der Platz ist, als eigene graue Box
+   sichtbar. Nur die Figur selbst (::before/::after, siehe oben) bleibt. */
+.profil-showcase-visual-portrait.volt { color: #38d8ff; }
+.profil-showcase-visual-portrait.titan { color: #ffc857; }
+.profil-showcase-visual-portrait.nova { color: #ff4f92; }
+
+/* Kopiert aus neon-bot-arena/style.css (.companion-swatch) - gleicher Grund
+   fuers echte 1.8:1 Verhaeltnis wie bei .profil-showcase-visual-portrait oben. */
+/* Kein eigener Karten-Hintergrund (gleicher Grund wie beim Portrait oben) —
+   nur die Begleiter-Silhouette (::before/::after). */
+.profil-showcase-visual-companion {
+  width: 84%;
+  aspect-ratio: 1.8;
+  max-height: 68%;
+  position: relative;
+}
+
+.profil-showcase-visual-companion::before {
+  content: "";
+  position: absolute;
+  inset: 22% 30% 14%;
+  border-radius: 999px 999px 8px 8px;
+  background: var(--companion-color);
+  box-shadow: 0 0 14px var(--companion-glow);
+}
+
+.profil-showcase-visual-companion::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: 40%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.profil-showcase-item-name {
+  max-width: 100%;
+  padding: 0 4px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profil-showcase-item-game {
+  color: var(--muted);
+  font-size: 0.6rem;
+}
+
+.profil-showcase-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(24, 18, 41, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.profil-showcase-picker[hidden] { display: none; }
+
+.profil-showcase-picker-card {
+  width: min(480px, 100%);
+  max-height: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: #fffdf9;
+  box-shadow: 0 30px 70px rgba(43, 31, 78, 0.35);
+  overflow: hidden;
+}
+
+.profil-showcase-picker-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.profil-showcase-picker-head h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.profil-showcase-picker-close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.profil-showcase-picker-close svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.profil-showcase-picker-close:hover {
+  background: rgba(36, 28, 61, 0.06);
+  color: var(--ink);
+}
+
+.profil-showcase-picker-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.profil-showcase-picker-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profil-showcase-picker-item:hover {
+  border-color: rgba(124, 92, 255, 0.45);
+  box-shadow: 0 8px 18px rgba(71, 47, 135, 0.12);
+  transform: translateY(-1px);
+}
+
+.profil-showcase-picker-item:focus-visible {
+  outline: 3px solid rgba(124, 92, 255, 0.25);
+  outline-offset: 2px;
+}
+
+.profil-showcase-picker-item.is-active {
+  border-color: var(--purple);
+  background: rgba(124, 92, 255, 0.06);
+}
+
+.profil-showcase-picker-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.profil-showcase-picker-item .profil-showcase-item-icon {
+  width: 38px;
+  height: 38px;
+  font-size: 1.3rem;
+}
+
+.profil-showcase-picker-item-none .profil-showcase-item-icon {
+  background: rgba(36, 28, 61, 0.05);
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 300;
 }
 
 .profil-stat-grid {

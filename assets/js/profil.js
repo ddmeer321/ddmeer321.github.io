@@ -19,6 +19,92 @@
   var ROLE_LABELS = { user: "Nutzer", tester: "Tester", admin: "Admin", owner: "Owner" };
   var STATUS_MAX_LENGTH = 80;
   var EMPTY_STATUS_TEXT = "Ich liebe Spiele";
+  // Identisch zu USERNAME_RE in assets/js/login.js — nur fuer die sofortige
+  // Client-Rueckmeldung. Die eigentliche Absicherung (Format + Eindeutigkeit)
+  // passt die Datenbankfunktion set_username() serverseitig noch einmal ab.
+  var USERNAME_RE = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9!"#$%&'()*+,\-./:;<=>?[\]^_`{|}~]{4,12}$/;
+
+  // TESTDATEN — Platzhalter-Katalog fuers Schaufenster, bis es echte, aus
+  // den Spiel-Spielstaenden abgeleitete Items gibt (siehe game_saves: Snake
+  // owned-Skins, Cursor-Clicker ownedCursors/unlockedCosmetics, Neon-Bot-Arena
+  // unlockedHeroes/ownedCosmetics). Auswahl bleibt bis dahin nur lokal
+  // gespeichert (kein Server-Feld) — gleiches Prinzip wie beim Beschreibungstext.
+  var SHOWCASE_SLOT_COUNT = 6;
+
+  // Echte Cursor-Silhouette + Material-Verlaeufe, 1:1 uebernommen aus
+  // cursor-clicker/js/ui/cursorGlyph.js + js/data/cursorMaterials.js (nur ein
+  // Ausschnitt der Materialien fuer die Testitems), statt eines Emojis.
+  var CC_POINTER_PATH = "M12 6 L12 78 L30 62 L42 88 L54 82 L40 58 L64 58 Z";
+  var CC_MATERIALS = {
+    galaxy: { gradient: "radial", stops: ["#6a54c4", "#160b32"], accent: "dots", accentColor: "#f7f2ff", accentCount: 7, glow: "rgba(124,58,237,0.75)" },
+    neon: { gradient: "linear", stops: ["#14152a", "#0b0c1c"], accent: "stroke", accentColor: "#22d3ee", accentCount: 1, glow: "rgba(34,211,238,0.85)" }
+  };
+  function ccRenderAccent(accent, color, count) {
+    if (accent === "dots") {
+      var dots = [[20, 20], [34, 16], [24, 34], [40, 30], [18, 48], [32, 52], [22, 66]].slice(0, count);
+      return dots.map(function (p) { return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="1.6" fill="' + color + '" opacity="0.85"/>'; }).join("");
+    }
+    return "";
+  }
+  function renderCursorGlyph(materialKey) {
+    var mat = CC_MATERIALS[materialKey];
+    if (!mat) return "";
+    var isOutline = mat.accent === "stroke";
+    var gradId = "ccg-" + materialKey;
+    var stopA = mat.stops[0];
+    var stopB = mat.stops[1];
+    var gradientTag = mat.gradient === "radial"
+      ? '<radialGradient id="' + gradId + '" cx="38%" cy="30%" r="75%"><stop offset="0%" stop-color="' + stopA + '"/><stop offset="100%" stop-color="' + stopB + '"/></radialGradient>'
+      : '<linearGradient id="' + gradId + '" x1="0%" y1="0%" x2="60%" y2="100%"><stop offset="0%" stop-color="' + stopA + '"/><stop offset="100%" stop-color="' + stopB + '"/></linearGradient>';
+    var pathStroke = isOutline ? ' stroke="' + mat.accentColor + '" stroke-width="2.6"' : "";
+    var accentMarkup = isOutline ? "" : ccRenderAccent(mat.accent, mat.accentColor, mat.accentCount || 0);
+    return (
+      '<span class="cc-cursor-glyph" style="--glyph-color:' + stopA + ';--glyph-glow:' + mat.glow + '">' +
+      '<svg viewBox="0 0 100 100" class="cc-cursor-svg" aria-hidden="true">' +
+      "<defs>" + gradientTag + "</defs>" +
+      '<path d="' + CC_POINTER_PATH + '" fill="url(#' + gradId + ')"' + pathStroke + "></path>" +
+      "<g>" + accentMarkup + "</g>" +
+      "</svg>" +
+      "</span>"
+    );
+  }
+
+  // TESTDATEN — Platzhalter-Katalog fuers Schaufenster, bis es echte, aus den
+  // Spiel-Spielstaenden abgeleitete Items gibt (siehe game_saves: Snake
+  // owned-Skins, Cursor-Clicker ownedCursors/unlockedCosmetics, Neon-Bot-Arena
+  // unlockedHeroes/ownedCosmetics). Auswahl bleibt bis dahin nur lokal
+  // gespeichert (kein Server-Feld) — gleiches Prinzip wie beim Beschreibungstext.
+  // "visual" beschreibt, wie renderShowcaseVisual() das jeweils echte
+  // Spiel-Aussehen nachbaut (kein Emoji).
+  var SHOWCASE_TEST_CATALOG = [
+    { id: "snake-feuer", name: "Feuer", game: "Snake", visual: { type: "snake", head: "#ff7a3d", body: "#ffcf3d" } },
+    { id: "snake-ozean", name: "Ozean", game: "Snake", visual: { type: "snake", head: "#2fd6c0", body: "#4a8cff" } },
+    { id: "snake-mitternacht", name: "Mitternacht", game: "Snake", visual: { type: "snake", head: "#b892ff", body: "#3d2f66" } },
+    { id: "snake-gold", name: "Gold", game: "Snake", visual: { type: "snake", head: "#f4c430", body: "#fff1b8" } },
+    { id: "cc-galaxy", name: "Galaxy", game: "Cursor Clicker", visual: { type: "cursor", material: "galaxy" } },
+    { id: "cc-neon", name: "Neon", game: "Cursor Clicker", visual: { type: "cursor", material: "neon" } },
+    { id: "nba-volt", name: "Volt Runner", game: "Neon Bot Arena", visual: { type: "portrait", heroClass: "volt" } },
+    { id: "nba-titan", name: "Shield Titan", game: "Neon Bot Arena", visual: { type: "portrait", heroClass: "titan" } },
+    { id: "nba-nova", name: "Nova Shade", game: "Neon Bot Arena", visual: { type: "portrait", heroClass: "nova" } },
+    { id: "nba-maske", name: "Scipios Maske", game: "Neon Bot Arena", visual: { type: "companion", color: "#9ca3af", glow: "#f3f4f6" } }
+  ];
+
+  function renderShowcaseVisual(item) {
+    var v = item.visual;
+    if (v.type === "snake") {
+      return '<span class="profil-showcase-visual-snake" style="background:linear-gradient(145deg,' + v.head + "," + v.body + ')"></span>';
+    }
+    if (v.type === "cursor") {
+      return '<span class="profil-showcase-visual-cursor">' + renderCursorGlyph(v.material) + "</span>";
+    }
+    if (v.type === "portrait") {
+      return '<span class="profil-showcase-visual-portrait ' + v.heroClass + '"></span>';
+    }
+    if (v.type === "companion") {
+      return '<span class="profil-showcase-visual-companion" style="--companion-color:' + v.color + ";--companion-glow:" + v.glow + '"></span>';
+    }
+    return "";
+  }
 
   function escapeHtml(s) {
     var div = document.createElement("div");
@@ -193,6 +279,303 @@
     updateCounter();
   }
 
+  // Benutzername aendern: Popover wie beim Beschreibungs-Editor. Live-Check
+  // waehrend des Tippens ist reine UX (username_available()), die
+  // eigentliche Aenderung + erneute Format-/Eindeutigkeitspruefung passiert
+  // serverseitig in set_username() — der Client-Regex hier darf also nie die
+  // einzige Absicherung sein.
+  function setupUsernameEditor(currentUsername) {
+    var editBtn = document.getElementById("profil-name-edit");
+    var editor = document.getElementById("profil-name-editor");
+    var input = document.getElementById("profil-name-input");
+    var hint = document.getElementById("profil-name-hint");
+    var cancelBtn = document.getElementById("profil-name-cancel");
+    var saveBtn = document.getElementById("profil-name-save");
+    var nameEl = document.getElementById("profil-name");
+    var settingsNameEl = document.getElementById("profil-settings-name");
+    if (!editBtn || !editor || !input || !hint || !cancelBtn || !saveBtn || !nameEl) return;
+
+    var username = currentUsername || "";
+    var checkTimer = null;
+    var checkToken = 0;
+
+    function setHint(text, tone) {
+      hint.textContent = text || "";
+      hint.classList.toggle("is-error", tone === "error");
+      hint.classList.toggle("is-ok", tone === "ok");
+    }
+
+    function closeEditor(restoreValue) {
+      if (restoreValue) input.value = username;
+      window.clearTimeout(checkTimer);
+      editor.hidden = true;
+      editBtn.setAttribute("aria-expanded", "false");
+      setHint("");
+      saveBtn.disabled = false;
+    }
+
+    function openEditor() {
+      input.value = username;
+      setHint("");
+      editor.hidden = false;
+      editBtn.setAttribute("aria-expanded", "true");
+      window.setTimeout(function () {
+        input.focus();
+        input.select();
+      }, 0);
+    }
+
+    editBtn.addEventListener("click", function () {
+      if (editor.hidden) openEditor();
+      else closeEditor(true);
+    });
+
+    cancelBtn.addEventListener("click", function () {
+      closeEditor(true);
+      editBtn.focus();
+    });
+
+    input.addEventListener("input", function () {
+      var value = input.value.trim();
+      window.clearTimeout(checkTimer);
+      if (value === username) {
+        setHint("");
+        return;
+      }
+      if (!USERNAME_RE.test(value)) {
+        setHint("4–12 Zeichen, keine Leerzeichen.", "error");
+        return;
+      }
+      setHint("Prüfe Verfügbarkeit …");
+      var token = ++checkToken;
+      checkTimer = window.setTimeout(async function () {
+        try {
+          var res = await sb.rpc("username_available", { p_username: value });
+          if (token !== checkToken) return;
+          if (res.error) {
+            setHint("");
+            return;
+          }
+          setHint(res.data ? "Verfügbar." : "Bereits vergeben.", res.data ? "ok" : "error");
+        } catch (err) {
+          if (token !== checkToken) return;
+          setHint("");
+        }
+      }, 350);
+    });
+
+    editor.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      var value = input.value.trim();
+      if (value === username) {
+        closeEditor(false);
+        return;
+      }
+      if (!USERNAME_RE.test(value)) {
+        setHint("4–12 Zeichen, keine Leerzeichen.", "error");
+        return;
+      }
+      saveBtn.disabled = true;
+      setHint("Speichere …");
+      try {
+        var res = await sb.rpc("set_username", { new_username: value });
+        if (res.error) throw res.error;
+        username = value;
+        nameEl.textContent = username;
+        if (settingsNameEl) settingsNameEl.textContent = username;
+        closeEditor(false);
+        editBtn.focus();
+      } catch (err) {
+        var message = (err && err.message) || "";
+        var friendly = message.indexOf("bereits vergeben") !== -1
+          ? "Bereits vergeben."
+          : message.indexOf("Ungueltiger") !== -1
+            ? "4–12 Zeichen, keine Leerzeichen."
+            : "Konnte nicht gespeichert werden.";
+        setHint(friendly, "error");
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !editor.hidden) {
+        closeEditor(true);
+        editBtn.focus();
+      }
+    });
+  }
+
+  // Schaufenster: jeder leere Platz zeigt ein "+", oeffnet einen Auswahl-
+  // Dialog. Neu ausgewaehlte Items landen immer im ersten freien Platz von
+  // links, unabhaengig davon welches "+" angeklickt wurde — so bleiben nie
+  // Luecken zwischen befuellten Plaetzen. Ein bereits belegter Platz oeffnet
+  // stattdessen einen Wechsel-Dialog mit "Kein Item" als erster, ebenfalls
+  // kachelfoermiger Option.
+  function setupShowcase(userId) {
+    var grid = document.getElementById("profil-showcase-grid");
+    var picker = document.getElementById("profil-showcase-picker");
+    var pickerList = document.getElementById("profil-showcase-picker-list");
+    var pickerClose = document.getElementById("profil-showcase-picker-close");
+    var pickerTitle = document.getElementById("profil-showcase-picker-title");
+    if (!grid || !picker || !pickerList || !pickerClose || !pickerTitle) return;
+
+    var storageKey = "profil-showcase:" + userId;
+    var slots = loadSlots();
+    var pickerTargetSlot = null; // null = naechster freier Platz, Zahl = genau dieser Platz
+    var lastFocusedSlot = null;
+
+    function findItem(id) {
+      for (var i = 0; i < SHOWCASE_TEST_CATALOG.length; i++) {
+        if (SHOWCASE_TEST_CATALOG[i].id === id) return SHOWCASE_TEST_CATALOG[i];
+      }
+      return null;
+    }
+
+    function loadSlots() {
+      var out = new Array(SHOWCASE_SLOT_COUNT).fill(null);
+      try {
+        var raw = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
+        if (Array.isArray(raw)) {
+          for (var i = 0; i < SHOWCASE_SLOT_COUNT; i++) {
+            if (typeof raw[i] === "string" && findItem(raw[i])) out[i] = raw[i];
+          }
+        }
+      } catch (e) {
+        /* Start mit leeren Plaetzen, wenn localStorage nicht lesbar ist */
+      }
+      return out;
+    }
+
+    function saveSlots() {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(slots));
+      } catch (e) {
+        /* Auswahl gilt dann nur fuer diese Seitenansicht */
+      }
+    }
+
+    function firstFreeSlot() {
+      for (var i = 0; i < slots.length; i++) {
+        if (!slots[i]) return i;
+      }
+      return -1;
+    }
+
+    function renderSlots() {
+      grid.querySelectorAll(".profil-showcase-slot").forEach(function (btn) {
+        var index = Number(btn.dataset.slot);
+        var item = slots[index] ? findItem(slots[index]) : null;
+        btn.classList.toggle("has-item", Boolean(item));
+        if (item) {
+          btn.setAttribute("aria-label", item.name + " (" + item.game + ") — antippen zum Ändern");
+          // Bild fuellt den ganzen Platz aus (kein verschachtelter kleinerer
+          // Kasten), Name/Spiel liegen als Beschriftung unten drauf.
+          btn.innerHTML =
+            '<span class="profil-showcase-slot-art">' + renderShowcaseVisual(item) + "</span>" +
+            '<span class="profil-showcase-slot-label">' +
+            '<span class="profil-showcase-item-name">' + escapeHtml(item.name) + "</span>" +
+            '<span class="profil-showcase-item-game">' + escapeHtml(item.game) + "</span>" +
+            "</span>";
+        } else {
+          btn.setAttribute("aria-label", "Leerer Schaufenster-Platz — Item hinzufügen");
+          btn.innerHTML = '<span class="profil-showcase-plus" aria-hidden="true">+</span>';
+        }
+      });
+    }
+
+    function renderPickerList(isSwap, slotIndex) {
+      var usedElsewhere = slots.filter(function (id, i) { return id && i !== slotIndex; });
+      var html = "";
+      if (isSwap) {
+        html +=
+          '<button class="profil-showcase-picker-item profil-showcase-picker-item-none" type="button" data-remove="1">' +
+          '<span class="profil-showcase-visual"><span class="profil-showcase-visual-none" aria-hidden="true">–</span></span>' +
+          '<span class="profil-showcase-item-name">Kein Item</span>' +
+          "</button>";
+      }
+      SHOWCASE_TEST_CATALOG.forEach(function (item) {
+        var alreadyShown = usedElsewhere.indexOf(item.id) !== -1;
+        var isCurrent = isSwap && slots[slotIndex] === item.id;
+        html +=
+          '<button class="profil-showcase-picker-item' + (isCurrent ? " is-active" : "") + '" type="button" data-item="' +
+          item.id + '"' + (alreadyShown ? " disabled" : "") + ">" +
+          '<span class="profil-showcase-visual">' + renderShowcaseVisual(item) + "</span>" +
+          '<span class="profil-showcase-item-name">' + escapeHtml(item.name) + "</span>" +
+          '<span class="profil-showcase-item-game">' + escapeHtml(item.game) + "</span>" +
+          "</button>";
+      });
+      pickerList.innerHTML = html;
+    }
+
+    function openPicker(slotIndex) {
+      var isSwap = Boolean(slots[slotIndex]);
+      pickerTargetSlot = isSwap ? slotIndex : null;
+      lastFocusedSlot = slotIndex;
+      pickerTitle.textContent = isSwap ? "Item wechseln" : "Item hinzufügen";
+      renderPickerList(isSwap, slotIndex);
+      picker.hidden = false;
+      window.setTimeout(function () {
+        var firstTile = pickerList.querySelector("button");
+        if (firstTile) firstTile.focus();
+      }, 0);
+    }
+
+    function closePicker() {
+      picker.hidden = true;
+      pickerTargetSlot = null;
+      var slotIndex = lastFocusedSlot;
+      lastFocusedSlot = null;
+      if (slotIndex != null) {
+        var btn = grid.querySelector('[data-slot="' + slotIndex + '"]');
+        if (btn) btn.focus();
+      }
+    }
+
+    grid.addEventListener("click", function (event) {
+      var btn = event.target.closest(".profil-showcase-slot");
+      if (!btn) return;
+      openPicker(Number(btn.dataset.slot));
+    });
+
+    pickerList.addEventListener("click", function (event) {
+      var btn = event.target.closest("button");
+      if (!btn) return;
+      if (btn.dataset.remove && pickerTargetSlot != null) {
+        slots[pickerTargetSlot] = null;
+        saveSlots();
+        renderSlots();
+        closePicker();
+        return;
+      }
+      var itemId = btn.dataset.item;
+      if (!itemId || btn.disabled) return;
+      if (pickerTargetSlot != null) {
+        slots[pickerTargetSlot] = itemId;
+      } else {
+        var target = firstFreeSlot();
+        if (target === -1) {
+          closePicker();
+          return;
+        }
+        slots[target] = itemId;
+      }
+      saveSlots();
+      renderSlots();
+      closePicker();
+    });
+
+    pickerClose.addEventListener("click", closePicker);
+    picker.addEventListener("click", function (event) {
+      if (event.target === picker) closePicker();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !picker.hidden) closePicker();
+    });
+
+    renderSlots();
+  }
+
   async function toggleLastSeen(btn, current) {
     var next = !current;
     btn.setAttribute("aria-checked", String(next));
@@ -275,6 +658,8 @@
     renderAvatar("profil-avatar-wrap", profile.avatar_path, profile.avatar_updated_at);
     renderAvatar("profil-settings-avatar-wrap", profile.avatar_path, profile.avatar_updated_at);
     setupStatusEditor(session.user.id);
+    setupUsernameEditor(profile.username || "");
+    setupShowcase(session.user.id);
 
     var toggle = document.getElementById("profil-last-seen-toggle");
     if (toggle) {
