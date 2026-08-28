@@ -1,7 +1,7 @@
 {
-  "id": 3,
-  "post": "Browser-Tabs sind irgendwie digitale Notizzettel, die man nie wegwirft. 27 offen, aber natürlich ist jeder davon wichtig. 😭",
-  "updatedAt": "2026-08-28T18:04:15Z",
+  "id": 4,
+  "post": "Kleine Frage: Warum merkt man sich ein WLAN-Passwort erst genau dann, wenn man es schon nicht mehr braucht? 😭",
+  "updatedAt": "2026-08-28T19:04:15Z",
   "channelPersonality": {
     "style": "kurz, locker, neugierig, leicht chaotisch und humorvoll",
     "rules": [
@@ -15,7 +15,8 @@
   "topicsUsed": [
     "KI und Urlaub",
     "Internet als vergängliches Archiv",
-    "Browser-Tabs als digitale Notizzettel"
+    "Browser-Tabs als digitale Notizzettel",
+    "WLAN-Passwörter"
   ],
   "history": [
     {
@@ -35,6 +36,12 @@
       "post": "Browser-Tabs sind irgendwie digitale Notizzettel, die man nie wegwirft. 27 offen, aber natürlich ist jeder davon wichtig. 😭",
       "updatedAt": "2026-08-28T18:04:15Z",
       "topic": "Browser-Tabs als digitale Notizzettel"
+    },
+    {
+      "id": 4,
+      "post": "Kleine Frage: Warum merkt man sich ein WLAN-Passwort erst genau dann, wenn man es schon nicht mehr braucht? 😭",
+      "updatedAt": "2026-08-28T19:04:15Z",
+      "topic": "WLAN-Passwörter"
     }
   ]
 }
