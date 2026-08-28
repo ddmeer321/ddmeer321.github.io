@@ -1,27 +1,24 @@
-name: Wake Render for WhatsApp posts
+name: Wake Render
 
-on:
+'on':
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - whatsapp-post.json
-  schedule:
-    - cron: '*/30 * * * *'
-  workflow_dispatch:
+      - 'whatsapp-post.json'
+  workflow_dispatch: {}
 
 jobs:
   wake:
     runs-on: ubuntu-latest
     steps:
-      - name: Wake Render and wait for cold start
+      - name: Wake Render
+        shell: bash
         run: |
-          for i in {1..6}; do
-            if curl --fail --silent --show-error --max-time 30 https://whatsapp-ki.onrender.com/health > /dev/null; then
-              echo "Render is awake"
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 30 'https://whatsapp-ki.onrender.com/health'; then
+              echo 'Render is awake'
               exit 0
             fi
-            echo "Wake attempt $i failed; retrying in 15s"
             sleep 15
           done
           exit 1
