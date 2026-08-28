@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#fff6ea" />
     <link rel="stylesheet" href="assets/css/library.css?v=4" />
     <link rel="stylesheet" href="assets/css/auth.css?v=2" />
-    <link rel="stylesheet" href="assets/css/profil.css?v=2" />
+    <link rel="stylesheet" href="assets/css/profil.css?v=9" />
     <title>Mein Profil – Spielebibliothek</title>
   </head>
   <body>
@@ -83,8 +83,42 @@
               <div class="profil-identity">
                 <div class="profil-identity-top">
                   <span class="profil-avatar-wrap" id="profil-avatar-wrap"></span>
-                  <div>
-                    <p class="profil-name" id="profil-name">—</p>
+                  <div class="profil-name-block">
+                    <div class="profil-name-row">
+                      <p class="profil-name" id="profil-name">—</p>
+                      <button
+                        class="profil-name-edit"
+                        id="profil-name-edit"
+                        type="button"
+                        aria-label="Benutzername ändern"
+                        aria-controls="profil-name-editor"
+                        aria-expanded="false"
+                        title="Benutzername ändern"
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M4 20h4l10.6-10.6a2.1 2.1 0 0 0 0-3L17.6 5.4a2.1 2.1 0 0 0-3 0L4 16v4Z"></path>
+                          <path d="m13.5 6.5 4 4"></path>
+                          <path d="M3 21h18"></path>
+                        </svg>
+                      </button>
+
+                      <form class="profil-name-editor" id="profil-name-editor" hidden>
+                        <label for="profil-name-input">Neuer Benutzername</label>
+                        <input
+                          id="profil-name-input"
+                          type="text"
+                          minlength="4"
+                          maxlength="12"
+                          autocomplete="off"
+                          placeholder="4–12 Zeichen"
+                        />
+                        <p class="profil-name-hint" id="profil-name-hint" aria-live="polite"></p>
+                        <div class="profil-name-editor-footer">
+                          <button class="profil-name-cancel" id="profil-name-cancel" type="button">Abbrechen</button>
+                          <button class="profil-name-save" id="profil-name-save" type="submit">Speichern</button>
+                        </div>
+                      </form>
+                    </div>
                     <p class="profil-handle">
                       <span class="profil-online-dot" aria-hidden="true"></span>
                       <span id="profil-player-id">—</span>
@@ -145,15 +179,30 @@
             <div class="profil-section profil-showcase-section" aria-labelledby="profil-showcase-title">
               <h2 id="profil-showcase-title">Profil-Schaufenster</h2>
               <p class="profil-section-lead">
-                Noch leer — ein eigenes Item-System für die Bibliothek gibt es noch nicht.
+                Zeig freigeschaltete Items aus deinen Spielen — nur eine Vorschau mit Testinhalten, bis es echte
+                Freischaltungen zum Auswählen gibt.
               </p>
-              <div class="profil-showcase-grid" aria-hidden="true">
-                <div class="profil-showcase-slot"></div>
-                <div class="profil-showcase-slot"></div>
-                <div class="profil-showcase-slot"></div>
-                <div class="profil-showcase-slot"></div>
-                <div class="profil-showcase-slot"></div>
-                <div class="profil-showcase-slot"></div>
+              <div class="profil-showcase-grid" id="profil-showcase-grid">
+                <button class="profil-showcase-slot" type="button" data-slot="0"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="1"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="2"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="3"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="4"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="5"></button>
+              </div>
+            </div>
+
+            <div class="profil-showcase-picker" id="profil-showcase-picker" hidden>
+              <div class="profil-showcase-picker-card" role="dialog" aria-modal="true" aria-labelledby="profil-showcase-picker-title">
+                <div class="profil-showcase-picker-head">
+                  <h3 id="profil-showcase-picker-title">Item auswählen</h3>
+                  <button class="profil-showcase-picker-close" id="profil-showcase-picker-close" type="button" aria-label="Schließen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m6 6 12 12M18 6 6 18"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="profil-showcase-picker-list" id="profil-showcase-picker-list"></div>
               </div>
             </div>
 
@@ -230,6 +279,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/auth.js?v=4"></script>
-    <script src="assets/js/profil.js?v=4"></script>
+    <script src="assets/js/profil.js?v=8"></script>
   </body>
 </html>
