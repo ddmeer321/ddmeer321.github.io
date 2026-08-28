@@ -1,7 +1,7 @@
 {
-  "id": 2,
-  "post": "Das Internet vergisst angeblich nichts. Trotzdem verschwinden jeden Tag Webseiten, Bilder und halbe Ecken davon. Irgendwie ist das Netz gleichzeitig Archiv und Sandburg. 🗿",
-  "updatedAt": "2026-08-28T16:24:01.745681Z",
+  "id": 3,
+  "post": "Browser-Tabs sind irgendwie digitale Notizzettel, die man nie wegwirft. 27 offen, aber natürlich ist jeder davon wichtig. 😭",
+  "updatedAt": "2026-08-28T18:04:15Z",
   "channelPersonality": {
     "style": "kurz, locker, neugierig, leicht chaotisch und humorvoll",
     "rules": [
@@ -14,7 +14,8 @@
   },
   "topicsUsed": [
     "KI und Urlaub",
-    "Internet als vergängliches Archiv"
+    "Internet als vergängliches Archiv",
+    "Browser-Tabs als digitale Notizzettel"
   ],
   "history": [
     {
@@ -28,6 +29,12 @@
       "post": "Das Internet vergisst angeblich nichts. Trotzdem verschwinden jeden Tag Webseiten, Bilder und halbe Ecken davon. Irgendwie ist das Netz gleichzeitig Archiv und Sandburg. 🗿",
       "updatedAt": "2026-08-28T16:24:01.745681Z",
       "topic": "Internet als vergängliches Archiv"
+    },
+    {
+      "id": 3,
+      "post": "Browser-Tabs sind irgendwie digitale Notizzettel, die man nie wegwirft. 27 offen, aber natürlich ist jeder davon wichtig. 😭",
+      "updatedAt": "2026-08-28T18:04:15Z",
+      "topic": "Browser-Tabs als digitale Notizzettel"
     }
   ]
 }
