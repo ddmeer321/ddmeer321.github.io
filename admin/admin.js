@@ -208,7 +208,13 @@
         return;
       }
       users = users.filter(function (u) { return u.id !== id; });
-      setMessage(user.username + " wurde gelöscht.", false);
+      // Die Funktion loescht erst das Konto, dann das Profilbild ueber die
+      // Storage-API. Klappt der zweite Schritt nicht, ist das Konto trotzdem
+      // weg - aber ein Profilbild ist ein personenbezogenes Datum und soll
+      // nicht stillschweigend liegenbleiben. Deshalb den Hinweis zeigen,
+      // wenn die Funktion einen mitschickt.
+      var hinweis = res2.data && res2.data.hinweis;
+      setMessage(hinweis || user.username + " wurde gelöscht.", !!hinweis);
       render();
     }
   });
