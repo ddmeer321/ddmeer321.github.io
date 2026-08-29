@@ -325,20 +325,29 @@
 
     state.userId = session.user.id;
 
-    // Nicht abgewartet: "zuletzt gesehen" ist eine Nebensache, keine Zeile
-    // im Menü soll je auf sie warten. Fehler bewusst verschluckt, es gibt
-    // dafuer keine sinnvolle Anzeige an dieser Stelle. try/catch statt nur
-    // .catch(): in freier Wildbahn beobachtet, dass sb.rpc(...) in manchen
-    // Browsern/Situationen kein Promise mit .catch zurueckgibt - das riss
-    // sonst die ganze render()-Funktion ab, bevor sie beim Profilbild ankam.
-    try {
-      var lastSeenCall = sb.rpc("touch_last_seen");
-      if (lastSeenCall && typeof lastSeenCall.catch === "function") {
-        lastSeenCall.catch(function () {});
+    // Nicht abgewartet: "zuletzt gesehen"/"zuletzt gespielt" sind
+    // Nebensachen, keine Zeile im Menü soll je auf sie warten, und ein
+    // Fehlschlag darf render() nie blockieren (Fehler bewusst verschluckt).
+    //
+    // WICHTIG: sb.rpc(...) liefert ein "lazy" thenable - die eigentliche
+    // Netzwerk-Anfrage startet erst, wenn irgendetwas es konsumiert (.then,
+    // await, ...). In freier Wildbahn beobachtet: dieses Objekt hat zwar
+    // .then, aber KEIN .catch. Ein reines ".catch(...)"-Aufruf-mit-
+    // Existenzpruefung (frueherer Versuch hier) ueberspringt das Objekt bei
+    // fehlendem .catch dann komplett - die Anfrage feuert dadurch nie, ganz
+    // ohne Fehler oder Absturz. .then(onFulfilled, onRejected) ist die
+    // einzige Form, die jedes thenable garantiert auch wirklich ausloest.
+    function fireAndForget(thenable) {
+      try {
+        if (thenable && typeof thenable.then === "function") {
+          thenable.then(function () {}, function () {});
+        }
+      } catch (err) {
+        /* siehe oben - darf render() nie blockieren */
       }
-    } catch (err) {
-      /* Nebensache, siehe oben - darf render() nie blockieren */
     }
+
+    fireAndForget(sb.rpc("touch_last_seen"));
 
     // "Zuletzt gespielt": nur auf echten Spielseiten, nicht bei jedem
     // Seitenaufruf wie bei touch_last_seen oben. Eine Spielseite markiert
@@ -347,14 +356,7 @@
     var gameIdMeta = document.querySelector('meta[name="game-id"]');
     var gameId = gameIdMeta && gameIdMeta.content;
     if (gameId) {
-      try {
-        var lastPlayedCall = sb.rpc("touch_last_played", { game_id: gameId });
-        if (lastPlayedCall && typeof lastPlayedCall.catch === "function") {
-          lastPlayedCall.catch(function () {});
-        }
-      } catch (err) {
-        /* Nebensache, gleiches Prinzip wie touch_last_seen oben */
-      }
+      fireAndForget(sb.rpc("touch_last_played", { game_id: gameId }));
     }
 
     var pr = await sb
