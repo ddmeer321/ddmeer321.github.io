@@ -58,6 +58,47 @@ body {
   min-height: 100%;
 }
 
+/* Deckt das Spiel ab, bis ein evtl. vorhandener Cloud-Spielstand fertig
+   abgeglichen ist - sonst blitzt kurz der lokale Stand auf, bevor er (falls
+   vorhanden) durch den Cloud-Stand ersetzt wird. Absichtlich NUR bis dahin,
+   nicht laenger (siehe assets/js/bild-laden.js fuer dieselbe Haltung bei der
+   Startseite: kein Vollbild-Overlay laenger als noetig). */
+.game-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: radial-gradient(circle at 50% -10%, #1b1030 0%, var(--bg) 45%);
+  transition: opacity 0.25s ease;
+}
+
+.game-loading-screen[hidden] { display: none; }
+.game-loading-screen.is-fading { opacity: 0; pointer-events: none; }
+
+.game-loading-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(124, 92, 255, 0.22);
+  border-top-color: var(--accent);
+  animation: game-loading-spin 0.8s linear infinite;
+}
+
+@keyframes game-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+.game-loading-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
 body.cc-no-animations * {
   animation: none !important;
   transition: none !important;

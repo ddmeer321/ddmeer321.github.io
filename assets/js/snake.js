@@ -67,14 +67,28 @@
     }, 800);
   }
 
+  // Ladebildschirm bleibt bis der Cloud-Abgleich fertig ist (oder spaetestens
+  // nach 4s, falls das Netzwerk haengt - nie unendlich blockieren). Danach
+  // steht sofort der richtige Endzustand, kein Aufblitzen des lokalen Stands.
+  function hideLoadingScreen() {
+    var el = document.getElementById("game-loading-screen");
+    if (!el || el.hidden) return;
+    el.classList.add("is-fading");
+    window.setTimeout(function () { el.hidden = true; }, 260);
+  }
+
   if (window.CloudSave) {
-    window.CloudSave.load("snake").then(function (data) {
+    var cloudCheck = window.CloudSave.load("snake").then(function (data) {
       if (data) {
         applyCloudState(data);
       } else {
         window.CloudSave.migrateLocalOnce("snake", collectSaveState);
       }
     });
+    var timeout = new Promise(function (resolve) { window.setTimeout(resolve, 4000); });
+    Promise.race([cloudCheck, timeout]).then(hideLoadingScreen, hideLoadingScreen);
+  } else {
+    hideLoadingScreen();
   }
 
   var views = {};

@@ -132,7 +132,18 @@ function init() {
   wireGlobalEvents();
   exposeExternalApi();
   checkAchievements();
-  syncFromCloud();
+
+  // Ladebildschirm bleibt bis der Cloud-Abgleich fertig ist (oder spaetestens
+  // nach 4s, falls das Netzwerk haengt - nie unendlich blockieren). Danach
+  // steht sofort der richtige Endzustand, kein Aufblitzen des lokalen Stands.
+  const loadingScreen = document.getElementById("game-loading-screen");
+  function hideLoadingScreen() {
+    if (!loadingScreen || loadingScreen.hidden) return;
+    loadingScreen.classList.add("is-fading");
+    setTimeout(() => { loadingScreen.hidden = true; }, 260);
+  }
+  const cloudTimeout = new Promise((resolve) => setTimeout(resolve, 4000));
+  Promise.race([syncFromCloud(), cloudTimeout]).then(hideLoadingScreen, hideLoadingScreen);
 
   if (canClaimDailyReward()) {
     openDailyRewardModal();
