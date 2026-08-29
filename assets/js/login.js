@@ -281,6 +281,25 @@
   }
 
   /**
+   * Fragt den Server, ob der Name noch frei ist. Der Hinweis unter dem Feld
+   * reicht dafuer nicht: er ist entprellt und kann fehlen, wenn jemand den
+   * Namen einfuegt und sofort absendet.
+   *
+   * Rueckgabe "frei" | "vergeben" | "unklar". Bei "unklar" (Netz weg) wird
+   * NICHT blockiert - die Eindeutigkeit erzwingt ohnehin ein Unique-Index in
+   * der Datenbank, hier geht es nur darum, dem Nutzer den Umweg zu ersparen.
+   */
+  async function nameFrei(username) {
+    try {
+      var res = await sb.rpc("username_available", { p_username: username });
+      if (res.error || typeof res.data !== "boolean") return "unklar";
+      return res.data ? "frei" : "vergeben";
+    } catch (e) {
+      return "unklar";
+    }
+  }
+
+  /**
    * Beide Pruefungen gleichzeitig, jede mit eigenem Zeitlimit. Wirft nie -
    * ein Fehlschlag kommt als { error: true } zurueck, damit der Ablauf
    * weiterlaeuft, statt haengenzubleiben.
@@ -314,7 +333,22 @@
           options: { data: { username: daten.username, has_recovery_email: true }, emailRedirectTo: redirectUrl() },
         });
         if (signUpRes.error) {
-          setMessage("register-message", signUpRes.error.message.indexOf("already registered") !== -1 ? "Diese E-Mail wird bereits verwendet." : "Registrierung fehlgeschlagen. Bitte erneut versuchen.");
+          if (signUpRes.error.message.indexOf("already registered") !== -1) {
+            setMessage("register-message", "Diese E-Mail wird bereits verwendet.");
+            return;
+          }
+          // Zweiter Blick auf den Namen. Zwischen der Pruefung beim Absenden
+          // und hier liegt der Passwort-Check; in der Zeit kann sich jemand
+          // den Namen geschnappt haben. Dann scheitert der Trigger am
+          // Unique-Index, und die Fehlermeldung von Supabase sagt darueber
+          // nichts. Lieber eine Anfrage mehr auf dem Fehlerweg als ein
+          // "bitte erneut versuchen", das nie funktionieren kann.
+          setMessage(
+            "register-message",
+            (await nameFrei(daten.username)) === "vergeben"
+              ? "Benutzername bereits vergeben. Bitte einen anderen wählen."
+              : "Registrierung fehlgeschlagen. Bitte erneut versuchen.",
+          );
           return;
         }
         var hinweis = "Fast fertig! Wir haben dir eine Bestätigungsmail geschickt.";
@@ -417,7 +451,7 @@
     panel.trotzdem.onclick = function () { registrieren(daten, ergebnis); };
   }
 
-  els.registerForm.addEventListener("submit", function (e) {
+  els.registerForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     var daten = registrierungsDaten();
     if (!daten) return;
@@ -435,9 +469,32 @@
       }
     }
 
-    // Formular sperren, solange das Panel offen ist - sonst laesst sich
-    // zweimal absenden und es entstehen zwei Anlaeufe nebeneinander.
+    // Formular sperren, solange geprueft wird und das Panel offen ist -
+    // sonst laesst sich zweimal absenden und es entstehen zwei Anlaeufe
+    // nebeneinander.
     regSubmitBtn.disabled = true;
+
+    // Ist der Name schon weg, hier abbrechen - VOR dem Passwort-Panel.
+    // Vorher lief der freiwillige Check komplett durch (bis zu 5 Sekunden
+    // Warten plus Ergebnis lesen), und erst danach kam vom Server
+    // "Benutzername bereits vergeben". Das Ergebnis der Passwortpruefung
+    // wurde dabei verworfen, der Nutzer musste alles noch einmal machen.
+    // Beim Weg MIT E-Mail war es schlimmer: dort scheitert der Trigger am
+    // Unique-Index auf username_normalized, und die Meldung lautete
+    // "Registrierung fehlgeschlagen. Bitte erneut versuchen." - eine
+    // Aufforderung, genau dasselbe noch einmal zu tun.
+    setMessage("register-message", "Prüfe Benutzernamen …");
+    var frei = await nameFrei(daten.username);
+    if (frei === "vergeben") {
+      regSubmitBtn.disabled = false;
+      setMessage("register-message", "Benutzername bereits vergeben. Bitte einen anderen wählen.");
+      var feld = document.getElementById("reg-username");
+      feld.focus();
+      feld.select();
+      return;
+    }
+    setMessage("register-message", "");
+
     panelZu();
     panel.box.classList.remove("hidden");
 
