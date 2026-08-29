@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="stylesheet" href="assets/css/library.css?v=5" />
+    <link rel="stylesheet" href="assets/css/login.css?v=1" />
+    <link rel="stylesheet" href="assets/css/security-check.css?v=2" />
+    <title>Sicherheitscheck – Spielebibliothek</title>
+  </head>
+  <body>
+    <script src="assets/js/wartung.js?v=1"></script>
+    <header class="lib-topbar">
+      <a class="lib-brand" href="index.html" aria-label="Zur Spielebibliothek">
+        <span class="lib-brand-mark" aria-hidden="true">D</span>
+        <span>Spielebibliothek</span>
+      </a>
+    </header>
+
+    <main class="security-page">
+      <a class="mini-back" href="index.html">← Zur Spielebibliothek</a>
+
+      <div class="security-card" id="security-empty" hidden>
+        <h1>Kein aktuelles Prüfergebnis</h1>
+        <p>
+          Diese Seite zeigt ein Ergebnis nur direkt nach einer Registrierung mit aktivierter Sicherheitsprüfung.
+          Damit nichts über dein Passwort dauerhaft gespeichert wird, verschwindet das Ergebnis danach wieder —
+          es lässt sich hier nicht nachträglich abrufen.
+        </p>
+        <a class="mini-btn" href="index.html">Zur Spielebibliothek</a>
+      </div>
+
+      <div class="security-card" id="security-result" hidden>
+        <h1>Sicherheitscheck</h1>
+        <p class="security-summary" id="security-summary"></p>
+
+        <div class="security-section">
+          <h2>Datenleck-Prüfung</h2>
+          <p id="security-leak-text"></p>
+        </div>
+
+        <div class="security-section">
+          <h2>Crack-O-Meter</h2>
+          <p id="security-strength-text"></p>
+          <div class="security-strength-bar" aria-hidden="true">
+            <div class="security-strength-fill" id="security-strength-fill"></div>
+          </div>
+        </div>
+
+        <p class="security-disclaimer">
+          Beides sind nur Schätzungen, keine Sicherheitsgarantie. Weil dafür nichts gespeichert wird, lässt sich
+          diese Prüfung später nicht automatisch für dasselbe (jetzt gehashte) Passwort wiederholen — nur direkt
+          nach einer neuen Registrierung.
+        </p>
+
+        <div id="security-actions-default">
+          <a class="mini-btn security-continue-link" href="index.html" id="security-continue">Weiter zur Spielebibliothek</a>
+        </div>
+
+        <div class="security-fix" id="security-actions-fix" hidden>
+          <p class="login-hint-static">
+            Dein Passwort wurde in dieser Prüfung als unsicher eingestuft. Du kannst es direkt hier ändern.
+          </p>
+          <div class="login-security-actions">
+            <button type="button" class="mini-btn" id="security-fix-start">Passwort jetzt ändern</button>
+            <a class="mini-btn mini-btn-ghost security-continue-link" href="index.html" id="security-continue-anyway">Trotzdem fortfahren</a>
+          </div>
+          <p class="login-message" id="security-fix-hint" role="status"></p>
+
+          <form id="security-fix-form" novalidate hidden>
+            <label class="login-field">
+              <span>Neues Passwort</span>
+              <div class="login-password-wrap">
+                <input type="password" id="security-fix-password" autocomplete="new-password" required />
+                <button type="button" class="login-toggle-pw" data-target="security-fix-password" aria-label="Passwort anzeigen">👁</button>
+              </div>
+            </label>
+            <ul class="login-password-rules" id="security-fix-rules">
+              <li data-rule="length">mind. 8 Zeichen</li>
+              <li data-rule="upper">Großbuchstabe</li>
+              <li data-rule="lower">Kleinbuchstabe</li>
+              <li data-rule="digit">Zahl</li>
+              <li data-rule="special">Sonderzeichen</li>
+            </ul>
+            <button type="submit" class="mini-btn login-submit">Neues Passwort speichern</button>
+            <p class="login-message" id="security-fix-message" role="alert"></p>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <footer class="lib-footer">
+      <div>
+        <strong>Spielebibliothek</strong>
+      </div>
+      <nav aria-label="Rechtliche Informationen">
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="impressum.html">Impressum</a>
+        <a href="https://github.com/ddmeer321">GitHub</a>
+      </nav>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/security-check.js?v=2"></script>
+  </body>
+</html>
