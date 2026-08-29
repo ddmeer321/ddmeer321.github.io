@@ -63,17 +63,35 @@
             <button type="submit" class="mini-btn login-submit">Konto erstellen</button>
             <p class="login-message" id="register-message" role="alert"></p>
 
+            <!-- Die Prüfung läuft VOR dem Anlegen des Kontos: Wer ein
+                 geleaktes Passwort gewählt hat, soll sich erst entscheiden
+                 müssen, statt es hinterher gesagt zu bekommen, wenn das
+                 Konto damit schon existiert. Freiwillig bleibt sie. -->
             <div class="login-security-offer hidden" id="security-offer">
-              <p class="login-hint-static">
-                Möchtest du dein Passwort kostenlos auf bekannte Datenlecks prüfen lassen und eine Einschätzung
-                bekommen, wie schwer es zu erraten wäre? Läuft komplett in deinem Browser — dein Passwort wird
-                dabei nirgends gespeichert oder im Klartext an einen Server geschickt.
-                <a href="datenschutz.html#allgemein">Details in der Datenschutzerklärung</a>.
-              </p>
-              <div class="login-security-actions">
-                <button type="button" class="mini-btn" id="security-offer-yes">Ja, prüfen</button>
-                <button type="button" class="mini-btn mini-btn-ghost" id="security-offer-no">Nein, überspringen</button>
+              <div id="security-offer-ask">
+                <p class="login-hint-static">
+                  Bevor wir dein Konto anlegen: Möchtest du dein Passwort kostenlos auf bekannte Datenlecks
+                  prüfen lassen und eine Einschätzung bekommen, wie schwer es zu erraten wäre? Läuft komplett
+                  in deinem Browser — dein Passwort wird dabei nirgends gespeichert oder im Klartext an einen
+                  Server geschickt.
+                  <a href="datenschutz.html#allgemein">Details in der Datenschutzerklärung</a>.
+                </p>
+                <div class="login-security-actions">
+                  <button type="button" class="mini-btn" id="security-offer-yes">Ja, prüfen</button>
+                  <button type="button" class="mini-btn mini-btn-ghost" id="security-offer-no">Nein, überspringen</button>
+                </div>
               </div>
+
+              <div id="security-offer-warn" hidden>
+                <p class="login-message is-bad" id="security-warn-text"></p>
+                <div class="login-security-actions">
+                  <!-- Das sichere Vorgehen steht links und ist der volle Knopf;
+                       „Trotzdem" ist bewusst der leise. -->
+                  <button type="button" class="mini-btn" id="security-warn-change">Anderes Passwort wählen</button>
+                  <button type="button" class="mini-btn mini-btn-ghost" id="security-warn-anyway">Trotzdem fortfahren</button>
+                </div>
+              </div>
+
               <p class="login-message" id="security-offer-message" role="status"></p>
             </div>
           </form>
@@ -145,9 +163,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="assets/js/supabase-client.js"></script>
-    <!-- Nur fuer die freiwillige Sicherheitsprüfung nach der Registrierung
-         (Passwortstaerke-Schaetzung), laeuft komplett lokal im Browser. -->
-    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
-    <script src="assets/js/login.js?v=3"></script>
+    <!-- zxcvbn (Passwortstaerke-Schaetzung) wird NICHT mehr fest geladen.
+         Es wird nur gebraucht, wenn jemand der freiwilligen Pruefung
+         zustimmt - login.js holt es dann nach. Vorher lud es jeder Besucher
+         der Anmeldeseite mit, obwohl es ein fremdes Skript neben den
+         Passwortfeldern ist. -->
+    <script src="assets/js/password-rules.js?v=1"></script>
+    <script src="assets/js/login.js?v=4"></script>
   </body>
 </html>
