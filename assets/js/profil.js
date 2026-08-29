@@ -144,11 +144,9 @@
     if (!gameId || !iso) return "Noch nicht verfügbar";
     var label = GAME_LABELS[gameId] || gameId;
     try {
-      var when = new Date(iso).toLocaleString("de-DE", {
+      var when = new Date(iso).toLocaleDateString("de-DE", {
         day: "numeric",
         month: "long",
-        hour: "2-digit",
-        minute: "2-digit",
       });
       return label + " · " + when;
     } catch (e) {
