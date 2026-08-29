@@ -213,6 +213,35 @@
 
   var regSubmitBtn = els.registerForm.querySelector(".login-submit");
 
+  // Huellen um TurnstileWidget: die Datei kann fehlen (eigene Kopien der
+  // Seite, Blocker), und dann soll die Registrierung trotzdem laufen statt
+  // an einem ReferenceError zu sterben.
+  function turnstileAktiv() {
+    return !!(window.TurnstileWidget && window.TurnstileWidget.eingeschaltet());
+  }
+  function turnstileToken() {
+    return turnstileAktiv() ? window.TurnstileWidget.token() : "";
+  }
+  function turnstileZuruecksetzen() {
+    if (turnstileAktiv()) window.TurnstileWidget.zuruecksetzen();
+  }
+  /**
+   * Meldung, wenn ohne brauchbares Token abgesendet wird - oder "", wenn
+   * alles in Ordnung ist. Der Fehlerfall bekommt bewusst einen eigenen Text:
+   * "bitte abschliessen" waere fuer jemanden mit Blocker eine Sackgasse,
+   * weil auf seinem Bildschirm gar keine Pruefung steht.
+   */
+  function turnstileHinderung() {
+    if (!turnstileAktiv()) return "";
+    var zustand = window.TurnstileWidget.status();
+    if (zustand === "bereit") return "";
+    if (zustand === "fehler") {
+      return "Die Sicherheitsprüfung konnte nicht geladen werden. Bitte Blocker für diese Seite erlauben — oder eine E-Mail-Adresse angeben, dann geht es auch ohne.";
+    }
+    return "Die Sicherheitsprüfung läuft noch. Bitte einen Moment warten und dann erneut auf Konto erstellen tippen.";
+  }
+  if (turnstileAktiv()) window.TurnstileWidget.rendern(document.getElementById("turnstile-box"));
+
   function panelZu() {
     if (panel.box) panel.box.classList.add("hidden");
     if (panel.frage) panel.frage.hidden = false;
@@ -300,7 +329,19 @@
         return;
       }
 
-      var regRes = await sb.functions.invoke("register-with-username", { body: { username: daten.username, password: daten.password } });
+      var regRes = await sb.functions.invoke("register-with-username", {
+        body: {
+          username: daten.username,
+          password: daten.password,
+          // Leer, solange in turnstile.js kein Sitekey steht. Die Edge
+          // Function verlangt das Token nur, wenn dort ein Secret hinterlegt
+          // ist - beide Seiten schalten sich also selbst ab.
+          turnstileToken: turnstileToken(),
+        },
+      });
+      // Ein Token ist einmalig. Egal wie es ausging: der naechste Anlauf
+      // braucht ein frisches, sonst scheitert er an einem verbrauchten.
+      turnstileZuruecksetzen();
       if (regRes.error) {
         setMessage("register-message", await extractErrorMessage(regRes, "Registrierung fehlgeschlagen."));
         return;
@@ -380,6 +421,19 @@
     e.preventDefault();
     var daten = registrierungsDaten();
     if (!daten) return;
+
+    // Nur der Weg OHNE E-Mail laeuft ueber unsere Edge Function, nur dort
+    // wird das Token serverseitig geprueft. Deshalb auch nur dort darauf
+    // bestehen - sonst blockiert eine Pruefung, die hinterher niemand
+    // auswertet. Hier und nicht erst in registrieren(), damit der Hinweis
+    // kommt, bevor sich das Panel oeffnet.
+    if (!daten.email) {
+      var hinderung = turnstileHinderung();
+      if (hinderung) {
+        setMessage("register-message", hinderung);
+        return;
+      }
+    }
 
     // Formular sperren, solange das Panel offen ist - sonst laesst sich
     // zweimal absenden und es entstehen zwei Anlaeufe nebeneinander.
