@@ -1,18 +1,20 @@
 // Cloudflare Turnstile fuer das Registrierungsformular.
 //
-// EINE STELLE ZUM EINTRAGEN: der Sitekey unten. Solange dort der Platzhalter
-// steht, ist Turnstile komplett aus - kein fremdes Skript wird geladen, kein
-// Widget erscheint, und die Registrierung laeuft genau wie vorher. Erst der
-// echte Sitekey schaltet es ein.
+// STAND 29.08.2026: Der Sitekey ist eingetragen, das Widget erscheint also.
+// Das Supabase-Secret `TURNSTILE_SECRET_KEY` fehlt aber noch, deshalb prueft
+// der Server das Token bisher NICHT - er nimmt jede Registrierung an, auch
+// eine ohne gueltiges Token. Erst das Secret macht die Pruefung scharf.
 //
 // Der Sitekey ist oeffentlich, er gehoert in den Browser. Der SECRET KEY
-// gehoert NICHT hierher, sondern als Supabase-Secret `TURNSTILE_SECRET_KEY`
-// zur Edge Function `register-with-username`. Erst wenn dort ein Secret
-// hinterlegt ist, prueft der Server das Token wirklich.
+// gehoert NICHT hierher, sondern zur Edge Function `register-with-username`.
 //
-// REIHENFOLGE BEIM EINSCHALTEN: erst hier den Sitekey eintragen und pushen,
-// danach das Supabase-Secret setzen. Andersherum wuerde der Server ein Token
-// verlangen, das der Browser noch gar nicht mitschickt.
+// AUSSCHALTEN: hier einen Wert eintragen, der mit "HIER_" beginnt (oder das
+// Feld leeren) - dann wird kein fremdes Skript geladen, kein Widget
+// gezeichnet, und die Registrierung laeuft wie vor dem Einbau.
+//
+// REIHENFOLGE: erst der Sitekey hier, dann das Supabase-Secret. Andersherum
+// wuerde der Server ein Token verlangen, das der Browser noch nicht
+// mitschickt.
 //
 // WAS GESCHUETZT IST: der Weg "Konto ohne E-Mail" - der laeuft ueber unsere
 // eigene Edge Function, dort koennen wir das Token pruefen. Die Registrierung
@@ -21,7 +23,7 @@
 // Login erfassen (siehe AUTH-ADMIN.md im Kontext-Repo).
 
 (function () {
-  var SITEKEY = "HIER_SITEKEY_EINTRAGEN";
+  var SITEKEY = "0x4AAAAAAEhNGAK51V2Z_34k";
 
   var SKRIPT_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
   var LADE_TIMEOUT_MS = 8000;
