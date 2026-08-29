@@ -106,7 +106,23 @@
 
 .login-message { min-height: 1.2em; margin: 10px 0 0; font-size: 0.85rem; font-weight: 700; color: #d64545; }
 .login-message.ok { color: #1a9e5c; }
+.login-message.info { color: var(--muted); }
 .login-message:empty { margin: 0; }
+
+.login-security-offer { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--card-border); }
+.login-security-offer.hidden { display: none; }
+.login-security-offer .login-hint-static { margin-bottom: 12px; }
+.login-security-offer .login-hint-static a { color: inherit; }
+
+.login-security-actions { display: flex; gap: 10px; }
+.login-security-actions .mini-btn { flex: 1; justify-content: center; }
+/* .mini-btn-ghost ist standardmaessig fuer dunkle Hintergruende gebaut
+   (weisser Text auf halbtransparentem Weiss, siehe library.css) - auf der
+   hellen Login-Karte war das unsichtbar. Gleiche Loesung wie andernorts im
+   Projekt bei hellem Hintergrund (z. B. snake.html), nur als Regel statt
+   Inline-Style, weil hier zwei Stellen (Login-Angebot + Sicherheitscheck-
+   Ergebnisseite) dieselbe Klasse .login-security-actions teilen. */
+.login-security-actions .mini-btn-ghost { background: none; color: var(--purple); }
 
 .login-forgot-link {
   display: inline-block;

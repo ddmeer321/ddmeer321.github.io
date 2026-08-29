@@ -122,6 +122,98 @@
 
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  // --- Freiwillige Sicherheitsprüfung nach der Registrierung ---------------
+  // (ROADMAP.md: "Passwort-Leak-Prüfung ... k-Anonymität"). Laeuft NUR wenn
+  // der Nutzer zustimmt. Das Klartextpasswort verlaesst dabei nie das Geraet:
+  // nur die ersten 5 Zeichen des SHA-1-Hashes gehen an die HIBP-API, der Rest
+  // wird lokal verglichen (https://haveibeenpwned.com/API/v3#PwnedPasswords).
+  // SHA-1 wird nirgends gespeichert, nur kurzzeitig im Speicher berechnet.
+  async function checkPasswordLeak(password) {
+    var bytes = new TextEncoder().encode(password);
+    var digest = await crypto.subtle.digest("SHA-1", bytes);
+    var hex = Array.from(new Uint8Array(digest))
+      .map(function (b) { return b.toString(16).padStart(2, "0"); })
+      .join("")
+      .toUpperCase();
+    var prefix = hex.slice(0, 5);
+    var suffix = hex.slice(5);
+    var res = await fetch("https://api.pwnedpasswords.com/range/" + prefix);
+    if (!res.ok) throw new Error("HIBP-Anfrage fehlgeschlagen");
+    var text = await res.text();
+    var lines = text.split("\n");
+    for (var i = 0; i < lines.length; i++) {
+      var parts = lines[i].split(":");
+      if (parts[0] && parts[0].trim() === suffix) {
+        return { found: true, count: parseInt(parts[1], 10) || 0 };
+      }
+    }
+    return { found: false, count: 0 };
+  }
+
+  // zxcvbn schaetzt lokal, wie leicht das Passwort zu erraten waere (Muster,
+  // gaengige Woerter, Tastatur-Sequenzen, ...) - keine Netzwerk-Anfrage dafuer.
+  function estimatePasswordStrength(password) {
+    if (typeof window.zxcvbn !== "function") return { error: true };
+    var result = window.zxcvbn(password);
+    return {
+      score: result.score,
+      crackTime: result.crack_times_display.offline_slow_hashing_1e4_per_second,
+    };
+  }
+
+  // pendingRedirect: wohin nach der Pruefung (oder beim Ueberspringen)
+  // weitergeleitet wird. null bei der E-Mail-Registrierung, weil da noch
+  // keine Sitzung besteht (erst nach Bestaetigung per Mail) - die Seite
+  // bleibt einfach stehen.
+  function offerSecurityCheck(password, pendingRedirect) {
+    var offer = document.getElementById("security-offer");
+    var yesBtn = document.getElementById("security-offer-yes");
+    var noBtn = document.getElementById("security-offer-no");
+    var msg = document.getElementById("security-offer-message");
+    if (!offer || !yesBtn || !noBtn) {
+      if (pendingRedirect) window.location.href = pendingRedirect;
+      return;
+    }
+
+    offer.classList.remove("hidden");
+    msg.textContent = "";
+    msg.className = "login-message";
+    yesBtn.disabled = false;
+    noBtn.disabled = false;
+
+    function finish() {
+      if (pendingRedirect) window.location.href = pendingRedirect;
+    }
+
+    noBtn.onclick = finish;
+
+    yesBtn.onclick = async function () {
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      msg.textContent = "Prüfe …";
+      msg.className = "login-message";
+
+      var result = { checkedAt: new Date().toISOString() };
+      try {
+        result.leak = await checkPasswordLeak(password);
+      } catch (e) {
+        result.leak = { error: true };
+      }
+      try {
+        result.strength = estimatePasswordStrength(password);
+      } catch (e) {
+        result.strength = { error: true };
+      }
+
+      try {
+        window.sessionStorage.setItem("security-check-result", JSON.stringify(result));
+      } catch (e) {
+        /* Ergebnisseite zeigt dann eben "kein Ergebnis vorhanden" */
+      }
+      window.location.href = "security-check.html" + (pendingRedirect ? "?weiter=" + encodeURIComponent(pendingRedirect) : "");
+    };
+  }
+
   els.registerForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     var username = document.getElementById("reg-username").value.trim();
@@ -156,6 +248,7 @@
           return;
         }
         setMessage("register-message", "Fast fertig! Wir haben dir eine Bestätigungsmail geschickt.", true);
+        offerSecurityCheck(password, null);
         els.registerForm.reset();
         document.querySelectorAll("#reg-password-rules li").forEach(function (li) { li.classList.remove("ok"); });
         document.getElementById("reg-username-hint").textContent = "";
@@ -171,11 +264,13 @@
           setTab("login");
           return;
         }
+        suppressAutoRedirect = true;
         await sb.auth.setSession({
           access_token: loginRes.data.session.access_token,
           refresh_token: loginRes.data.session.refresh_token,
         });
-        window.location.href = "index.html";
+        setMessage("register-message", "Konto erstellt!", true);
+        offerSecurityCheck(password, "index.html");
       }
     } finally {
       submitBtn.disabled = false;
@@ -244,13 +339,20 @@
   var recoveryMode = !!window.__recoveryFlow;
   if (recoveryMode) showForm(els.resetForm);
 
+  // Die frische Registrierung (ohne E-Mail) ruft setSession() selbst auf, um
+  // sofort eingeloggt zu sein - das loest hier unten eigentlich einen
+  // automatischen Redirect aus. Der soll aber erst passieren, nachdem der
+  // Nutzer die Sicherheitspruefung gesehen/beantwortet hat (offerSecurityCheck
+  // uebernimmt den Redirect dann selbst), nicht sofort und ungefragt.
+  var suppressAutoRedirect = false;
+
   sb.auth.onAuthStateChange(function (event, session) {
     if (event === "PASSWORD_RECOVERY") {
       recoveryMode = true;
       showForm(els.resetForm);
       return;
     }
-    if (recoveryMode || !session) return;
+    if (recoveryMode || !session || suppressAutoRedirect) return;
     if (event !== "INITIAL_SESSION" && event !== "SIGNED_IN") return;
     window.location.href = "index.html";
   });

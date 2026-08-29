@@ -1,0 +1,94 @@
+/* Ergebnisseite der freiwilligen Sicherheitsprüfung (assets/js/login.js +
+   assets/js/security-check.js). Nutzt die Farb-Tokens aus library.css. */
+
+.security-page {
+  max-width: 640px;
+  width: min(640px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+.mini-back {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--purple);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.mini-back:hover { text-decoration: underline; }
+
+.security-card {
+  padding: 24px;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.security-card h1 {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  color: var(--ink);
+}
+
+.security-summary {
+  margin: 0 0 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.security-summary.is-ok { color: #1a9e5c; }
+.security-summary.is-bad { color: #d64545; }
+
+.security-section {
+  padding: 14px 0;
+  border-top: 1px solid var(--card-border);
+}
+.security-section:first-of-type { border-top: none; }
+
+.security-section h2 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.security-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.security-section p.is-ok { color: #1a9e5c; font-weight: 700; }
+.security-section p.is-bad { color: #d64545; font-weight: 700; }
+
+.security-strength-bar {
+  margin-top: 10px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(107, 98, 133, 0.14);
+  overflow: hidden;
+}
+
+.security-strength-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d64545, #ffc247, #1a9e5c);
+  transition: width 0.4s ease;
+}
+
+.security-disclaimer {
+  margin: 18px 0 20px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 194, 71, 0.15);
+  color: var(--ink);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+#security-actions-default .security-continue-link { width: 100%; justify-content: center; }
+
+.security-fix { margin-top: 4px; }
+.security-fix .login-hint-static { margin-bottom: 12px; }
+.security-fix #security-fix-form { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--card-border); }
