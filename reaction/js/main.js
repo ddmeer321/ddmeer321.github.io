@@ -1,4 +1,4 @@
-// Reaktionstest.
+// REACTION! — ein Reaktionstest.
 //
 // Der ganze Sinn des Spiels hängt an einer einzigen Zahl, deshalb steht die
 // Messung im Mittelpunkt dieser Datei und nicht die Bildschirmverwaltung.
@@ -25,8 +25,8 @@
   // Eigener Schlüssel je Bereich: Eine Kopie im Testbereich darf niemals die
   // echten Zeiten überschreiben. Gleiche Regel wie beim Cursor Clicker.
   var SPEICHER_KEY = window.location.pathname.indexOf("/test-") !== -1
-    ? "reaktionstest:letzte:test"
-    : "reaktionstest:letzte";
+    ? "reaction:letzte:test"
+    : "reaction:letzte";
 
   var el = {
     topline: document.getElementById("topline"),

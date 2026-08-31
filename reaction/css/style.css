@@ -1,0 +1,227 @@
+/* REACTION! — bewusst schlicht.
+   Die Farben der Testfläche sind hier die einzige Ausnahme: sie sind kein
+   Schmuck, sondern das Signal, auf das gemessen wird. */
+
+:root {
+  color-scheme: light;
+  --bg: #fff6ea;
+  --surface: #ffffff;
+  --ink: #241c3d;
+  --muted: #6b6285;
+  --line: rgba(36, 28, 61, 0.1);
+  --accent: #7c5cff;
+  /* Dunklere Variante nur für kleinen Text auf hellem Grund: --accent kommt
+     dort auf 4,06:1 und reißt damit WCAG AA (4,5:1). Als Fläche, Rahmen und
+     Fokusring bleibt --accent richtig, da gilt die Textschwelle nicht. */
+  --accent-ink: #553bc9;
+
+  /* Rot und Grün unterscheiden sich hier nicht nur im Farbton, sondern
+     deutlich in der HELLIGKEIT: dunkles Rot mit weißer Schrift, helles Grün
+     mit dunkler Schrift. Rot-Grün-Sehschwäche betrifft rund jeden zwölften
+     Mann — und ausgerechnet dieses Spiel baut sein einziges Signal auf genau
+     dieser Achse auf. Über die Helligkeit und den Text ("Warte …" / "JETZT!")
+     funktioniert es auch ohne Farbunterscheidung. */
+  --rot: #a51f2a;
+  --rot-ink: #ffffff;
+  --gruen: #46e08a;
+  --gruen-ink: #06301a;
+  --zufrueh: #8a4b00;
+  font-family: "Baloo 2", Poppins, ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+/* Rückweg in die Bibliothek. Gleiche Spaltenbreite wie das Spiel darunter.
+   Der obere Abstand ist zugleich der Platz für Notch bzw. Statusleiste: hier
+   steht das oberste Element der Seite. env() wirkt nur zusammen mit
+   viewport-fit=cover im <meta viewport>. */
+.topline {
+  width: min(440px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-top: max(10px, env(safe-area-inset-top));
+}
+.topline[hidden] { display: none; }
+
+.back-link {
+  display: inline-block;
+  padding: 6px 2px;
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+.back-link:hover { text-decoration: underline; }
+
+.rt {
+  width: min(440px, calc(100% - 32px));
+  margin: 0 auto;
+  /* Unten Platz für die Safe Area (iOS-Homebar); die Zugriffsplakette des
+     Testbereichs gibt es hier nicht. */
+  padding: 8px 0 calc(24px + env(safe-area-inset-bottom));
+}
+
+.screen { display: flex; flex-direction: column; gap: 18px; }
+.screen[hidden] { display: none; }
+
+.title {
+  margin: 6px 0 0;
+  font-size: clamp(1.9rem, 7vw, 2.4rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.lead { margin: 0; color: var(--muted); }
+
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 14px;
+  padding: 15px 20px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.02rem;
+  cursor: pointer;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* ---------- Testfläche ---------- */
+
+/* KEIN transition auf background: Ein weicher Übergang würde das Grün
+   einblenden statt umschalten — und genau der Moment ist das, was gemessen
+   wird. Auch prefers-reduced-motion ändert daran nichts, hier gibt es
+   bewusst gar keine Bewegung. */
+.stage {
+  position: fixed;
+  inset: 0;
+  /* Hoch genug, um im Testbereich die Zugriffsplakette von test-gate.js
+     (z-index 9998) zu überdecken — die Datei wird zwischen öffentlicher und
+     Test-Fassung gespiegelt, deshalb steht der Wert auch hier. */
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Verhindert Doppeltipp-Zoom und das Tap-Highlight auf iOS — beides würde
+     sich zwischen Tipp und Messung schieben. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.stage[hidden] { display: none; }
+
+.stage[data-phase="warten"]  { background: var(--rot);   color: var(--rot-ink); }
+.stage[data-phase="los"]     { background: var(--gruen); color: var(--gruen-ink); }
+
+/* iOS Safari färbt seine eigenen Leisten (Statusleiste oben, Werkzeugleiste
+   unten) nach der Seitenfarbe ein. Der feste Vollbild-Kasten allein reicht
+   ihm dafür nicht: Auf dem iPhone blieb oben und unten Rot stehen, während
+   die Mitte längst Grün war. Das ist nicht bloß hässlich — wer noch Rot
+   sieht, zögert, und genau dieses Zögern landet in der Messung.
+   Deshalb trägt auch das Wurzelelement die Phase. */
+html[data-phase="warten"], html[data-phase="warten"] body { background: var(--rot); }
+html[data-phase="los"],    html[data-phase="los"] body    { background: var(--gruen); }
+
+.stage-gross {
+  margin: 0;
+  font-size: clamp(2.2rem, 12vw, 4rem);
+  font-weight: 800;
+  line-height: 1.05;
+}
+.stage-klein { margin: 0; font-size: 1rem; opacity: 0.85; }
+.stage:focus-visible { outline: 4px solid #fff; outline-offset: -8px; }
+
+/* ---------- Ergebnis ---------- */
+.ergebnis-label {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ergebnis-zahl {
+  margin: 0;
+  font-size: clamp(3rem, 18vw, 5rem);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ergebnis-zahl .einheit { font-size: 0.32em; font-weight: 700; color: var(--muted); }
+.ergebnis-text { margin: 0; color: var(--muted); min-height: 1.5em; }
+.ergebnis-zahl.zufrueh { color: var(--zufrueh); font-size: clamp(1.6rem, 8vw, 2.2rem); }
+
+.aktionen { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+
+/* ---------- Letzte fünf ---------- */
+.letzte {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+.letzte-titel {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.letzte-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.letzte-liste li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.letzte-liste li:last-child { border-bottom: 0; }
+.letzte-nr { color: var(--muted); font-size: 0.85rem; min-width: 1.4em; }
+.letzte-wert { font-weight: 700; }
+.letzte-beste {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-ink);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.letzte-leer { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.letzte-leer[hidden] { display: none; }
+
+/* Bewusst leise: Löschen ist nichts, was man aus Versehen antippen soll,
+   aber auch nichts, wonach man suchen muss. */
+.loeschen {
+  appearance: none;
+  margin: 12px 0 0;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.loeschen:hover { color: var(--ink); border-color: var(--muted); }
+.loeschen:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.loeschen[hidden] { display: none; }
+
+.hinweis { margin: 0; color: var(--muted); font-size: 0.86rem; }

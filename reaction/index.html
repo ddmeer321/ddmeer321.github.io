@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover: nur damit lösen sich die env(safe-area-*)-Werte
+         überhaupt auf. Ohne sie bleiben sie 0 und die Statusleiste schiebt
+         sich auf iPhones mit Notch über die oberste Zeile. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="REACTION! ist ein Reaktionstest im Browser: warten bis der Bildschirm grün wird, dann so schnell wie möglich tippen. Zeigt deine letzten fünf Versuche. Kostenlos, ohne Installation." />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="canonical" href="https://ddmeer321.github.io/reaction/" />
+    <link rel="stylesheet" href="css/style.css?v=1" />
+    <title>REACTION! – Spielebibliothek</title>
+  </head>
+  <body>
+    <script src="../assets/js/wartung.js?v=1"></script>
+
+    <!-- Der Weg zurück steht außerhalb der Bildschirme, damit er überall
+         sichtbar ist — außer in der Testfläche selbst, dort würde ein Link
+         neben der Klickfläche nur zu Fehlklicks führen. -->
+    <div class="topline" id="topline">
+      <a class="back-link" href="../index.html">← Zur Spielebibliothek</a>
+    </div>
+
+    <main class="rt">
+      <!-- ---------- Hauptmenü ---------- -->
+      <section id="screen-menu" class="screen">
+        <h1 class="title">REACTION!</h1>
+        <p class="lead">
+          Der Bildschirm wird rot. Sobald er auf Grün springt, so schnell wie
+          möglich tippen. Zwischen Start und Grün liegen zwei bis neun Sekunden —
+          raten hilft also nicht.
+        </p>
+
+        <button id="btn-start" class="btn btn-primary" type="button">Test starten</button>
+
+        <!-- Die Liste bleibt im Markup, auch wenn sie leer ist: so springt
+             das Menü nach dem ersten Versuch nicht plötzlich um. -->
+        <section class="letzte" id="letzte" aria-live="polite">
+          <h2 class="letzte-titel">Deine letzten fünf</h2>
+          <ol class="letzte-liste" id="letzte-liste"></ol>
+          <p class="letzte-leer" id="letzte-leer">Noch kein Versuch auf diesem Gerät.</p>
+          <!-- Jedes andere Spiel der Bibliothek hat einen Weg, seine lokalen
+               Daten loszuwerden. Ohne den stünde in der Datenschutzerklärung
+               "lösch deine Browserdaten" — das ist keine Antwort. -->
+          <button class="loeschen" id="btn-loeschen" type="button" hidden>Zeiten löschen</button>
+        </section>
+
+        <p class="hinweis">
+          Gespeichert wird nur auf diesem Gerät — kein Konto, kein Server.
+        </p>
+      </section>
+
+      <!-- ---------- Testfläche ----------
+           role="button" statt <button>: Die Fläche ist der Knopf. Ein echtes
+           <button> um den ganzen Bildschirm bringt auf iOS eigene
+           Tap-Verzögerungen mit, und die würden hier direkt in die Messung
+           laufen. -->
+      <section id="screen-stage" class="screen stage" hidden data-phase="warten"
+               role="button" tabindex="0" aria-live="assertive">
+        <p class="stage-gross" id="stage-gross">Warte …</p>
+        <p class="stage-klein" id="stage-klein">Tippen, sobald es grün wird</p>
+      </section>
+
+      <!-- ---------- Ergebnis ---------- -->
+      <section id="screen-result" class="screen" hidden>
+        <p class="ergebnis-label" id="ergebnis-label">Deine Zeit</p>
+        <p class="ergebnis-zahl" id="ergebnis-zahl">–</p>
+        <p class="ergebnis-text" id="ergebnis-text"></p>
+        <div class="aktionen">
+          <button id="btn-again" class="btn btn-primary" type="button">Nochmal</button>
+          <button id="btn-menu" class="btn btn-ghost" type="button">Menü</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/main.js?v=1"></script>
+  </body>
+</html>

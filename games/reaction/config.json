@@ -1,0 +1,15 @@
+{
+  "id": "reaction",
+  "name": "REACTION!",
+  "type": "minigame",
+  "status": "new",
+  "features": ["highscore", "pc", "mobile"],
+  "statusUntil": "2026-09-30",
+  "version": "1.0.0",
+  "author": "Dodo",
+  "description": "Warten bis der Bildschirm grün wird und so schnell wie möglich tippen. Deine letzten fünf Zeiten bleiben auf dem Gerät.",
+  "thumbnail": "assets/img/reaction-keyart.webp",
+  "thumbnailAlt": "Ein zur Hälfte roter, zur Hälfte grüner Knopf mit den Aufschriften „Warte…“ und „Jetzt!“; ein Zeigefinger tippt auf die grüne Hälfte",
+  "icon": "⚡",
+  "entry": "reaction/index.html"
+}
