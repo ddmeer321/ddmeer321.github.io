@@ -140,6 +140,15 @@ body {
 .stage[data-phase="warten"]  { background: var(--rot);   color: var(--rot-ink); }
 .stage[data-phase="los"]     { background: var(--gruen); color: var(--gruen-ink); }
 
+/* iOS Safari färbt seine eigenen Leisten (Statusleiste oben, Werkzeugleiste
+   unten) nach der Seitenfarbe ein. Der feste Vollbild-Kasten allein reicht
+   ihm dafür nicht: Auf dem iPhone blieb oben und unten Rot stehen, während
+   die Mitte längst Grün war. Das ist nicht bloß hässlich — wer noch Rot
+   sieht, zögert, und genau dieses Zögern landet in der Messung.
+   Deshalb trägt auch das Wurzelelement die Phase. */
+html[data-phase="warten"], html[data-phase="warten"] body { background: var(--rot); }
+html[data-phase="los"],    html[data-phase="los"] body    { background: var(--gruen); }
+
 .stage-gross {
   margin: 0;
   font-size: clamp(2.2rem, 12vw, 4rem);

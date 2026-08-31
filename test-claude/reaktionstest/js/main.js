@@ -45,6 +45,25 @@
     btnMenu: document.getElementById("btn-menu"),
   };
 
+  var FARBE = { warten: "#a51f2a", los: "#46e08a", ruhe: "#fff6ea" };
+  var themeColor = document.querySelector('meta[name="theme-color"]');
+
+  /**
+   * Schaltet die Phasenfarbe an ALLEN drei Stellen um, an denen sie sichtbar
+   * wird: Testfläche, Wurzelelement und Browserleiste.
+   *
+   * Warum nicht nur die Testfläche: iOS Safari färbt seine eigenen Leisten
+   * nach der Seitenfarbe ein, und ein `position: fixed; inset: 0` genügt ihm
+   * dafür nicht. Auf dem iPhone blieb oben und unten Rot stehen, während die
+   * Mitte schon Grün war — der Spieler zögert dann, und das Zögern wird
+   * mitgemessen.
+   */
+  function setzeFarbe(welche) {
+    if (welche) document.documentElement.dataset.phase = welche;
+    else delete document.documentElement.dataset.phase;
+    if (themeColor) themeColor.content = FARBE[welche] || FARBE.ruhe;
+  }
+
   // "menu" | "warten" | "los" | "ergebnis"
   var phase = "menu";
   var startZeit = null;
@@ -132,6 +151,7 @@
     phase = "warten";
     startZeit = null;
     el.stage.dataset.phase = "warten";
+    setzeFarbe("warten");
     el.stageGross.textContent = "Warte …";
     el.stageKlein.textContent = "Tippen, sobald es grün wird";
     zeigeBildschirm("stage");
@@ -146,6 +166,7 @@
     if (phase !== "warten") return;
     phase = "los";
     el.stage.dataset.phase = "los";
+    setzeFarbe("los");
     el.stageGross.textContent = "JETZT!";
     el.stageKlein.textContent = "";
 
@@ -165,6 +186,7 @@
     if (phase === "warten") {
       if (timer !== null) { window.clearTimeout(timer); timer = null; }
       phase = "ergebnis";
+      setzeFarbe(null);
       el.ergebnisLabel.textContent = "Zu früh";
       el.ergebnisZahl.textContent = "Nicht gewertet";
       el.ergebnisZahl.className = "ergebnis-zahl zufrueh";
@@ -186,6 +208,7 @@
     if (!(ms > 0)) ms = 0;
 
     phase = "ergebnis";
+    setzeFarbe(null);
     el.ergebnisLabel.textContent = "Deine Zeit";
     el.ergebnisZahl.className = "ergebnis-zahl";
     el.ergebnisZahl.innerHTML = Math.round(ms) + '<span class="einheit"> ms</span>';
@@ -198,6 +221,7 @@
   function zumMenue() {
     if (timer !== null) { window.clearTimeout(timer); timer = null; }
     phase = "menu";
+    setzeFarbe(null);
     zeigeBildschirm("menu");
     el.btnStart.focus();
   }
