@@ -218,4 +218,23 @@ html[data-phase="los"],    html[data-phase="los"] body    { background: var(--gr
 .letzte-leer { margin: 0; color: var(--muted); font-size: 0.92rem; }
 .letzte-leer[hidden] { display: none; }
 
+/* Bewusst leise: Löschen ist nichts, was man aus Versehen antippen soll,
+   aber auch nichts, wonach man suchen muss. */
+.loeschen {
+  appearance: none;
+  margin: 12px 0 0;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.loeschen:hover { color: var(--ink); border-color: var(--muted); }
+.loeschen:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.loeschen[hidden] { display: none; }
+
 .hinweis { margin: 0; color: var(--muted); font-size: 0.86rem; }

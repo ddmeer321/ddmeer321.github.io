@@ -43,6 +43,7 @@
     btnStart: document.getElementById("btn-start"),
     btnAgain: document.getElementById("btn-again"),
     btnMenu: document.getElementById("btn-menu"),
+    btnLoeschen: document.getElementById("btn-loeschen"),
   };
 
   var FARBE = { warten: "#a51f2a", los: "#46e08a", ruhe: "#fff6ea" };
@@ -100,6 +101,8 @@
   function zeigeListe(liste) {
     el.liste.innerHTML = "";
     el.leer.hidden = liste.length > 0;
+    // Nichts zu löschen, also auch kein Knopf.
+    el.btnLoeschen.hidden = liste.length === 0;
 
     var beste = liste.length ? Math.min.apply(null, liste) : null;
     liste.forEach(function (ms, i) {
@@ -227,6 +230,17 @@
   }
 
   // ---------- Eingaben ----------
+
+  el.btnLoeschen.addEventListener("click", function () {
+    if (!window.confirm("Alle gespeicherten Zeiten auf diesem Gerät löschen?")) return;
+    try {
+      window.localStorage.removeItem(SPEICHER_KEY);
+    } catch (e) {
+      /* Nichts gespeichert, nichts zu löschen. */
+    }
+    zeigeListe([]);
+    el.btnStart.focus();
+  });
 
   el.btnStart.addEventListener("click", starten);
   el.btnAgain.addEventListener("click", starten);
