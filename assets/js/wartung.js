@@ -11,7 +11,7 @@
 
 (function () {
   var WARTUNG = {
-    aktiv: true,
+    aktiv: false,
     text:
       "An der Bibliothek wird gerade gebaut. Einzelne Seiten können sich " +
       "von Tag zu Tag ändern oder kurz nicht funktionieren.",
