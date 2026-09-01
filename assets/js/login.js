@@ -1,6 +1,36 @@
 (function () {
+  // Ohne das Supabase-SDK (blockierendes <script> von cdn.jsdelivr.net) kann
+  // diese Seite nichts. Hier stand frueher nur "return" — die Folge war eine
+  // Seite, die aussieht wie fertig: Man tippt Name und Passwort, drueckt auf
+  // "Konto erstellen", und es passiert NICHTS. Kein Fehler, keine Meldung.
+  // Lieber einmal ehrlich sagen, dass es gerade nicht geht.
+  function zeigeAusfall() {
+    var TEXT =
+      "Das Anmeldesystem konnte gerade nicht geladen werden. Anmelden und " +
+      "Registrieren gehen deshalb im Moment nicht — bitte lade die Seite neu.";
+    // Nur die Meldungszeilen der vier Formulare, nicht die im
+    // Sicherheits-Panel: das gehoert zu einem Ablauf, der hier gar nicht
+    // erst anfaengt.
+    document.querySelectorAll(".login-form > .login-message").forEach(function (el) {
+      el.textContent = TEXT;
+      el.className = "login-message is-bad";
+    });
+    document.querySelectorAll(".login-form button[type=submit]").forEach(function (btn) {
+      btn.disabled = true;
+    });
+    // Ohne den Rest dieser Datei haengt an den Formularen kein
+    // submit-Lauscher. Enter im Feld wuerde die Seite dann nativ neu laden
+    // und das Getippte wegwerfen.
+    document.querySelectorAll(".login-form").forEach(function (form) {
+      form.addEventListener("submit", function (e) { e.preventDefault(); });
+    });
+  }
+
   var sb = window.supabaseClient;
-  if (!sb) return;
+  if (!sb) {
+    zeigeAusfall();
+    return;
+  }
 
   var els = {
     tabRegister: document.getElementById("tab-register"),
