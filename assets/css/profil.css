@@ -235,32 +235,101 @@ body {
   gap: 14px;
 }
 
-.profil-biti-placeholder {
+/* 2D/3D-Buehne der Biti-Figur - ersetzt den frueheren "?"-Platzhalter.
+   Beide Ansichten (biti-figure-2d.js / biti-figure-3d.js) haengen ihr
+   Wurzelelement hier rein und werden per [hidden] umgeschaltet, siehe
+   assets/js/profil.js. */
+.profil-biti-stage {
   flex: 1;
   min-height: 0;
   width: 100%;
   border-radius: 16px;
-  background: rgba(124, 92, 255, 0.12);
-  border: 1px dashed rgba(124, 92, 255, 0.4);
-  display: grid;
-  place-items: center;
+  background: linear-gradient(150deg, #3a2d72, #1a1d45);
+  overflow: hidden;
+  position: relative;
 }
+.profil-biti-stage > div { width: 100%; height: 100%; }
+.profil-biti-stage svg { width: 100%; height: 100%; display: block; }
+.profil-biti-stage canvas { display: block; width: 100%; height: 100%; }
+.profil-biti-view-3d { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.profil-biti-view-3d.is-dragging { cursor: grabbing; }
 
-.profil-biti-mark {
-  font-size: clamp(4rem, 8vw, 7rem);
-  font-weight: 800;
-  color: var(--purple);
-  opacity: 0.5;
-}
-
-.profil-biti-caption {
+.profil-biti-controls {
   flex: none;
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: var(--muted);
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
+
+/* Runder Umschalter 2D/3D - per Klick ODER Ziehen bedienbar (siehe
+   setupBitiViewToggle() in profil.js). Waehrend des Ziehens folgt der Knopf
+   direkt der Maus (inline transform, Klasse is-dragging schaltet die
+   CSS-Transition ab); beim Loslassen schnappt er per Klassenwechsel
+   (aria-checked) zur naeheren Seite. */
+.profil-biti-view-toggle {
+  flex: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+}
+.profil-biti-view-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 92px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(124, 92, 255, 0.14);
+  border: 1px solid rgba(124, 92, 255, 0.3);
+}
+.profil-biti-view-label {
+  flex: 1;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  z-index: 1;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+.profil-biti-view-toggle[aria-checked="true"] .profil-biti-view-label-3d,
+.profil-biti-view-toggle:not([aria-checked="true"]) .profil-biti-view-label-2d {
+  color: #fff;
+}
+.profil-biti-view-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 42px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--purple);
+  box-shadow: 0 3px 8px rgba(71, 47, 135, 0.3);
+  transition: transform 0.18s ease;
+}
+.profil-biti-view-toggle[aria-checked="true"] .profil-biti-view-knob { transform: translateX(44px); }
+.profil-biti-view-toggle.is-dragging .profil-biti-view-knob { transition: none; }
+
+.profil-biti-edit-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--purple);
+  background: var(--purple);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.profil-biti-edit-btn:hover { filter: brightness(1.06); }
 
 .profil-identity {
   grid-area: identity;

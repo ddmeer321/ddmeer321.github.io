@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="stylesheet" href="assets/css/library.css?v=4" />
+    <link rel="stylesheet" href="assets/css/auth.css?v=2" />
+    <title>Biti bearbeiten – Spielebibliothek</title>
+    <style>
+      :root {
+        --bg1: #3a2d72;
+        --bg2: #1a1d45;
+        --ink: #241c3d;
+        --muted: #6b6285;
+        --purple: #7c5cff;
+        --card-border: #e7e1f7;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f4f1fb;
+        color: var(--ink);
+        font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 20px 60px; }
+      .creator-back {
+        display: inline-block;
+        width: fit-content;
+        margin-bottom: 14px;
+        color: var(--purple);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+      }
+      .creator-back:hover { text-decoration: underline; }
+      h1 { font-size: 1.3rem; margin: 0 0 4px; }
+      .sub { color: var(--muted); margin: 0 0 22px; max-width: 62ch; }
+
+      .layout { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-start; }
+      .previews { display: flex; flex-wrap: wrap; gap: 16px; flex: 1 1 560px; }
+      .preview { flex: 1 1 250px; min-width: 230px; }
+      .preview-label {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+      .preview-label span.hint { font-weight: 400; font-size: 0.76rem; color: var(--muted); }
+      .stage {
+        border-radius: 20px;
+        background: linear-gradient(150deg, var(--bg1), var(--bg2));
+        aspect-ratio: 1 / 1.08;
+        overflow: hidden;
+        box-shadow: 0 14px 30px rgba(36, 28, 61, 0.18);
+      }
+      .stage svg { width: 100%; height: 100%; display: block; }
+      .stage rect { stroke: rgba(18, 14, 38, 0.3); stroke-width: 3; paint-order: stroke; }
+      #stage3d { position: relative; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+      #stage3d.is-dragging { cursor: grabbing; }
+      #stage3d canvas { display: block; width: 100%; height: 100%; }
+      .mini-controls {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .mini-controls label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+
+      .panel {
+        flex: 1 1 320px;
+        min-width: 290px;
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 8px 20px rgba(36, 28, 61, 0.08);
+      }
+      .field { display: block; margin-bottom: 16px; }
+      .field > span { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 700; }
+      .field input[type="text"] {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        font: inherit;
+        color: var(--ink);
+      }
+
+      fieldset { border: none; padding: 0; margin: 0 0 16px; }
+      legend { padding: 0; margin-bottom: 6px; font-size: 0.85rem; font-weight: 700; }
+
+      .swatch-row { display: flex; flex-wrap: wrap; gap: 8px; }
+      .swatch {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        outline: 1px solid var(--card-border);
+        cursor: pointer;
+        padding: 0;
+      }
+      .swatch.is-selected { outline: 2px solid var(--purple); outline-offset: 1px; }
+
+      .choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+      .choice-btn {
+        padding: 7px 13px;
+        border-radius: 10px;
+        border: 1px solid var(--card-border);
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.82rem;
+        cursor: pointer;
+      }
+      .choice-btn.is-selected { border-color: var(--purple); background: rgba(124, 92, 255, 0.1); color: var(--purple); font-weight: 700; }
+
+      .slider-field input[type="range"] { width: 100%; accent-color: var(--purple); }
+
+      .creator-actions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+      .btn {
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: none;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-save { background: linear-gradient(90deg, var(--purple), #d63aa0); color: #fff; }
+      .btn-reset { background: none; border: 1px solid var(--card-border); color: var(--muted); }
+      .save-note { font-size: 0.78rem; color: var(--muted); }
+      .save-note.is-visible { color: #1a9e5c; font-weight: 700; }
+      .save-note.is-error { color: #d33f5a; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <script src="assets/js/wartung.js?v=1"></script>
+    <header class="lib-topbar">
+      <a class="lib-brand" href="index.html" aria-label="Zur Spielebibliothek">
+        <span class="lib-brand-mark" aria-hidden="true">D</span>
+        <span>Spielebibliothek</span>
+      </a>
+      <div id="auth-status"></div>
+    </header>
+
+    <div class="wrap">
+      <a class="creator-back" href="profil.html">← Zurück zu meinem Profil</a>
+
+      <h1>Biti — Charaktererstellung</h1>
+      <p class="sub">Block-Stil (Minecraft-artig): Kopf, Torso, Arme, Beine und Haare bestehen aus Quadern statt runden Formen. 2D-Illustration und echtes drehbares 3D-Modell, beide live an derselben Figur.</p>
+
+      <div class="layout">
+        <div class="previews">
+          <div class="preview">
+            <div class="preview-label">2D<span class="hint">Illustration</span></div>
+            <div class="stage" id="stage2d"></div>
+          </div>
+
+          <div class="preview">
+            <div class="preview-label">3D<span class="hint">zum Drehen ziehen</span></div>
+            <div class="stage" id="stage3d"></div>
+            <div class="mini-controls">
+              <label><input type="checkbox" id="autoRotate" checked /> Auto-Drehen</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <label class="field">
+            <span>Name</span>
+            <input type="text" id="fName" maxlength="18" placeholder="Spieler 1" />
+          </label>
+
+          <fieldset>
+            <legend>Aussehen</legend>
+            <div class="choice-row" id="pBodyType"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Hautfarbe</legend>
+            <div class="swatch-row" id="pSkin"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Augenfarbe</legend>
+            <div class="swatch-row" id="pEye"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Haarfarbe</legend>
+            <div class="swatch-row" id="pHair"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Oberteil</legend>
+            <div class="swatch-row" id="pTop"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Accessoirefarbe</legend>
+            <div class="swatch-row" id="pAccent"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Frisur</legend>
+            <div class="choice-row" id="pHairStyle"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Mund</legend>
+            <div class="choice-row" id="pMouth"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Ein Accessoire</legend>
+            <div class="choice-row" id="pAccessory"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Pose</legend>
+            <div class="choice-row" id="pPose"></div>
+          </fieldset>
+
+          <fieldset class="slider-field">
+            <legend>Körperbreite</legend>
+            <input type="range" id="fWidth" min="0.3" max="0.56" step="0.01" value="0.4" />
+          </fieldset>
+
+          <fieldset class="slider-field">
+            <legend>Größe</legend>
+            <input type="range" id="fSize" min="0.75" max="1.25" step="0.01" value="1" />
+          </fieldset>
+
+          <div class="creator-actions">
+            <button type="button" class="btn btn-reset" id="btnReset">Zurücksetzen</button>
+            <button type="button" class="btn btn-save" id="btnSave">Figur speichern</button>
+          </div>
+          <p class="save-note" id="saveNote">Noch nicht gespeichert.</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/auth.js?v=5"></script>
+    <script src="assets/js/cloud-save.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="assets/js/biti-figure-data.js"></script>
+    <script src="assets/js/biti-figure-2d.js"></script>
+    <script src="assets/js/biti-figure-3d.js"></script>
+    <script>
+      (function () {
+        var D = window.BitiFigureData;
+        var SAVE_GAME_ID = "biti-charakter";
+
+        var character = Object.assign({}, D.DEFAULT_CHAR);
+
+        var view2d = window.BitiFigure2d.mount(document.getElementById("stage2d"));
+        var view3d = window.BitiFigure3d.mount(document.getElementById("stage3d"), { autoRotate: true });
+
+        // ---------- Steuerung / UI ----------
+        function buildSwatches(containerId, key, colors) {
+          var el = document.getElementById(containerId);
+          el.innerHTML = "";
+          colors.forEach(function (color) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "swatch";
+            btn.style.background = color;
+            btn.setAttribute("aria-label", key + " " + color);
+            btn.addEventListener("click", function () {
+              character[key] = color;
+              refreshAll();
+            });
+            el.appendChild(btn);
+          });
+        }
+        function buildChoices(containerId, key, options) {
+          var el = document.getElementById(containerId);
+          el.innerHTML = "";
+          options.forEach(function (opt) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "choice-btn";
+            btn.textContent = opt.label;
+            btn.addEventListener("click", function () {
+              character[key] = opt.id;
+              refreshAll();
+            });
+            el.appendChild(btn);
+          });
+        }
+        // Frisur-Liste haengt von "Aussehen" ab - eigene Funktion statt eines
+        // einmaligen buildChoices()-Aufrufs, weil sie sowohl beim Start als
+        // auch jedesmal wenn "Aussehen" wechselt neu aufgebaut werden muss.
+        function buildHairStyleChoices() {
+          buildChoices("pHairStyle", "hairStyle", D.hairStylesFor(character.bodyType));
+        }
+        function buildBodyTypeChoices() {
+          var el = document.getElementById("pBodyType");
+          el.innerHTML = "";
+          D.BODY_TYPES.forEach(function (opt) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "choice-btn";
+            btn.textContent = opt.label;
+            btn.addEventListener("click", function () {
+              if (character.bodyType === opt.id) return;
+              character.bodyType = opt.id;
+              var validStyles = D.hairStylesFor(character.bodyType);
+              if (!validStyles.some(function (s) { return s.id === character.hairStyle; })) {
+                character.hairStyle = validStyles[0].id;
+              }
+              buildHairStyleChoices();
+              refreshAll();
+            });
+            el.appendChild(btn);
+          });
+        }
+
+        buildSwatches("pSkin", "skin", D.PALETTES.skin);
+        buildSwatches("pEye", "eye", D.PALETTES.eye);
+        buildSwatches("pHair", "hair", D.PALETTES.hair);
+        buildSwatches("pTop", "top", D.PALETTES.top);
+        buildSwatches("pAccent", "accent", D.PALETTES.accent);
+        buildHairStyleChoices();
+        buildChoices("pMouth", "mouth", D.MOUTHS);
+        buildChoices("pAccessory", "accessory", D.ACCESSORIES);
+        buildChoices("pPose", "pose", D.POSES);
+        buildBodyTypeChoices();
+
+        function refreshSelectedStates() {
+          function mark(containerId, key) {
+            document.querySelectorAll("#" + containerId + " .swatch").forEach(function (btn) {
+              btn.classList.toggle("is-selected", btn.style.background === hexToRgbCss(character[key]));
+            });
+          }
+          function hexToRgbCss(hex) {
+            var num = parseInt(hex.replace("#", ""), 16);
+            return "rgb(" + (num >> 16) + ", " + ((num >> 8) & 0xff) + ", " + (num & 0xff) + ")";
+          }
+          mark("pSkin", "skin");
+          mark("pEye", "eye");
+          mark("pHair", "hair");
+          mark("pTop", "top");
+          mark("pAccent", "accent");
+
+          var currentHairStyles = D.hairStylesFor(character.bodyType);
+          document.querySelectorAll("#pHairStyle .choice-btn").forEach(function (btn, i) {
+            btn.classList.toggle("is-selected", !!currentHairStyles[i] && currentHairStyles[i].id === character.hairStyle);
+          });
+          document.querySelectorAll("#pMouth .choice-btn").forEach(function (btn, i) {
+            btn.classList.toggle("is-selected", D.MOUTHS[i].id === character.mouth);
+          });
+          document.querySelectorAll("#pAccessory .choice-btn").forEach(function (btn, i) {
+            btn.classList.toggle("is-selected", D.ACCESSORIES[i].id === character.accessory);
+          });
+          document.querySelectorAll("#pPose .choice-btn").forEach(function (btn, i) {
+            btn.classList.toggle("is-selected", D.POSES[i].id === character.pose);
+          });
+          document.querySelectorAll("#pBodyType .choice-btn").forEach(function (btn, i) {
+            btn.classList.toggle("is-selected", D.BODY_TYPES[i].id === character.bodyType);
+          });
+        }
+
+        var saveNote = document.getElementById("saveNote");
+        function refreshAll() {
+          view2d.applyCharacter(character);
+          view3d.applyCharacter(character);
+          refreshSelectedStates();
+          saveNote.className = "save-note";
+          saveNote.textContent = "Noch nicht gespeichert.";
+        }
+
+        document.getElementById("fName").value = character.name;
+        document.getElementById("fName").addEventListener("input", function (e) {
+          character.name = e.target.value;
+        });
+
+        var widthSlider = document.getElementById("fWidth");
+        widthSlider.value = String(character.width);
+        widthSlider.addEventListener("input", function (e) {
+          character.width = parseFloat(e.target.value);
+          refreshAll();
+        });
+
+        var sizeSlider = document.getElementById("fSize");
+        sizeSlider.value = String(character.size);
+        sizeSlider.addEventListener("input", function (e) {
+          character.size = parseFloat(e.target.value);
+          refreshAll();
+        });
+
+        document.getElementById("btnReset").addEventListener("click", function () {
+          character = Object.assign({}, D.DEFAULT_CHAR);
+          document.getElementById("fName").value = character.name;
+          widthSlider.value = String(character.width);
+          sizeSlider.value = String(character.size);
+          buildHairStyleChoices();
+          refreshAll();
+        });
+
+        document.getElementById("btnSave").addEventListener("click", async function () {
+          var finalName = character.name.trim() || "Spieler 1";
+          character.name = finalName;
+          document.getElementById("fName").value = finalName;
+          saveNote.className = "save-note";
+          saveNote.textContent = "Speichere …";
+          var ok = window.CloudSave ? await window.CloudSave.save(SAVE_GAME_ID, character) : false;
+          if (ok) {
+            saveNote.className = "save-note is-visible";
+            saveNote.textContent = "✓ Gespeichert — zurück zu deinem Profil …";
+            window.setTimeout(function () {
+              window.location.href = "profil.html";
+            }, 600);
+          } else {
+            saveNote.className = "save-note is-error";
+            saveNote.textContent = 'Konnte nicht gespeichert werden. Bist du angemeldet und ist „Spielstände in der Cloud speichern" aktiv?';
+          }
+        });
+
+        document.getElementById("autoRotate").addEventListener("change", function (e) {
+          view3d.setAutoRotate(e.target.checked);
+        });
+
+        refreshAll();
+
+        // Gespeicherte Figur nachladen, sobald Login+CloudSave bereitstehen -
+        // startet trotzdem sofort mit der Standardfigur (Junge), damit die
+        // Seite nicht leer wirkt, waehrend die Anfrage laeuft.
+        if (window.CloudSave) {
+          window.CloudSave.load(SAVE_GAME_ID).then(function (saved) {
+            if (!saved) return;
+            character = D.withDefaults(saved);
+            document.getElementById("fName").value = character.name;
+            widthSlider.value = String(character.width);
+            sizeSlider.value = String(character.size);
+            buildHairStyleChoices();
+            refreshAll();
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
