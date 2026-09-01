@@ -12,7 +12,7 @@
       <div class="privacy-card">
         <p class="privacy-eyebrow">Spielebibliothek</p>
         <h1>Datenschutz</h1>
-        <p class="privacy-intro">Diese Erklärung ist in mehrere Teile gegliedert: ein allgemeiner Teil für die gesamte Website sowie je ein eigener Teil für Snake, Neon Bot Arena und Cursor Clicker, weil die Spiele unterschiedlich viel verarbeiten. Tic-Tac-Toe hat bewusst keinen eigenen Teil: Es speichert nichts auf deinem Gerät, bindet keine fremden Dienste ein und braucht kein Benutzerkonto — es gibt dort also nichts zu erklären.</p>
+        <p class="privacy-intro">Diese Erklärung ist in mehrere Teile gegliedert: ein allgemeiner Teil für die gesamte Website sowie eigene Teile für die Spiele und Testfunktionen, weil sie unterschiedlich viel verarbeiten. Tic-Tac-Toe hat bewusst keinen eigenen Teil: Es speichert nichts auf deinem Gerät, bindet keine fremden Dienste ein und braucht kein Benutzerkonto — es gibt dort also nichts zu erklären.</p>
         <p class="privacy-responsible">Angaben zur verantwortlichen Stelle stehen im <a href="impressum.html">Impressum</a>.</p>
 
         <ul class="privacy-nav">
@@ -21,6 +21,7 @@
           <li><a class="dot-nba" href="#neon-bot-arena"><i aria-hidden="true"></i>Neon Bot Arena</a></li>
           <li><a class="dot-cc" href="#cursor-clicker"><i aria-hidden="true"></i>Cursor Clicker</a></li>
           <li><a class="dot-rt" href="#reaction"><i aria-hidden="true"></i>REACTION!</a></li>
+          <li><a class="dot-ca" href="#camera-arcade"><i aria-hidden="true"></i>Camera Arcade</a></li>
         </ul>
 
         <section class="privacy-part" id="allgemein">
@@ -221,8 +222,46 @@
           </div>
         </section>
 
+        <section class="privacy-part" id="camera-arcade">
+          <div class="privacy-part-head">
+            <span class="privacy-badge ca">Camera Arcade</span>
+            <h2>Nur für den Camera-Kit-Test</h2>
+          </div>
+          <div class="privacy-topics">
+            <details class="privacy-topic" open>
+              <summary>Kamerazugriff und AR-Lenses</summary>
+              <div class="privacy-topic-content">
+                <p>Die Camera Arcade liegt ausschließlich im geschützten ChatGPT-Testbereich. Sie verwendet <a href="https://developers.snap.com/camera-kit/home">Camera Kit Web von Snap Inc.</a>, damit angemeldete Tester AR-Lenses ausprobieren und kurze Kamera-Minispiele spielen können.</p>
+                <p>Die Kamera startet erst, wenn du auf „Camera Arcade starten“ klickst und den Kamerazugriff im Browser erlaubst. Das Spiel fordert ausdrücklich <strong>keinen Mikrofonzugriff</strong> an. Du kannst die Berechtigung jederzeit in den Browser-Einstellungen entziehen.</p>
+                <p>Das Livebild wird dem Camera-Kit-SDK im Browser als Eingabe für die gewählte Lens bereitgestellt. Das Spiel selbst überträgt keine Fotos oder Videos an die Spielebibliothek, Supabase oder einen eigenen Upload-Server. Lens-Engine, Lens-Inhalte und weitere benötigte Dateien werden von Snap geladen; dabei verarbeitet Snap technisch erforderliche Verbindungsdaten sowie Nutzungs- und Leistungsinformationen. Einzelne Lenses können zusätzliche Funktionen verwenden – im Test werden deshalb nur die im Snap-Portal dafür eingerichteten Demo-Lenses angeboten.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Aufnahmen, Punkte und lokale Speicherung</summary>
+              <div class="privacy-topic-content">
+                <p>Mit dem Auslöser erstellte Schnappschüsse bleiben ausschließlich im Arbeitsspeicher des geöffneten Browser-Tabs. Sie werden weder hochgeladen noch dauerhaft gespeichert und verschwinden spätestens beim Neuladen oder Schließen der Seite.</p>
+                <p>Nur der höchste erreichte Punktestand wird als Zahl im lokalen Speicher (localStorage) deines Browsers abgelegt. Er ist nicht mit deinem Konto verknüpft und kann durch Löschen der Website-Daten entfernt werden.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Testzugriff und Camera-Kit-Konfiguration</summary>
+              <div class="privacy-topic-content">
+                <p>Vor dem Start wird über Supabase geprüft, ob dein Konto den Rang Tester, Admin oder Owner besitzt. Nur dann gibt eine geschützte Edge Function die für den Staging-Test benötigte Camera-Kit-Konfiguration an deinen Browser aus. Der Camera-Kit-Web-API-Token muss technisch an den Browser übermittelt werden; seine Nutzung ist deshalb zusätzlich im Snap Developer Portal auf freigegebene Website-Ursprünge begrenzt.</p>
+                <p>Rechtsgrundlage für diese Zugriffskontrolle und die vorübergehende technische Verarbeitung ist Art. 6 Abs. 1 Buchstabe f DSGVO; das berechtigte Interesse ist die sichere Erprobung einer noch nicht veröffentlichten Spielfunktion.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Snap-Nutzungsbedingungen und weitere Informationen</summary>
+              <div class="privacy-topic-content">
+                <p>Vor der ersten Lens-Anwendung kann Camera Kit eine von Snap bereitgestellte Abfrage zur Annahme der Nutzungsbedingungen anzeigen. Diese Abfrage ist Bestandteil des SDKs und wird von der Spielebibliothek weder verändert noch ersetzt. Wenn du ablehnst, werden keine Lenses aktiviert.</p>
+                <p>Weitere Informationen: <a href="https://values.snap.com/privacy/privacy-policy">Datenschutzerklärung von Snap</a>, <a href="https://snap.com/terms">Nutzungsbedingungen von Snap</a> und <a href="https://help.snapchat.com/hc/en-us/articles/7012366118676">Erläuterungen zu Lenses und Datenschutz</a>.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
         <div class="privacy-footer">
-          <p class="privacy-updated">Stand: 29. August 2026</p>
+          <p class="privacy-updated">Stand: 1. September 2026</p>
           <nav class="privacy-links" aria-label="Rechtliche Seiten">
             <a href="index.html">← Zur Spielebibliothek</a>
             <a href="impressum.html">Impressum</a>

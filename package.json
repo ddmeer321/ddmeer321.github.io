@@ -1,0 +1,15 @@
+{
+  "name": "ddmeer321-spielebibliothek",
+  "private": true,
+  "scripts": {
+    "build:camera-kit": "node scripts/build-camera-kit.mjs",
+    "dev": "npm run build:camera-kit && node scripts/local-server.mjs",
+    "test:camera-kit": "node --test tests/camera-kit-config.test.mjs"
+  },
+  "dependencies": {
+    "@snap/camera-kit": "1.20.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.9"
+  }
+}

@@ -94,6 +94,7 @@ a { color: var(--accent); }
 .privacy-nav .dot-nba i { color: var(--cyan); }
 .privacy-nav .dot-cc i { color: var(--accent); }
 .privacy-nav .dot-rt i { color: var(--lime); }
+.privacy-nav .dot-ca i { color: var(--cyan); }
 
 .privacy-part { margin-top: 38px; scroll-margin-top: 20px; }
 
@@ -123,6 +124,7 @@ a { color: var(--accent); }
 .privacy-badge.nba { background: rgba(56, 216, 255, 0.16); color: var(--cyan); border: 1px solid rgba(56, 216, 255, 0.35); }
 .privacy-badge.cc { background: rgba(139, 139, 255, 0.16); color: var(--accent); border: 1px solid rgba(139, 139, 255, 0.35); }
 .privacy-badge.rt { background: rgba(182, 226, 106, 0.16); color: var(--lime); border: 1px solid rgba(182, 226, 106, 0.35); }
+.privacy-badge.ca { background: rgba(56, 216, 255, 0.16); color: var(--cyan); border: 1px solid rgba(56, 216, 255, 0.35); }
 
 .privacy-topics { display: grid; gap: 12px; }
 

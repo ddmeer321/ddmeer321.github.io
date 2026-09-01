@@ -1,0 +1,7 @@
+# Lokale Zugangsdaten und maschinenspezifische Einstellungen
+.env
+.env.*
+!.env.example
+
+# Installierte Pakete und lokale Build-Artefakte
+node_modules/
