@@ -1,5 +1,7 @@
 // Einstiegspunkt: lädt den Spielstand, initialisiert alle UI-Module und verdrahtet
 // globale Abläufe (Autosave, Achievement-Toasts, tägliche Belohnung).
+import { startGameSession } from "./core/session.js";
+import { initFactoryEntry } from "./ui/factoryEntry.js";
 import { state, SAVE_VERSION } from "./core/state.js";
 import { loadGame, saveGame, quickSaveGame, syncFromCloud } from "./core/save.js";
 import { events } from "./core/events.js";
@@ -65,6 +67,7 @@ function announceUnlockedAchievements(achievements) {
 }
 
 function wireGlobalEvents() {
+  window.addEventListener("cursor-save-error", () => showToast("Speichern fehlgeschlagen. Bitte prüfe den lokalen Browserspeicher.", "error"));
   events.on("state:changed", renderAll);
   events.on("achievements:unlocked", announceUnlockedAchievements);
 
@@ -107,13 +110,15 @@ function exposeExternalApi() {
   };
 }
 
-function init() {
+async function init() {
   // test-gate.js prüft Zugriff asynchron und kann die Seite währenddessen durch
   // "Kein Zugriff" ersetzen. Bricht das hier bereits passiert, gibt es nichts
   // mehr zu initialisieren.
   if (!document.getElementById("big-cursor-btn")) return;
 
+  if (!await startGameSession(saveGame)) return;
   loadGame();
+  await syncFromCloud();
 
   initTabs();
   initMainPanel();
@@ -130,20 +135,19 @@ function init() {
   syncMusicWithSettings();
   startPlaytimeTracking();
   wireGlobalEvents();
+  initFactoryEntry();
   exposeExternalApi();
   checkAchievements();
 
-  // Ladebildschirm bleibt bis der Cloud-Abgleich fertig ist (oder spaetestens
-  // nach 4s, falls das Netzwerk haengt - nie unendlich blockieren). Danach
-  // steht sofort der richtige Endzustand, kein Aufblitzen des lokalen Stands.
+  // Der initiale Cloud-Abgleich ist vor der Bedienung abgeschlossen oder
+  // nach vier Sekunden verworfen. Keine verspätete Antwort ersetzt das Spiel.
   const loadingScreen = document.getElementById("game-loading-screen");
   function hideLoadingScreen() {
     if (!loadingScreen || loadingScreen.hidden) return;
     loadingScreen.classList.add("is-fading");
     setTimeout(() => { loadingScreen.hidden = true; }, 260);
   }
-  const cloudTimeout = new Promise((resolve) => setTimeout(resolve, 4000));
-  Promise.race([syncFromCloud(), cloudTimeout]).then(hideLoadingScreen, hideLoadingScreen);
+  hideLoadingScreen();
 
   if (canClaimDailyReward()) {
     openDailyRewardModal();

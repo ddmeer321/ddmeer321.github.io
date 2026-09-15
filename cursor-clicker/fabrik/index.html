@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d14">
+  <title>Cursor Clicker · Deine Fabrik</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%239c84ff' d='M6 3v25l7-8 6 11 5-3-6-10h11z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+  <div id="factory-loading" role="status" style="position:fixed;inset:0;z-index:999;background:#0b0d14;display:grid;place-content:center;font:18px system-ui;color:#eee">Deine Fabrik wird geladen …</div>
+  <header class="header">
+    <a id="back-to-game" class="brand" href="../"><span class="back-arrow" aria-hidden="true">←</span><span class="brand-icon cursor" aria-hidden="true"></span><span>Cursor Clicker<small>Zurück zum Cursor Clicker</small></span></a>
+    <div class="header-right"><span class="preview-tag">Lokale Vorschau</span><div class="wallet"><span class="coin" aria-hidden="true">C</span><span><small>Deine Coins</small><strong id="coins">0</strong></span></div></div>
+  </header>
+  <main>
+    <div class="intro">
+      <div><p class="eyebrow">DEIN NÄCHSTES KAPITEL</p><h1>Kleine Helfer.<br><span>Große Klicks.</span></h1><p>Deine Mitarbeiter übernehmen das Klicken.<br>Sammle dein Team und lass die Fabrik für dich arbeiten.</p></div>
+      <div class="intro-art" aria-hidden="true"><span class="spark s1">✦</span><span class="spark s2">✧</span><span class="art-cursor cursor"></span><span class="art-coin coin">C</span><span class="art-label">KLICK! +1</span></div>
+    </div>
+    <nav class="tabs" aria-label="Fabrikbereiche">
+      <button type="button" data-tab="factory" aria-current="page"><span aria-hidden="true">▥</span> Meine Fabrik</button>
+      <button type="button" data-tab="employees"><span aria-hidden="true">♟</span> Mitarbeiter <span class="count" id="collection-count"></span></button>
+      <button type="button" data-tab="boxes"><span aria-hidden="true">◇</span> Mitarbeiter-Boxen</button>
+      <button type="button" data-tab="potions"><span aria-hidden="true">⚗</span> Tränke</button>
+    </nav>
+    <section id="factory" class="panel" aria-label="Meine Fabrik">
+      <div class="factory-layout">
+        <section class="workshop" aria-labelledby="workshop-title">
+          <div class="workshop-heading"><div><p class="eyebrow">HIER WIRD GEKLICKT</p><h2 id="workshop-title">Deine Cursor-Fabrik</h2></div><span class="running"><i></i> <span id="team-count"></span> am Werk</span></div>
+          <div class="hall">
+            <div class="wall" aria-hidden="true"><div class="window"><i></i><i></i></div><div class="factory-sign"><span class="cursor"></span> CLICK & CO.</div><div class="window"><i></i><i></i></div></div>
+            <div class="stations" id="stations"></div>
+            <div class="conveyor" aria-hidden="true"><div class="belt"><span class="coin">C</span><span class="coin">C</span><span class="coin">C</span><span class="coin">C</span></div><div class="belt-feet"></div></div>
+            <div class="floor-caption"><span aria-hidden="true">✦</span> Ein gutes Team klickt auch, wenn du eine Pause machst.</div>
+          </div>
+          <div class="workshop-footer"><span>3 Arbeitsplätze · Mitarbeiter anklicken zum Wechseln</span><button type="button" id="motion-toggle" aria-pressed="true" aria-label="Animationen ein- oder ausschalten">Animationen an</button></div>
+        </section>
+        <aside class="earnings" aria-labelledby="earnings-title">
+          <span class="earnings-symbol coin" aria-hidden="true">C</span><p class="eyebrow">DEINE MITARBEITER VERDIENEN</p><h2 id="earnings-title"><span id="rate">0</span> <small>Coins / Sek.</small></h2>
+          <div class="earning-detail"><span>Klick-Ertrag</span><strong>1 Coin pro Klick</strong></div><div class="earning-detail"><span>Automatische Klicks</span><strong id="click-rate">0 / Sek.</strong></div>
+          <div class="stash"><span>Zum Einsammeln</span><strong id="pending">0</strong><small>Coins aus deiner Fabrik</small></div>
+          <button class="button primary" id="collect" type="button"><span aria-hidden="true">✦</span> Coins einsammeln</button>
+          <p class="offline-note"><span aria-hidden="true">☾</span> Dein Team arbeitet offline weiter.<br>Bis zu 8 Stunden pro Pause.</p>
+          <div id="active-boosts" class="active-boosts" aria-live="off"></div>
+        </aside>
+      </div>
+      <div class="next-steps">
+        <button class="next-card" type="button" data-go="boxes"><span class="mini-box" aria-hidden="true">?</span><span><strong>Wer kommt als Nächstes?</strong><small>Öffne eine Box und entdecke neue Mitarbeiter.</small></span><span class="arrow" aria-hidden="true">→</span></button>
+        <button class="next-card" type="button" data-go="potions"><span class="mini-potion" aria-hidden="true">✦</span><span><strong>Ein kleiner Schluck Extra-Power.</strong><small>Verstärke einzelne Mitarbeiter mit Tränken.</small></span><span class="arrow" aria-hidden="true">→</span></button>
+      </div>
+    </section>
+    <section id="employees" class="panel" aria-label="Mitarbeiter" hidden><div class="section-heading"><div><p class="eyebrow">DEIN KLICK-TEAM</p><h2>Jeder Helfer zählt.</h2><p>Sammle Mitarbeiter und besetze deine drei Arbeitsplätze. Jede Kopie kann einmal eingesetzt werden.</p></div><label class="search-label">Suchen<input id="search" type="search" placeholder="Mitarbeiter suchen …"></label></div><div id="employee-grid" class="employee-grid"></div></section>
+    <section id="boxes" class="panel" aria-label="Mitarbeiter-Boxen" hidden><div class="section-heading"><div><p class="eyebrow">EIN NEUES TEAMMITGLIED WARTET</p><h2>Eine Box. Ein neuer Klick-Kumpel.</h2><p>Hier ziehst du ausschließlich Mitarbeiter. Bezahlt wird mit den Coins von Cursor Clicker.</p></div></div><div id="box-grid" class="box-grid"></div></section>
+    <section id="potions" class="panel" aria-label="Tränke" hidden><div class="section-heading"><div><p class="eyebrow">KLEINE FLASCHE, MEHR KLICKS</p><h2>Gib deinem Team einen Schub.</h2><p>Wähle einen Trank und einen eingesetzten Mitarbeiter. Der Effekt endet automatisch.</p></div></div><div id="potion-grid" class="potion-grid"></div></section>
+    <footer><span><strong>Cursor Clicker</strong> / Fabrik</span><span>Gemeinsamer Spielstand · Coins, Mitarbeiter und Tränke werden automatisch gespeichert.</span></footer>
+  </main>
+  <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><p id="dialog-kicker" class="eyebrow"></p><button id="dialog-close" type="button" aria-label="Schließen">×</button></div><h2 id="dialog-title"></h2><div id="dialog-body"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/cloud-save.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

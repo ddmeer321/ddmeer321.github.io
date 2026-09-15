@@ -3,6 +3,8 @@
 import { state, replaceState, createDefaultState, SAVE_VERSION } from "./state.js";
 import { getDefaultUnlockedCosmeticIds } from "../data/cosmetics.js";
 import { MAX_LEVEL } from "./upgrades.js";
+import { normalizeFactory, unlockFactory, settleFactory } from "./factoryModel.js";
+import { canWriteGame } from "./session.js";
 
 // test-claude/ läuft absichtlich unter einem eigenen Storage-Key. localStorage
 // ist pro Origin (nicht pro Pfad) gültig — ohne diese Trennung würde ein
@@ -17,14 +19,18 @@ const STORAGE_KEY = IS_TEST_ENV ? "cursorClicker.save.v1" : "cursorClicker.save.
 // nie ueberschreiben. Falls diese Datei je wieder 1:1 nach test-claude/
 // kopiert wird (siehe WORKFLOW.md), bleibt der Schutz automatisch bestehen.
 const CLOUD_GAME_ID = "cursor-clicker";
-const CLOUD_SYNC_ENABLED = !IS_TEST_ENV;
+// Local preview must never upload demo/test progress to a real account.
+const CLOUD_SYNC_ENABLED = !IS_TEST_ENV && !["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
+let cloudReady = false;
+let cloudQueue = Promise.resolve();
+const nextTimestamp = () => Math.max(Date.now(), (Number(state.lastSavedAt) || 0) + 1);
 
 // Leichtgewichtiger Zwischenstand für den häufigen Autosave-Takt: nur die
 // Felder, die sich bei praktisch jedem Klick ändern. Vermeidet, den kompletten
 // (mit wachsendem Inventar immer größeren) State alle paar Sekunden neu zu
 // serialisieren — das übernimmt weiterhin saveGame() in größeren Abständen.
 const QUICK_KEY = STORAGE_KEY + ".quick";
-const QUICK_FIELDS = ["coins", "totalCoinsEarned", "totalClicks", "playtimeSeconds", "lastSavedAt"];
+const QUICK_FIELDS = ["coins", "totalCoinsEarned", "totalClicks", "playtimeSeconds", "lastSavedAt", "factory"];
 
 function defaultUnlockedCosmetics() {
   const unlocked = {};
@@ -81,6 +87,7 @@ function migrate(saved) {
 
   const merged = Object.assign(createDefaultState(), working);
   merged.version = SAVE_VERSION;
+  merged.factory = normalizeFactory(working.factory);
   return merged;
 }
 
@@ -123,6 +130,8 @@ export function loadGame() {
     const merged = migrate(saved);
     const appliedQuickSave = applyNewerQuickSave(merged);
     if (!raw && !appliedQuickSave) return false;
+    merged.factory = normalizeFactory(merged.factory);
+    unlockFactory(merged);
     replaceState(merged);
     return true;
   } catch (err) {
@@ -134,47 +143,77 @@ export function loadGame() {
 // Vollständige Speicherung — läuft alle 3 Minuten (main.js), direkt nach
 // wertvollen/seltenen Fortschritts-Events (Box, Fusion, Level, Achievement)
 // sowie bei beforeunload/Tab-Wechsel.
-export function saveGame() {
+export function saveGame({ cloud = true } = {}) {
+  if (!canWriteGame()) return Promise.resolve(false);
+  unlockFactory(state);
+  settleFactory(state.factory);
   try {
-    state.lastSavedAt = Date.now();
+    state.lastSavedAt = nextTimestamp();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.removeItem(QUICK_KEY);
   } catch (err) {
     console.warn("Cursor Clicker: Speicherstand konnte nicht gespeichert werden.", err);
+    window.dispatchEvent(new Event("cursor-save-error"));
+    return Promise.resolve(false);
   }
-  // Momentaufnahme statt der live-mutierbaren state-Referenz: der eigentliche
-  // Netzwerk-Request laeuft asynchron, structuredClone friert den Stand von
-  // jetzt ein (gleiches Muster wie window.CursorClicker.getSnapshot()).
-  if (CLOUD_SYNC_ENABLED && window.CloudSave) {
-    window.CloudSave.save(CLOUD_GAME_ID, structuredClone(state));
+  // Serialize snapshots so an older HTTP request cannot finish after a newer one.
+  if (cloud && cloudReady && CLOUD_SYNC_ENABLED && window.CloudSave) {
+    const snapshot = structuredClone(state);
+    cloudQueue = cloudQueue.catch(() => false).then(() => window.CloudSave.save(CLOUD_GAME_ID, snapshot)).catch(() => false);
+    return cloudQueue;
+  }
+  return Promise.resolve(true);
+}
+
+// Finish the initial load BEFORE enabling gameplay. A timed-out cloud request
+// never applies later, and cannot erase actions performed after the timeout.
+export async function syncFromCloud() {
+  if (!CLOUD_SYNC_ENABLED || !window.CloudSave) return;
+  let timer;
+  try {
+    const result = await Promise.race([
+      (async () => {
+        const owner = await window.CloudSave.ready();
+        if (!owner) return { owner: null, data: null };
+        return { owner, data: await window.CloudSave.load(CLOUD_GAME_ID) };
+      })(),
+      new Promise(resolve => { timer = setTimeout(() => resolve(null), 4000); }),
+    ]);
+    if (!result || !canWriteGame()) return;
+    if (!result.owner) return;
+    const localBelongsToOwner = state.cloudOwnerId === result.owner;
+    if (result.data && (!localBelongsToOwner ||
+        Number(result.data.lastSavedAt || 0) > Number(state.lastSavedAt || 0))) {
+      replaceState(migrate(result.data));
+    } else if (!localBelongsToOwner && state.cloudOwnerId) {
+      // Never copy the previous account's inventory into a different account.
+      replaceState(createDefaultState());
+    }
+    state.cloudOwnerId = result.owner;
+    cloudReady = true;
+    saveGame();
+  } catch (err) {
+    console.warn("Cursor Clicker: Cloud-Abgleich fehlgeschlagen.", err);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
-// Hintergrund-Abgleich nach dem synchronen lokalen Start (siehe loadGame()
-// in main.js:init() - laeuft bewusst NICHT blockierend vor dem ersten
-// Render, damit das Spiel nicht auf einen Netzwerk-Request warten muss).
-// Findet sie einen Cloud-Spielstand, ersetzt sie den gerade lokal geladenen
-// Stand damit (replaceState loest state:changed -> renderAll() aus). Sonst
-// wird der lokale Stand einmalig hochgeladen (siehe CloudSave.migrateLocalOnce).
-export async function syncFromCloud() {
-  if (!CLOUD_SYNC_ENABLED || !window.CloudSave) return;
-  try {
-    const cloudData = await window.CloudSave.load(CLOUD_GAME_ID);
-    if (cloudData) {
-      replaceState(migrate(cloudData));
-      saveGame();
-    } else {
-      await window.CloudSave.migrateLocalOnce(CLOUD_GAME_ID, () => structuredClone(state));
-    }
-  } catch (err) {
-    console.warn("Cursor Clicker: Cloud-Abgleich fehlgeschlagen.", err);
-  }
+// Local storage is already durable before navigation; wait briefly for cloud
+// delivery. If unavailable, the newer local timestamp is kept on the next load.
+export async function navigateWithSave(url) {
+  await Promise.race([saveGame(), new Promise(resolve => setTimeout(resolve, 1500))]);
+  location.assign(url);
 }
 
 // Günstige Teilspeicherung für den 8s-Takt: nur die Felder, die sich bei
 // praktisch jedem Klick ändern, keine Vollserialisierung des Gesamtzustands.
 export function quickSaveGame() {
+  if (!canWriteGame()) return;
+  unlockFactory(state);
+  settleFactory(state.factory);
   try {
-    state.lastSavedAt = Date.now();
+    state.lastSavedAt = nextTimestamp();
     const partial = {};
     QUICK_FIELDS.forEach((key) => { partial[key] = state[key]; });
     localStorage.setItem(QUICK_KEY, JSON.stringify(partial));
@@ -184,12 +223,10 @@ export function quickSaveGame() {
 }
 
 export function hardReset() {
+  if (!canWriteGame()) return;
+  const owner = state.cloudOwnerId;
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(QUICK_KEY);
-  replaceState(createDefaultState());
-  // Ohne das wuerde der naechste syncFromCloud() den alten Cloud-Spielstand
-  // wiederherstellen - ein "Zuruecksetzen" muss ueberall gelten, nicht nur lokal.
-  if (CLOUD_SYNC_ENABLED && window.CloudSave) {
-    window.CloudSave.save(CLOUD_GAME_ID, structuredClone(state));
-  }
+  replaceState({ ...createDefaultState(), ...(owner ? { cloudOwnerId: owner } : {}) });
+  saveGame();
 }
