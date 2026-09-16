@@ -248,6 +248,23 @@
   });
 
 
+  // Spielstand-Zahlen kommen roh aus dem Spielstand: Coins werden dort in
+  // Bruchteilen addiert, und weil Kommazahlen binaer gespeichert werden,
+  // sammeln sich winzige Ungenauigkeiten zu einem sichtbaren Rest
+  // (1206.900000000001 statt 1206,9). Der Wert stimmt - die Abweichung liegt
+  // bei einem Billionstel.
+  //
+  // Wichtiger als die Kosmetik ist aber der Zweck dieser Spalte: Der Owner
+  // soll auf einen Blick sehen, ob eine Zahl unplausibel ist. Ohne
+  // Tausenderpunkte muesste er dafuer Nullen zaehlen, um eine Billion von
+  // einer Milliarde zu unterscheiden.
+  function formatZahl(wert) {
+    var n = Number(wert);
+    if (!isFinite(n)) return "0";
+    try { return n.toLocaleString("de-DE", { maximumFractionDigits: 2 }); }
+    catch (e) { return String(Math.round(n)); }
+  }
+
   function formatDateTime(iso) {
     if (!iso) return "—";
     try { return new Date(iso).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }); }
@@ -325,7 +342,7 @@
       var s = r.summary || {};
       var flags = Array.isArray(r.risk_flags) && r.risk_flags.length ? r.risk_flags.join(", ") : "Keine";
       return "<tr><td><strong>" + escapeHtml(r.username) + "</strong><br><span class=\"admin-mono\">" + escapeHtml(r.player_id) + "</span></td>" +
-        "<td>" + escapeHtml(String(s.cursorCopies || 0)) + " Cursor · " + escapeHtml(String(s.employeeCopies || 0)) + " Mitarbeiter<br>" + escapeHtml(String(s.coins || 0)) + " Coins</td>" +
+        "<td>" + escapeHtml(formatZahl(s.cursorCopies)) + " Cursor · " + escapeHtml(formatZahl(s.employeeCopies)) + " Mitarbeiter<br>" + escapeHtml(formatZahl(s.coins)) + " Coins</td>" +
         "<td>" + escapeHtml(flags) + "</td><td class=\"admin-actions\"><button class=\"admin-btn admin-btn-small\" data-migration=\"approved\" data-id=\"" + r.user_id + "\">Freigeben</button><button class=\"admin-btn admin-btn-small admin-btn-danger\" data-migration=\"rejected\" data-id=\"" + r.user_id + "\">Ablehnen</button></td></tr>";
     }).join("") : '<tr><td colspan="4" class="admin-empty">Keine offenen Importanträge.</td></tr>';
   }
