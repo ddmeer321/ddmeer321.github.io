@@ -6,6 +6,7 @@
     loading: document.getElementById("admin-loading"),
     noAccess: document.getElementById("admin-no-access"),
     noAccessText: document.getElementById("admin-no-access-text"),
+    noAccessLink: document.getElementById("admin-no-access-link"),
     app: document.getElementById("admin-app"),
     whoami: document.getElementById("admin-whoami"),
     logoutBtn: document.getElementById("admin-logout-btn"),
@@ -78,11 +79,23 @@
     var session = sessionRes.data && sessionRes.data.session;
     if (!session) {
       els.noAccessText.textContent = "Du bist nicht angemeldet.";
+      els.noAccessLink.href = "../login.html";
+      els.noAccessLink.textContent = "Zum Login";
       showState("no-access");
       return;
     }
 
-    currentUserId = session.user.id;
+    var userRes = await sb.auth.getUser();
+    var authenticatedUser = userRes.data && userRes.data.user;
+    if (userRes.error || !authenticatedUser) {
+      els.noAccessText.textContent = "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.";
+      els.noAccessLink.href = "../login.html";
+      els.noAccessLink.textContent = "Erneut anmelden";
+      showState("no-access");
+      return;
+    }
+
+    currentUserId = authenticatedUser.id;
 
     var profileRes = await sb.from("profiles").select("role, username").eq("id", currentUserId).maybeSingle();
     var myProfile = profileRes.data;
