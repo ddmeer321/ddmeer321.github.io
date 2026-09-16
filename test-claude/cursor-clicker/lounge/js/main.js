@@ -50,6 +50,7 @@
   var beschaeftigt = [];       // wer laut eigener Meldung in einem Trade ist
   var lokalBeschaeftigt = [];  // nur die Attrappe: mit wem ICH gerade "handle"
   var kanal = null;
+  var verbunden = false;
   var zuletztGesendet = 0;
   var tradePartner = null;
   var abgeschlossen = false;
@@ -90,7 +91,7 @@
         ? "Gerade ist sonst niemand hier. Sobald jemand die Lounge öffnet, steht er hier."
         : "Verbinde …";
       el.leute.appendChild(allein);
-      el.zaehler.textContent = anwesend.length + " online";
+      el.zaehler.textContent = verbunden ? anwesend.length + " online" : "verbinde …";
       return;
     }
 
@@ -128,7 +129,7 @@
       zeile.appendChild(punkt); zeile.appendChild(mitte); zeile.appendChild(knopf);
       el.leute.appendChild(zeile);
     });
-    el.zaehler.textContent = anwesend.length + " online";
+    el.zaehler.textContent = verbunden ? anwesend.length + " online" : "verbinde …";
   }
 
   function zeichneTrades() {
@@ -399,6 +400,7 @@
 
     kanal.subscribe(async function (status, err) {
       if (status === "SUBSCRIBED") {
+        verbunden = true;
         el.hinweis.hidden = true;
         await kanal.track({ id: ich.id, name: ich.name, pid: ich.pid, imTrade: false });
         schreibe(el.loungeChat, null, "Du bist in der Lounge. Sei nett zueinander.", "system");
@@ -410,7 +412,7 @@
           ". Der Chat braucht die Rolle Tester, Admin oder Owner.");
       }
       if (status === "TIMED_OUT") fehler("Die Verbindung zur Lounge ist abgelaufen. Bitte neu laden.");
-      if (status === "CLOSED") zeichneLeute();
+      if (status === "CLOSED") { verbunden = false; zeichneLeute(); }
     });
 
     // Sauber abmelden, sonst haengt man fuer die anderen noch in der Liste.
