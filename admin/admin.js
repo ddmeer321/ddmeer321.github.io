@@ -69,6 +69,20 @@
     return fallback;
   }
 
+  async function invokeAuthenticated(functionName, options) {
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data && sessionRes.data.session;
+    if (sessionRes.error || !session) {
+      return { data: { error: "Nicht angemeldet." }, error: sessionRes.error || new Error("Keine aktive Sitzung.") };
+    }
+
+    // Die Functions-Instanz kann sonst nach einem späteren setSession() noch
+    // den öffentlichen Anon-Key als Bearer-Token verwenden. Der Gateway nimmt
+    // diesen JWT an, aber die Edge Function findet damit keinen Benutzer.
+    sb.functions.setAuth(session.access_token);
+    return sb.functions.invoke(functionName, options);
+  }
+
   async function init() {
     var sessionRes = await sb.auth.getSession();
     var session = sessionRes.data && sessionRes.data.session;
@@ -169,7 +183,7 @@
     }
 
     select.disabled = true;
-    var res = await sb.functions.invoke("admin-update-role", { body: { targetId: id, newRole: newRole } });
+    var res = await invokeAuthenticated("admin-update-role", { body: { targetId: id, newRole: newRole } });
     select.disabled = false;
 
     if (res.error) {
@@ -194,7 +208,7 @@
       if (willBan && !confirm('"' + user.username + '" wirklich sperren?')) return;
 
       btn.disabled = true;
-      var res = await sb.functions.invoke("admin-set-ban", { body: { targetId: id, banned: willBan } });
+      var res = await invokeAuthenticated("admin-set-ban", { body: { targetId: id, banned: willBan } });
       btn.disabled = false;
 
       if (res.error) {
@@ -211,7 +225,7 @@
       if (!confirm('"' + user.username + '" wirklich endgültig löschen? Das kann nicht rückgängig gemacht werden.')) return;
 
       btn.disabled = true;
-      var res2 = await sb.functions.invoke("admin-delete-user", { body: { targetId: id } });
+      var res2 = await invokeAuthenticated("admin-delete-user", { body: { targetId: id } });
       btn.disabled = false;
 
       if (res2.error) {
@@ -240,7 +254,7 @@
   async function loadTradeHistory() {
     els.tradeRefresh.disabled = true;
     els.tradeMessage.textContent = "Trading-Verlauf wird geladen …";
-    var res = await sb.functions.invoke("cursor-clicker-security", {
+    var res = await invokeAuthenticated("cursor-clicker-security", {
       body: { action: "owner_trade_history", clientActionId: crypto.randomUUID(), limit: 100 }
     });
     els.tradeRefresh.disabled = false;
@@ -296,7 +310,7 @@
 
   async function loadMigrationQueue() {
     els.migrationRefresh.disabled = true;
-    var res = await sb.functions.invoke("cursor-clicker-security", { body: { action: "owner_migration_queue" } });
+    var res = await invokeAuthenticated("cursor-clicker-security", { body: { action: "owner_migration_queue" } });
     els.migrationRefresh.disabled = false;
     if (res.error || !Array.isArray(res.data)) {
       els.migrationMessage.textContent = await extractErrorMessage(res, "Importanträge konnten nicht geladen werden.");
@@ -318,7 +332,7 @@
     var decision = btn.dataset.migration;
     if (decision === "approved" && !confirm("Diesen unveränderten Spielstand für den einmaligen Trading-Import freigeben?")) return;
     btn.disabled = true;
-    var res = await sb.functions.invoke("cursor-clicker-security", { body: { action: "owner_review_migration", clientActionId: crypto.randomUUID(), targetId: btn.dataset.id, decision: decision } });
+    var res = await invokeAuthenticated("cursor-clicker-security", { body: { action: "owner_review_migration", clientActionId: crypto.randomUUID(), targetId: btn.dataset.id, decision: decision } });
     if (res.error) els.migrationMessage.textContent = await extractErrorMessage(res, "Entscheidung konnte nicht gespeichert werden.");
     await loadMigrationQueue();
   });
