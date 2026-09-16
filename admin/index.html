@@ -42,6 +42,12 @@
 
         <p class="admin-message" id="admin-message" role="alert"></p>
 
+        <section class="admin-audit" aria-labelledby="migration-title">
+          <div class="admin-section-heading"><div><p class="admin-kicker">TRADING-SICHERHEIT</p><h2 id="migration-title">Inventar-Importe</h2><p>Alte Browser-Spielstände müssen vor dem einmaligen Import geprüft werden.</p></div><button class="admin-btn admin-btn-ghost" id="migration-refresh" type="button">Aktualisieren</button></div>
+          <p class="admin-message" id="migration-message" role="alert"></p>
+          <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Spieler</th><th>Zusammenfassung</th><th>Warnungen</th><th>Aktionen</th></tr></thead><tbody id="migration-table-body"><tr><td colspan="4" class="admin-empty">Wird geladen …</td></tr></tbody></table></div>
+        </section>
+
         <div class="admin-table-wrap">
           <table class="admin-table">
             <thead>
@@ -84,6 +90,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="../assets/js/supabase-client.js"></script>
-    <script src="admin.js?v=4"></script>
+    <script src="admin.js?v=5"></script>
   </body>
 </html>

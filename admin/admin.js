@@ -18,6 +18,9 @@
     tradeMessage: document.getElementById("trade-message"),
     tradeBody: document.getElementById("trade-table-body"),
     tradeRefresh: document.getElementById("trade-refresh"),
+    migrationBody: document.getElementById("migration-table-body"),
+    migrationMessage: document.getElementById("migration-message"),
+    migrationRefresh: document.getElementById("migration-refresh"),
   };
 
   var ROLES = ["user", "tester", "admin", "owner"];
@@ -89,6 +92,7 @@
     els.whoami.textContent = "Angemeldet als " + myProfile.username;
     showState("app");
     await loadUsers();
+    await loadMigrationQueue();
     await loadTradeHistory();
   }
 
@@ -289,6 +293,35 @@
 
   els.tradeSearch.addEventListener("input", renderTrades);
   els.tradeRefresh.addEventListener("click", loadTradeHistory);
+
+  async function loadMigrationQueue() {
+    els.migrationRefresh.disabled = true;
+    var res = await sb.functions.invoke("cursor-clicker-security", { body: { action: "owner_migration_queue" } });
+    els.migrationRefresh.disabled = false;
+    if (res.error || !Array.isArray(res.data)) {
+      els.migrationMessage.textContent = await extractErrorMessage(res, "Importanträge konnten nicht geladen werden.");
+      els.migrationMessage.className = "admin-message error";
+      return;
+    }
+    els.migrationMessage.textContent = "";
+    els.migrationBody.innerHTML = res.data.length ? res.data.map(function (r) {
+      var s = r.summary || {};
+      var flags = Array.isArray(r.risk_flags) && r.risk_flags.length ? r.risk_flags.join(", ") : "Keine";
+      return "<tr><td><strong>" + escapeHtml(r.username) + "</strong><br><span class=\"admin-mono\">" + escapeHtml(r.player_id) + "</span></td>" +
+        "<td>" + escapeHtml(String(s.cursorCopies || 0)) + " Cursor · " + escapeHtml(String(s.employeeCopies || 0)) + " Mitarbeiter<br>" + escapeHtml(String(s.coins || 0)) + " Coins</td>" +
+        "<td>" + escapeHtml(flags) + "</td><td class=\"admin-actions\"><button class=\"admin-btn admin-btn-small\" data-migration=\"approved\" data-id=\"" + r.user_id + "\">Freigeben</button><button class=\"admin-btn admin-btn-small admin-btn-danger\" data-migration=\"rejected\" data-id=\"" + r.user_id + "\">Ablehnen</button></td></tr>";
+    }).join("") : '<tr><td colspan="4" class="admin-empty">Keine offenen Importanträge.</td></tr>';
+  }
+  els.migrationRefresh.addEventListener("click", loadMigrationQueue);
+  els.migrationBody.addEventListener("click", async function (e) {
+    var btn = e.target.closest("button[data-migration]"); if (!btn) return;
+    var decision = btn.dataset.migration;
+    if (decision === "approved" && !confirm("Diesen unveränderten Spielstand für den einmaligen Trading-Import freigeben?")) return;
+    btn.disabled = true;
+    var res = await sb.functions.invoke("cursor-clicker-security", { body: { action: "owner_review_migration", clientActionId: crypto.randomUUID(), targetId: btn.dataset.id, decision: decision } });
+    if (res.error) els.migrationMessage.textContent = await extractErrorMessage(res, "Entscheidung konnte nicht gespeichert werden.");
+    await loadMigrationQueue();
+  });
 
   els.logoutBtn.addEventListener("click", async function () {
     await sb.auth.signOut();
