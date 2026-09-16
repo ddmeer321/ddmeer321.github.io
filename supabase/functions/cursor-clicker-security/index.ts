@@ -2,7 +2,6 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const ORIGINS = new Set([
   "https://ddmeer321.github.io",
   "http://127.0.0.1:8899", "http://localhost:8899",
@@ -45,10 +44,9 @@ Deno.serve(async req => {
   const token = req.headers.get("Authorization") ?? "";
   if (!token.startsWith("Bearer ")) return json(headers,{error:"Nicht angemeldet."},401);
   const jwt = token.slice("Bearer ".length).trim();
-  const caller = createClient(URL,ANON_KEY,{global:{headers:{Authorization:token}},auth:{persistSession:false,autoRefreshToken:false}});
-  const {data:auth,error:authError}=await caller.auth.getUser(jwt);
-  if (authError||!auth.user) return json(headers,{error:"Nicht angemeldet."},401);
   const admin=createClient(URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+  const {data:auth,error:authError}=await admin.auth.getUser(jwt);
+  if (authError||!auth.user) return json(headers,{error:"Nicht angemeldet."},401);
   const {data:profile}=await admin.from("profiles").select("role,banned").eq("id",auth.user.id).maybeSingle();
   if (!profile||profile.banned) return json(headers,{error:"Kein Zugriff."},403);
   let body:Record<string,unknown>;

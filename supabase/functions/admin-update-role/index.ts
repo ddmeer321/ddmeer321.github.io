@@ -2,7 +2,6 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const VALID_ROLES = ["user", "tester", "admin", "owner"];
 
 const ALLOWED_ORIGINS = [
@@ -46,16 +45,11 @@ Deno.serve(async (req) => {
       return json(cors, { error: "Nicht angemeldet." }, 401);
     }
     const jwt = authHeader.slice("Bearer ".length).trim();
-    const callerClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data: callerAuth, error: callerError } = await callerClient.auth.getUser(jwt);
-    if (callerError || !callerAuth.user) return json(cors, { error: "Nicht angemeldet." }, 401);
-
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+    const { data: callerAuth, error: callerError } = await admin.auth.getUser(jwt);
+    if (callerError || !callerAuth.user) return json(cors, { error: "Nicht angemeldet." }, 401);
     const { data: callerProfile } = await admin
       .from("profiles")
       .select("role")

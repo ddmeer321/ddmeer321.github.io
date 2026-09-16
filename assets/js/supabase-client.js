@@ -14,22 +14,30 @@
       };
     }
 
+    async function send(activeSession) {
+      return fetch(SUPABASE_URL + "/functions/v1/" + encodeURIComponent(functionName), {
+        method: (options && options.method) || "POST",
+        headers: Object.assign(
+          {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + activeSession.access_token,
+            "Content-Type": "application/json",
+          },
+          (options && options.headers) || {}
+        ),
+        body: options && options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      });
+    }
+
     try {
-      var response = await fetch(
-        SUPABASE_URL + "/functions/v1/" + encodeURIComponent(functionName),
-        {
-          method: (options && options.method) || "POST",
-          headers: Object.assign(
-            {
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: "Bearer " + session.access_token,
-              "Content-Type": "application/json",
-            },
-            (options && options.headers) || {}
-          ),
-          body: options && options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      var response = await send(session);
+      if (response.status === 401) {
+        var refreshResult = await window.supabaseClient.auth.refreshSession();
+        var refreshedSession = refreshResult.data && refreshResult.data.session;
+        if (!refreshResult.error && refreshedSession) {
+          response = await send(refreshedSession);
         }
-      );
+      }
       var data = await response.json().catch(function () { return null; });
       if (!response.ok) {
         return {
