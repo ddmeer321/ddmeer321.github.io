@@ -301,14 +301,16 @@
     if (Date.now() - zuletztGesendet < MIN_ABSTAND_MS) return;
     zuletztGesendet = Date.now();
     el.loungeEingabe.value = "";
-    // Sofort selbst anzeigen statt auf den Rueckweg zu warten - der eigene
-    // Text soll ohne Verzoegerung dastehen. Deshalb auch kein broadcast.self.
-    schreibe(el.loungeChat, "Du", text, "ich");
+    // Kein oertliches Anzeigen: Die Nachricht kommt ueber den Kanal zurueck
+    // (broadcast.self). Erscheint sie, ist sie wirklich draussen gewesen.
     try {
-      await kanal.send({ type: "broadcast", event: "chat",
+      var antwort = await kanal.send({ type: "broadcast", event: "chat",
                          payload: { text: text, name: ich.name, id: ich.id } });
+      if (antwort !== "ok") throw new Error(String(antwort));
     } catch (err) {
-      schreibe(el.loungeChat, null, "Deine Nachricht kam nicht an. Bitte noch einmal.", "system");
+      schreibe(el.loungeChat, null,
+        "Deine Nachricht kam nicht an. Steht oben ein roter Hinweis? Sonst hilft neu laden.", "system");
+      el.loungeEingabe.value = text;   // nicht wegwerfen, was jemand getippt hat
     }
   });
 
@@ -388,14 +390,22 @@
     try { sb.realtime.setAuth(s.access_token); } catch (e) { /* aeltere SDKs */ }
 
     kanal = sb.channel(TOPIC, {
-      config: { private: true, presence: { key: ich.id } },
+      // broadcast.self: Die eigene Nachricht geht zum Server und kommt von
+      // dort zurueck, statt nur oertlich angezeigt zu werden. Kostet ein paar
+      // Millisekunden und ist dafuer ehrlich: Was dasteht, ist wirklich
+      // rausgegangen. Vorher haette eine gescheiterte Nachricht trotzdem im
+      // eigenen Verlauf gestanden - man haette gedacht, man redet, waehrend
+      // niemand zuhoert.
+      config: { private: true, presence: { key: ich.id }, broadcast: { self: true } },
     });
 
     kanal.on("presence", { event: "sync" }, ausPresence);
     kanal.on("broadcast", { event: "chat" }, function (n) {
       var p = n.payload || {};
       if (!p.text) return;
-      schreibe(el.loungeChat, p.name || "Unbekannt", String(p.text).slice(0, MAX_ZEICHEN));
+      var vonMir = ich && p.id === ich.id;
+      schreibe(el.loungeChat, vonMir ? "Du" : (p.name || "Unbekannt"),
+               String(p.text).slice(0, MAX_ZEICHEN), vonMir ? "ich" : null);
     });
 
     kanal.subscribe(async function (status, err) {
@@ -403,6 +413,10 @@
         verbunden = true;
         el.hinweis.hidden = true;
         await kanal.track({ id: ich.id, name: ich.name, pid: ich.pid, imTrade: false });
+        // Ohne das haengt der Zaehler auf "verbinde ..." bis zum ersten
+        // Anwesenheits-Abgleich - verbunden ist man aber schon jetzt.
+        if (!anwesend.length) anwesend = [{ id: ich.id, name: ich.name, pid: ich.pid }];
+        zeichneLeute();
         schreibe(el.loungeChat, null, "Du bist in der Lounge. Sei nett zueinander.", "system");
         return;
       }
