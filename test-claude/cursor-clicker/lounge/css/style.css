@@ -22,7 +22,13 @@ body{
 .lounge-header{
   height:74px;padding:0 clamp(18px,4vw,64px);display:flex;align-items:center;
   justify-content:space-between;border-bottom:1px solid var(--line);
-  background:rgba(8,10,16,.82);backdrop-filter:blur(18px);position:sticky;top:0;z-index:5;
+  /* Safari kennt backdrop-filter nur mit -webkit-. Ohne Praefix bleibt die
+     Unschaerfe aus, und bei .82 liest man den Inhalt scharf durch den Kopf
+     hindurch. Deshalb beides: Praefix UND ein Grundton, der auch ohne
+     Unschaerfe traegt. */
+  background:rgba(8,10,16,.96);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  position:sticky;top:0;z-index:5;
 }
 .lounge-header>div:first-child{display:flex;gap:20px;align-items:center}
 .lounge-header a{color:var(--muted);text-decoration:none}
@@ -37,7 +43,10 @@ main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
 }
 
 .lounge-layout{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:18px;align-items:start}
-.sidebar{display:grid;gap:18px;align-content:start}
+/* Ohne min-width:0 waechst eine Rasterspalte auf die Breite ihres laengsten
+   Inhalts - auf schmalen Handys schob das die ganze Seite zur Seite. */
+.lounge-layout>*{min-width:0}
+.sidebar{display:grid;gap:18px;align-content:start;min-width:0}
 
 .panel{
   background:linear-gradient(145deg,rgba(19,24,36,.96),rgba(12,15,23,.96));
@@ -48,7 +57,7 @@ main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
 .klein{font-size:15px}
 .eyebrow{font-size:11px;color:var(--blue);font-weight:850;letter-spacing:.12em}
 .muted{color:var(--muted)}
-.section-head,.detail-head{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.section-head,.detail-head{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
 
 .zaehler{font-size:12px;color:var(--muted);white-space:nowrap;padding-top:4px}
 
@@ -56,9 +65,12 @@ main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
 
 .leute{display:grid;gap:8px}
 .person{
-  display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:center;
   border:1px solid var(--line);background:#0c1018;border-radius:12px;padding:11px 12px;
+  min-width:0;
 }
+.person>div{min-width:0}
+.person-name,.person-meta{overflow-wrap:anywhere}
 .person.neu{animation:rein .45s ease}
 @keyframes rein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
@@ -67,6 +79,7 @@ main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
 .punkt{width:9px;height:9px;border-radius:50%;background:var(--green)}
 .person[data-zustand="beschaeftigt"] .punkt{background:var(--gelb)}
 .person-name{font-weight:750}
+.panel{min-width:0}
 .person-meta{font:12px ui-monospace,monospace;color:var(--muted)}
 .person-zustand{font-size:12px;color:var(--muted)}
 

@@ -45,8 +45,8 @@
                Hauptweg, sondern die Rueckfalloption, wenn jemand offline
                geht. -->
           <section class="panel">
-            <span class="eyebrow">FALLS JEMAND OFFLINE GING</span>
-            <h2 class="klein">Offene Trades</h2>
+            <span class="eyebrow">AUCH WENN JEMAND OFFLINE GEHT</span>
+            <h2 class="klein">Deine Trades</h2>
             <div class="trades" id="trades"></div>
           </section>
         </aside>
@@ -95,9 +95,9 @@
             <div class="inventory-grid" id="inventar"></div>
 
             <div class="trade-actions">
-              <button class="btn" type="button">Auswahl speichern</button>
+              <button class="btn" type="button" id="speichern">Auswahl speichern</button>
               <button class="btn success" type="button" id="bestaetigen">Bestätigen</button>
-              <button class="btn danger" type="button">Trade abbrechen</button>
+              <button class="btn danger" type="button" id="abbrechen">Trade abbrechen</button>
             </div>
 
             <!-- Der private Chat gehoert in den Trade, nicht neben die Lounge:

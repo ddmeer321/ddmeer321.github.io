@@ -37,10 +37,14 @@
     { wer: "Epkolino",    was: "wer tauscht Ice gegen Steel?" },
   ];
 
-  var TRADE_SKRIPT = [
-    { wer: "Theo", was: "passt das so?" },
-    { wer: "Theo", was: "kann auch noch Quantum dazulegen wenn du Ice mitgibst" },
-  ];
+  // Als Funktion, nicht als feste Liste: Sonst redet im Trade mit Epkolino
+  // ploetzlich Theo. (Genau das ist passiert.)
+  function tradeSkript(p) {
+    return [
+      { wer: p.name, was: "passt das so?" },
+      { wer: p.name, was: "kann auch noch was dazulegen wenn du Ice mitgibst" },
+    ];
+  }
 
   var INVENTAR = [
     { id: "i1", icon: "🌌", name: "Galaxy Cursor",  rar: "mythic",  gewaehlt: true },
@@ -49,12 +53,14 @@
     { id: "i4", icon: "⚙️", name: "Steel Cursor",   rar: "rare",    gewaehlt: false },
     { id: "i5", icon: "🔥", name: "Fire Cursor",    rar: "epic",    gewaehlt: false },
   ];
-  var IHR_ANGEBOT = [{ icon: "✨", name: "Origin Cursor" }];
+  var IHR_ANGEBOT = [{ icon: "✨", name: "Origin Cursor", rar: "secret" }];
 
   var anwesend = [];           // ids aus POOL
   var beschaeftigt = ["p2"];   // steckt schon in einem Trade
   var skriptZeiger = 0;
   var tradePartner = null;
+  var abgeschlossen = false;
+  var eingefroren = [];        // was beim Abschluss auf dem Tisch lag
   var uhren = [];
 
   var $ = function (id) { return document.getElementById(id); };
@@ -67,6 +73,7 @@
     titel: $("trade-titel"), meta: $("trade-meta"), status: $("trade-status"),
     mein: $("mein-angebot"), ihr: $("ihr-angebot"), inventar: $("inventar"),
     zurueck: $("zurueck"), bestaetigen: $("bestaetigen"),
+    speichern: $("speichern"), abbrechen: $("abbrechen"),
   };
 
   function person(id) {
@@ -137,8 +144,8 @@
     var links = document.createElement("span");
     links.textContent = tradePartner.name;
     var rechts = document.createElement("span");
-    rechts.className = "status offered";
-    rechts.textContent = "offered";
+    rechts.className = "status " + (abgeschlossen ? "completed" : "offered");
+    rechts.textContent = abgeschlossen ? "completed" : "offered";
     row.appendChild(links); row.appendChild(rechts);
     row.addEventListener("click", function () { zeigeTrade(); });
     el.trades.appendChild(row);
@@ -218,7 +225,7 @@
 
   function zeichneAngebot() {
     el.mein.textContent = "";
-    var gewaehlt = INVENTAR.filter(function (i) { return i.gewaehlt; });
+    var gewaehlt = abgeschlossen ? eingefroren : INVENTAR.filter(function (i) { return i.gewaehlt; });
     if (!gewaehlt.length) {
       var leer = document.createElement("span");
       leer.className = "muted";
@@ -249,6 +256,7 @@
       var box = document.createElement("input");
       box.type = "checkbox";
       box.checked = i.gewaehlt;
+      box.disabled = abgeschlossen;
       box.addEventListener("change", function () {
         i.gewaehlt = box.checked;
         zeichneAngebot();
@@ -274,9 +282,12 @@
 
   function oeffneTrade(p) {
     tradePartner = p;
+    abgeschlossen = false; eingefroren = [];
+    el.status.textContent = "offered"; el.status.className = "status offered";
+    el.speichern.disabled = false; el.abbrechen.disabled = false;
     if (beschaeftigt.indexOf(p.id) === -1) beschaeftigt.push(p.id);
     el.tradeChat.textContent = "";
-    TRADE_SKRIPT.forEach(function (n) { schreibe(el.tradeChat, n.wer, n.was); });
+    tradeSkript(p).forEach(function (n) { schreibe(el.tradeChat, n.wer, n.was); });
     zeichneLeute(); zeichneTrades(); zeigeTrade();
   }
 
@@ -304,9 +315,14 @@
   el.zurueck.addEventListener("click", zeigeLounge);
 
   el.bestaetigen.addEventListener("click", function () {
+    var partner = tradePartner;
     el.bestaetigen.disabled = true;
     el.bestaetigen.textContent = "Bestätigt — warte auf Gegenseite";
-    schreibe(el.tradeChat, null, "Du hast bestätigt. Sobald " + tradePartner.name + " auch bestätigt, wird getauscht.", "system");
+    schreibe(el.tradeChat, null, "Du hast bestätigt. Sobald " + partner.name + " auch bestätigt, wird getauscht.", "system");
+    // Ein Bildschirm, auf dem nie etwas passiert, wirkt kaputt. In der
+    // Attrappe zieht die Gegenseite deshalb nach - im Echten kommt an
+    // dieser Stelle ihre Bestaetigung ueber den Kanal.
+    uhren.push(window.setTimeout(function () { schliesseAb(partner); }, 2600));
   });
 
   el.loungeForm.addEventListener("submit", function (e) {
@@ -324,6 +340,35 @@
     schreibe(el.tradeChat, "Du", text, "ich");
     el.tradeEingabe.value = "";
   });
+
+  /** Beide haben bestaetigt: Die Items wechseln den Besitzer. In der
+      Datenbank ist das ein einziges UPDATE - entweder alles oder nichts. */
+  function schliesseAb(partner) {
+    if (abgeschlossen || tradePartner !== partner) return;
+    abgeschlossen = true;
+
+    eingefroren = INVENTAR.filter(function (i) { return i.gewaehlt; });
+    INVENTAR = INVENTAR.filter(function (i) { return !i.gewaehlt; });
+    IHR_ANGEBOT.forEach(function (i) {
+      INVENTAR.push({ id: "neu-" + i.name, icon: i.icon, name: i.name, rar: i.rar, gewaehlt: false });
+    });
+
+    beschaeftigt = beschaeftigt.filter(function (id) { return id !== partner.id; });
+
+    el.status.textContent = "completed";
+    el.status.className = "status completed";
+    el.meta.textContent = partner.pid + " · abgeschlossen um " + uhrzeit();
+    el.bestaetigen.textContent = "Getauscht";
+    el.speichern.disabled = true;
+    el.abbrechen.disabled = true;
+
+    schreibe(el.tradeChat, null, partner.name + " hat bestätigt.", "system");
+    schreibe(el.tradeChat, null,
+      "Getauscht. " + IHR_ANGEBOT.map(function (i) { return i.name; }).join(", ") +
+      " liegt jetzt bei deinen Duplikaten.", "system");
+
+    zeichneAngebot(); zeichneInventar(); zeichneLeute(); zeichneTrades();
+  }
 
   // ---------- Start ----------
 
