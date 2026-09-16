@@ -13,12 +13,18 @@
     count: document.getElementById("admin-count"),
     message: document.getElementById("admin-message"),
     tableBody: document.getElementById("admin-table-body"),
+    tradeSearch: document.getElementById("trade-search"),
+    tradeCount: document.getElementById("trade-count"),
+    tradeMessage: document.getElementById("trade-message"),
+    tradeBody: document.getElementById("trade-table-body"),
+    tradeRefresh: document.getElementById("trade-refresh"),
   };
 
   var ROLES = ["user", "tester", "admin", "owner"];
   var ROLE_LABELS = { user: "User", tester: "Tester", admin: "Admin", owner: "Owner" };
 
   var users = [];
+  var trades = [];
   var currentUserId = null;
 
   function showState(state) {
@@ -83,6 +89,7 @@
     els.whoami.textContent = "Angemeldet als " + myProfile.username;
     showState("app");
     await loadUsers();
+    await loadTradeHistory();
   }
 
   async function loadUsers() {
@@ -218,6 +225,70 @@
       render();
     }
   });
+
+
+  function formatDateTime(iso) {
+    if (!iso) return "—";
+    try { return new Date(iso).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }); }
+    catch (e) { return iso; }
+  }
+
+  async function loadTradeHistory() {
+    els.tradeRefresh.disabled = true;
+    els.tradeMessage.textContent = "Trading-Verlauf wird geladen …";
+    var res = await sb.functions.invoke("cursor-clicker-security", {
+      body: { action: "owner_trade_history", clientActionId: crypto.randomUUID(), limit: 100 }
+    });
+    els.tradeRefresh.disabled = false;
+    if (res.error || !res.data) {
+      els.tradeMessage.textContent = await extractErrorMessage(res, "Trading-Verlauf konnte nicht geladen werden.");
+      els.tradeMessage.className = "admin-message error";
+      return;
+    }
+    trades = Array.isArray(res.data.trades) ? res.data.trades : [];
+    els.tradeMessage.textContent = "";
+    els.tradeMessage.className = "admin-message";
+    renderTrades();
+  }
+
+  function renderTrades() {
+    var query = els.tradeSearch.value.trim().toLowerCase();
+    var filtered = trades.filter(function (trade) {
+      if (!query) return true;
+      return [trade.id, trade.initiator_username, trade.initiator_player_id,
+        trade.recipient_username, trade.recipient_player_id, trade.status]
+        .some(function (value) { return String(value || "").toLowerCase().indexOf(query) !== -1; });
+    });
+    els.tradeCount.textContent = filtered.length + " von " + trades.length + " Trades";
+    if (!filtered.length) {
+      els.tradeBody.innerHTML = '<tr><td colspan="6" class="admin-empty">' +
+        (trades.length ? "Keine passenden Trades." : "Noch keine Trades vorhanden.") + "</td></tr>";
+      return;
+    }
+    els.tradeBody.innerHTML = filtered.map(function (trade) {
+      var items = Array.isArray(trade.items) ? trade.items : [];
+      var events = Array.isArray(trade.events) ? trade.events : [];
+      var itemHtml = items.length ? items.map(function (item) {
+        var snapshot = item.snapshot || {};
+        return "<li>" + escapeHtml(snapshot.name || snapshot.catalogId || snapshot.catalog_id || "Gegenstand") +
+          " · " + escapeHtml(snapshot.rarity || snapshot.itemType || snapshot.item_type || "unbekannt") + "</li>";
+      }).join("") : "<li>Keine Gegenstände protokolliert</li>";
+      var eventHtml = events.length ? events.map(function (event) {
+        return "<li>" + escapeHtml(formatDateTime(event.createdAt)) + " · " + escapeHtml(event.type) + "</li>";
+      }).join("") : "<li>Noch keine Ereignisse</li>";
+      return "<tr>" +
+        "<td>" + escapeHtml(formatDateTime(trade.created_at)) + "</td>" +
+        '<td class="admin-mono">' + escapeHtml(trade.id) + "</td>" +
+        "<td><strong>" + escapeHtml(trade.initiator_username) + "</strong><br><span class=\"admin-mono\">" + escapeHtml(trade.initiator_player_id) + "</span></td>" +
+        "<td><strong>" + escapeHtml(trade.recipient_username) + "</strong><br><span class=\"admin-mono\">" + escapeHtml(trade.recipient_player_id) + "</span></td>" +
+        '<td><span class="admin-trade-status status-' + escapeHtml(trade.status) + '">' + escapeHtml(trade.status) + "</span></td>" +
+        '<td><details class="admin-trade-details"><summary>Anzeigen</summary><strong>Gegenstände</strong><ul>' + itemHtml +
+        "</ul><strong>Ereignisse</strong><ul>" + eventHtml + "</ul></details></td></tr>";
+    }).join("");
+  }
+
+  els.tradeSearch.addEventListener("input", renderTrades);
+  els.tradeRefresh.addEventListener("click", loadTradeHistory);
 
   els.logoutBtn.addEventListener("click", async function () {
     await sb.auth.signOut();

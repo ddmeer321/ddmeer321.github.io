@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#0b0d12" />
     <title>Admin – Spielebibliothek</title>
-    <link rel="stylesheet" href="admin.css?v=1" />
+    <link rel="stylesheet" href="admin.css?v=2" />
   </head>
   <body>
     <div id="admin-loading" class="admin-state">
@@ -57,11 +57,33 @@
             <tbody id="admin-table-body"></tbody>
           </table>
         </div>
+
+        <section class="admin-audit" aria-labelledby="trade-audit-title">
+          <div class="admin-section-heading">
+            <div>
+              <p class="admin-kicker">NUR OWNER</p>
+              <h2 id="trade-audit-title">Trading-Verlauf</h2>
+              <p>Unveränderbares Serverprotokoll abgeschlossener, abgebrochener und fehlgeschlagener Trades.</p>
+            </div>
+            <button class="admin-btn admin-btn-ghost" id="trade-refresh" type="button">Aktualisieren</button>
+          </div>
+          <div class="admin-toolbar">
+            <input type="search" id="trade-search" class="admin-search" placeholder="Trade-ID, Benutzername oder Spieler-ID suchen …" />
+            <span id="trade-count" class="admin-count"></span>
+          </div>
+          <p class="admin-message" id="trade-message" role="alert"></p>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>Zeit</th><th>Trade-ID</th><th>Spieler A</th><th>Spieler B</th><th>Status</th><th>Details</th></tr></thead>
+              <tbody id="trade-table-body"><tr><td colspan="6" class="admin-empty">Noch keine Trades vorhanden.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="../assets/js/supabase-client.js"></script>
-    <script src="admin.js?v=3"></script>
+    <script src="admin.js?v=4"></script>
   </body>
 </html>
