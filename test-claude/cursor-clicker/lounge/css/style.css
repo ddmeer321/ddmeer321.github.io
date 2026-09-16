@@ -41,6 +41,8 @@ main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
   margin:0 0 18px;padding:11px 14px;border-radius:12px;
   background:#332a0c;color:var(--gelb);font-size:13px;
 }
+.attrappe.warnung{background:#3a1216;color:#ffc2cc}
+.leer-hinweis{margin:10px 0 0;color:var(--muted);font-size:14px}
 
 .lounge-layout{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:18px;align-items:start}
 /* Ohne min-width:0 waechst eine Rasterspalte auf die Breite ihres laengsten

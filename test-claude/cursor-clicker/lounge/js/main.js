@@ -1,8 +1,13 @@
-// Trading-Lounge — Vorschau.
+// Trading-Lounge.
 //
-// ATTRAPPE. Kein Realtime-Kanal, keine Datenbank, nichts wird gesendet. Die
-// Leute, der Chat und der Trade sind erfunden. Es geht einzig darum, wie sich
-// der Ablauf anfuehlt, BEVOR Technik daran haengt.
+// ECHT: Anwesenheitsliste und Lounge-Chat laufen ueber Supabase Realtime.
+// ATTRAPPE: Der Trade-Bereich (Angebote, Inventar, Tausch) ist noch erfunden.
+//
+// DER KANAL IST PRIVAT. Der Anon-Key steht im Quelltext jeder Seite - ein
+// offener Realtime-Kanal waere damit fuer jeden im Internet offen, der den
+// Quelltext liest. test-gate.js sperrt die SEITE, nicht den KANAL. Die
+// Regeln dazu liegen in supabase/migrations/..._realtime_lounge_authorization
+// als RLS-Policies auf realtime.messages.
 //
 // Der Unterschied zur bisherigen Trading-Seite ist nicht der Tausch selbst -
 // der ist serverseitig sauber gebaut und bleibt. Anders ist der Weg dorthin:
@@ -15,27 +20,12 @@
 // Lounge-Chat steht dann, was nur die Gegenseite lesen sollte.
 
 (function () {
-  var TAKT_NACHRICHT = 6000;   // wie oft jemand in der Lounge schreibt
-  var TAKT_KOMMTGEHT = 9000;   // wie oft jemand kommt oder geht
-  var TIPPDAUER = 1500;        // wie lange "tippt …" vor der Nachricht steht
+  var sb = window.supabaseClient;
+  if (!sb) return;
 
-  var POOL = [
-    { id: "p1", name: "Theo",        pid: "P-7X2K" },
-    { id: "p2", name: "Dodo_Test",   pid: "P-4M9Q" },
-    { id: "p3", name: "Epkolino",    pid: "P-1B8V" },
-    { id: "p4", name: "Johannes",    pid: "P-6R3T" },
-    { id: "p5", name: "Dqrkedstone", pid: "P-9L5W" },
-    { id: "p6", name: "epke.max",    pid: "P-2C7H" },
-  ];
-
-  var LOUNGE_SKRIPT = [
-    { wer: "Theo",        was: "Suche Origin, biete Galaxy + Quantum" },
-    { wer: "Johannes",    was: "hat wer nen Phoenix übrig?" },
-    { wer: "Dqrkedstone", was: "ich hab zwei, was gibst du dafür?" },
-    { wer: "Johannes",    was: "Storm und Fire" },
-    { wer: "Dqrkedstone", was: "passt, schreib mich an" },
-    { wer: "Epkolino",    was: "wer tauscht Ice gegen Steel?" },
-  ];
+  var TOPIC = "cc-lounge";
+  var MAX_ZEICHEN = 200;
+  var MIN_ABSTAND_MS = 400;   // gegen versehentliches Dauerfeuer
 
   // Als Funktion, nicht als feste Liste: Sonst redet im Trade mit Epkolino
   // ploetzlich Theo. (Genau das ist passiert.)
@@ -55,9 +45,12 @@
   ];
   var IHR_ANGEBOT = [{ icon: "✨", name: "Origin Cursor", rar: "secret" }];
 
-  var anwesend = [];           // ids aus POOL
-  var beschaeftigt = ["p2"];   // steckt schon in einem Trade
-  var skriptZeiger = 0;
+  var ich = null;              // { id, name, pid, rolle }
+  var anwesend = [];           // aus der Presence des Kanals
+  var beschaeftigt = [];       // wer laut eigener Meldung in einem Trade ist
+  var lokalBeschaeftigt = [];  // nur die Attrappe: mit wem ICH gerade "handle"
+  var kanal = null;
+  var zuletztGesendet = 0;
   var tradePartner = null;
   var abgeschlossen = false;
   var eingefroren = [];        // was beim Abschluss auf dem Tisch lag
@@ -74,12 +67,9 @@
     mein: $("mein-angebot"), ihr: $("ihr-angebot"), inventar: $("inventar"),
     zurueck: $("zurueck"), bestaetigen: $("bestaetigen"),
     speichern: $("speichern"), abbrechen: $("abbrechen"),
+    hinweis: $("kanal-hinweis"),
   };
 
-  function person(id) {
-    for (var i = 0; i < POOL.length; i++) if (POOL[i].id === id) return POOL[i];
-    return null;
-  }
   function istBeschaeftigt(id) { return beschaeftigt.indexOf(id) !== -1; }
 
   function uhrzeit() {
@@ -91,8 +81,21 @@
 
   function zeichneLeute(neuId) {
     el.leute.textContent = "";
-    anwesend.forEach(function (id) {
-      var p = person(id); if (!p) return;
+
+    var andere = anwesend.filter(function (p) { return !ich || p.id !== ich.id; });
+    if (!andere.length) {
+      var allein = document.createElement("p");
+      allein.className = "leer-hinweis";
+      allein.textContent = anwesend.length
+        ? "Gerade ist sonst niemand hier. Sobald jemand die Lounge öffnet, steht er hier."
+        : "Verbinde …";
+      el.leute.appendChild(allein);
+      el.zaehler.textContent = anwesend.length + " online";
+      return;
+    }
+
+    andere.forEach(function (p) {
+      var id = p.id;
       var busy = istBeschaeftigt(id);
 
       var zeile = document.createElement("div");
@@ -185,42 +188,6 @@
     if (unten) behaelter.scrollTop = behaelter.scrollHeight;
   }
 
-  function naechsteLoungeNachricht() {
-    var n = LOUNGE_SKRIPT[skriptZeiger % LOUNGE_SKRIPT.length];
-    skriptZeiger++;
-    if (anwesend.indexOf(idVon(n.wer)) === -1) return;   // wer weg ist, schreibt nicht
-    el.tippt.textContent = n.wer + " tippt …";
-    uhren.push(window.setTimeout(function () {
-      el.tippt.textContent = "";
-      schreibe(el.loungeChat, n.wer, n.was);
-    }, TIPPDAUER));
-  }
-
-  function idVon(name) {
-    for (var i = 0; i < POOL.length; i++) if (POOL[i].name === name) return POOL[i].id;
-    return null;
-  }
-
-  function kommtOderGeht() {
-    var draussen = POOL.filter(function (p) { return anwesend.indexOf(p.id) === -1; });
-    // Nie unter drei, sonst wirkt die Lounge im Screenshot tot.
-    if (draussen.length && (anwesend.length <= 3 || Math.random() < 0.6)) {
-      var neu = draussen[Math.floor(Math.random() * draussen.length)];
-      anwesend.push(neu.id);
-      zeichneLeute(neu.id);
-      schreibe(el.loungeChat, null, neu.name + " ist der Lounge beigetreten", "system");
-    } else {
-      var weg = anwesend.filter(function (id) {
-        return !istBeschaeftigt(id) && (!tradePartner || id !== tradePartner.id);
-      });
-      if (!weg.length) return;
-      var raus = weg[Math.floor(Math.random() * weg.length)];
-      anwesend = anwesend.filter(function (id) { return id !== raus; });
-      zeichneLeute();
-      schreibe(el.loungeChat, null, person(raus).name + " hat die Lounge verlassen", "system");
-    }
-  }
-
   // ---------- Trade ----------
 
   function zeichneAngebot() {
@@ -285,6 +252,7 @@
     abgeschlossen = false; eingefroren = [];
     el.status.textContent = "offered"; el.status.className = "status offered";
     el.speichern.disabled = false; el.abbrechen.disabled = false;
+    if (lokalBeschaeftigt.indexOf(p.id) === -1) lokalBeschaeftigt.push(p.id);
     if (beschaeftigt.indexOf(p.id) === -1) beschaeftigt.push(p.id);
     el.tradeChat.textContent = "";
     tradeSkript(p).forEach(function (n) { schreibe(el.tradeChat, n.wer, n.was); });
@@ -325,12 +293,22 @@
     uhren.push(window.setTimeout(function () { schliesseAb(partner); }, 2600));
   });
 
-  el.loungeForm.addEventListener("submit", function (e) {
+  el.loungeForm.addEventListener("submit", async function (e) {
     e.preventDefault();
-    var text = el.loungeEingabe.value.trim();
-    if (!text) return;
-    schreibe(el.loungeChat, "Du", text, "ich");
+    var text = el.loungeEingabe.value.trim().slice(0, MAX_ZEICHEN);
+    if (!text || !kanal || !ich) return;
+    if (Date.now() - zuletztGesendet < MIN_ABSTAND_MS) return;
+    zuletztGesendet = Date.now();
     el.loungeEingabe.value = "";
+    // Sofort selbst anzeigen statt auf den Rueckweg zu warten - der eigene
+    // Text soll ohne Verzoegerung dastehen. Deshalb auch kein broadcast.self.
+    schreibe(el.loungeChat, "Du", text, "ich");
+    try {
+      await kanal.send({ type: "broadcast", event: "chat",
+                         payload: { text: text, name: ich.name, id: ich.id } });
+    } catch (err) {
+      schreibe(el.loungeChat, null, "Deine Nachricht kam nicht an. Bitte noch einmal.", "system");
+    }
   });
 
   el.tradeForm.addEventListener("submit", function (e) {
@@ -353,6 +331,7 @@
       INVENTAR.push({ id: "neu-" + i.name, icon: i.icon, name: i.name, rar: i.rar, gewaehlt: false });
     });
 
+    lokalBeschaeftigt = lokalBeschaeftigt.filter(function (id) { return id !== partner.id; });
     beschaeftigt = beschaeftigt.filter(function (id) { return id !== partner.id; });
 
     el.status.textContent = "completed";
@@ -370,14 +349,76 @@
     zeichneAngebot(); zeichneInventar(); zeichneLeute(); zeichneTrades();
   }
 
-  // ---------- Start ----------
+  // ---------- Start: echter Kanal ----------
 
-  anwesend = ["p1", "p2", "p4", "p5"];
+  function fehler(text) {
+    el.hinweis.textContent = text;
+    el.hinweis.hidden = false;
+  }
+
+  function ausPresence() {
+    var zustand = kanal.presenceState();
+    var liste = [], busy = [];
+    Object.keys(zustand).forEach(function (schluessel) {
+      var eintraege = zustand[schluessel];
+      if (!eintraege || !eintraege.length) return;
+      var m = eintraege[0];                       // ein Geraet reicht
+      if (!m || !m.id) return;
+      liste.push({ id: m.id, name: m.name || "Unbekannt", pid: m.pid || "" });
+      if (m.imTrade) busy.push(m.id);
+    });
+    liste.sort(function (a, b) { return a.name.localeCompare(b.name, "de"); });
+    anwesend = liste;
+    beschaeftigt = busy.concat(lokalBeschaeftigt);
+    zeichneLeute();
+  }
+
+  async function start() {
+    var s = (await sb.auth.getSession()).data.session;
+    if (!s) { fehler("Du bist nicht angemeldet."); return; }
+
+    var profil = (await sb.from("profiles").select("username, player_id, role")
+      .eq("id", s.user.id).maybeSingle()).data;
+    if (!profil) { fehler("Dein Profil konnte nicht geladen werden."); return; }
+    ich = { id: s.user.id, name: profil.username, pid: profil.player_id, rolle: profil.role };
+
+    // Ohne das kennt die Realtime-Verbindung die Anmeldung nicht und die
+    // Policies auf realtime.messages lehnen sie ab.
+    try { sb.realtime.setAuth(s.access_token); } catch (e) { /* aeltere SDKs */ }
+
+    kanal = sb.channel(TOPIC, {
+      config: { private: true, presence: { key: ich.id } },
+    });
+
+    kanal.on("presence", { event: "sync" }, ausPresence);
+    kanal.on("broadcast", { event: "chat" }, function (n) {
+      var p = n.payload || {};
+      if (!p.text) return;
+      schreibe(el.loungeChat, p.name || "Unbekannt", String(p.text).slice(0, MAX_ZEICHEN));
+    });
+
+    kanal.subscribe(async function (status, err) {
+      if (status === "SUBSCRIBED") {
+        el.hinweis.hidden = true;
+        await kanal.track({ id: ich.id, name: ich.name, pid: ich.pid, imTrade: false });
+        schreibe(el.loungeChat, null, "Du bist in der Lounge. Sei nett zueinander.", "system");
+        return;
+      }
+      if (status === "CHANNEL_ERROR") {
+        fehler("Die Lounge konnte nicht geöffnet werden" +
+          (err && err.message ? " (" + err.message + ")" : "") +
+          ". Der Chat braucht die Rolle Tester, Admin oder Owner.");
+      }
+      if (status === "TIMED_OUT") fehler("Die Verbindung zur Lounge ist abgelaufen. Bitte neu laden.");
+      if (status === "CLOSED") zeichneLeute();
+    });
+
+    // Sauber abmelden, sonst haengt man fuer die anderen noch in der Liste.
+    window.addEventListener("pagehide", function () {
+      try { kanal.untrack(); sb.removeChannel(kanal); } catch (e) {}
+    });
+  }
+
   zeichneLeute(); zeichneTrades();
-  schreibe(el.loungeChat, null, "Willkommen in der Lounge. Sei nett zueinander.", "system");
-  LOUNGE_SKRIPT.slice(0, 3).forEach(function (n) { schreibe(el.loungeChat, n.wer, n.was); });
-  skriptZeiger = 3;
-
-  uhren.push(window.setInterval(naechsteLoungeNachricht, TAKT_NACHRICHT));
-  uhren.push(window.setInterval(kommtOderGeht, TAKT_KOMMTGEHT));
+  start();
 })();
