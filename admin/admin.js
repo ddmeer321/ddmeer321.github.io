@@ -80,7 +80,12 @@
     // den öffentlichen Anon-Key als Bearer-Token verwenden. Der Gateway nimmt
     // diesen JWT an, aber die Edge Function findet damit keinen Benutzer.
     sb.functions.setAuth(session.access_token);
-    return sb.functions.invoke(functionName, options);
+    var invokeOptions = Object.assign({}, options, {
+      headers: Object.assign({}, options && options.headers, {
+        Authorization: "Bearer " + session.access_token,
+      }),
+    });
+    return sb.functions.invoke(functionName, invokeOptions);
   }
 
   async function init() {

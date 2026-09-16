@@ -44,8 +44,9 @@ Deno.serve(async req => {
   if (Number(req.headers.get("content-length")||0)>16384) return json(headers,{error:"Anfrage zu groß."},413);
   const token = req.headers.get("Authorization") ?? "";
   if (!token.startsWith("Bearer ")) return json(headers,{error:"Nicht angemeldet."},401);
+  const jwt = token.slice("Bearer ".length).trim();
   const caller = createClient(URL,ANON_KEY,{global:{headers:{Authorization:token}},auth:{persistSession:false,autoRefreshToken:false}});
-  const {data:auth,error:authError}=await caller.auth.getUser();
+  const {data:auth,error:authError}=await caller.auth.getUser(jwt);
   if (authError||!auth.user) return json(headers,{error:"Nicht angemeldet."},401);
   const admin=createClient(URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data:profile}=await admin.from("profiles").select("role,banned").eq("id",auth.user.id).maybeSingle();
