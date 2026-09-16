@@ -70,22 +70,7 @@
   }
 
   async function invokeAuthenticated(functionName, options) {
-    var sessionRes = await sb.auth.getSession();
-    var session = sessionRes.data && sessionRes.data.session;
-    if (sessionRes.error || !session) {
-      return { data: { error: "Nicht angemeldet." }, error: sessionRes.error || new Error("Keine aktive Sitzung.") };
-    }
-
-    // Die Functions-Instanz kann sonst nach einem späteren setSession() noch
-    // den öffentlichen Anon-Key als Bearer-Token verwenden. Der Gateway nimmt
-    // diesen JWT an, aber die Edge Function findet damit keinen Benutzer.
-    sb.functions.setAuth(session.access_token);
-    var invokeOptions = Object.assign({}, options, {
-      headers: Object.assign({}, options && options.headers, {
-        Authorization: "Bearer " + session.access_token,
-      }),
-    });
-    return sb.functions.invoke(functionName, invokeOptions);
+    return window.invokeAuthenticatedFunction(functionName, options);
   }
 
   async function init() {
