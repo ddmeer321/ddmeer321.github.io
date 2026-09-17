@@ -198,3 +198,23 @@ body {
 .admin-trade-details strong { display: block; margin-top: 10px; font-size: .72rem; color: var(--muted); text-transform: uppercase; }
 .admin-trade-details ul { margin: 5px 0; padding-left: 18px; }
 @media (max-width:640px) { .admin-section-heading { align-items: start; flex-direction: column; } }
+
+/* ---------- Import-Vorschau in der Owner-Warteschlange ---------- */
+/* Die Entscheidung lautet "duerfen diese Items entstehen?" - also muessen
+   sie oben stehen und die Zusammenfassung darunter. Die Seltenheit traegt
+   Farbe, damit Auffaelliges ins Auge springt statt gelesen werden zu
+   muessen. */
+.import-vorschau { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.import-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.82rem; font-weight: 700; white-space: nowrap;
+}
+.import-item .rar { font-weight: 600; opacity: 0.75; font-size: 0.74rem; }
+.import-item.secret    { background: rgba(255, 92, 92, 0.16);  border-color: rgba(255, 92, 92, 0.45); color: #ffb3b3; }
+.import-item.mythic    { background: rgba(255, 176, 32, 0.16); border-color: rgba(255, 176, 32, 0.45); color: #ffd79a; }
+.import-item.legendary { background: rgba(255, 176, 32, 0.10); border-color: rgba(255, 176, 32, 0.28); }
+.import-nichts { margin: 0 0 8px; color: var(--muted); font-size: 0.86rem; }
+.import-summe { color: var(--muted); font-size: 0.82rem; }
