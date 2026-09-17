@@ -157,3 +157,13 @@ main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
 @media(prefers-reduced-motion:reduce){
   .person.neu{animation:none}
 }
+
+/* Die Regel steht ueber dem Verlauf, nicht in einer Fussnote: Wer sie erst
+   liest, nachdem er getippt hat, liest sie zu spaet. */
+.chat-regel{
+  margin:0 0 10px;padding:9px 12px;border-radius:11px;
+  background:rgba(120,151,255,.09);border:1px solid rgba(120,151,255,.22);
+  font-size:12.5px;line-height:1.45;color:var(--muted);
+}
+.chat-regel strong{color:var(--text)}
+.chat-regel a{color:var(--cyan)}
