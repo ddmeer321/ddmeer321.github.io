@@ -12,6 +12,7 @@
   /* REACTION!: das Rot-Gruen des Spiels waere als Plakette missverstaendlich
      (rot liest sich als Warnung), deshalb ein eigener, ruhiger Ton. */
   --lime: #b6e26a;
+  --rosa: #ff8fb8;   /* Trading-Lounge */
   --serif: Georgia, "Iowan Old Style", "Palatino Linotype", ui-serif, serif;
 }
 
@@ -95,6 +96,7 @@ a { color: var(--accent); }
 .privacy-nav .dot-cc i { color: var(--accent); }
 .privacy-nav .dot-rt i { color: var(--lime); }
 .privacy-nav .dot-ca i { color: var(--cyan); }
+.privacy-nav .dot-tl i { color: var(--rosa); }
 
 .privacy-part { margin-top: 38px; scroll-margin-top: 20px; }
 
@@ -124,6 +126,7 @@ a { color: var(--accent); }
 .privacy-badge.nba { background: rgba(56, 216, 255, 0.16); color: var(--cyan); border: 1px solid rgba(56, 216, 255, 0.35); }
 .privacy-badge.cc { background: rgba(139, 139, 255, 0.16); color: var(--accent); border: 1px solid rgba(139, 139, 255, 0.35); }
 .privacy-badge.rt { background: rgba(182, 226, 106, 0.16); color: var(--lime); border: 1px solid rgba(182, 226, 106, 0.35); }
+.privacy-badge.tl { background: rgba(255, 143, 184, 0.16); color: var(--rosa); border: 1px solid rgba(255, 143, 184, 0.35); }
 .privacy-badge.ca { background: rgba(56, 216, 255, 0.16); color: var(--cyan); border: 1px solid rgba(56, 216, 255, 0.35); }
 
 .privacy-topics { display: grid; gap: 12px; }
