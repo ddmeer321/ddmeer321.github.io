@@ -265,6 +265,22 @@
     catch (e) { return String(Math.round(n)); }
   }
 
+  // Was beim Import wirklich entsteht. Das ist die Entscheidung, die der
+  // Owner hier trifft - die Zusammenfassung des Spielstands daneben ist nur
+  // Hintergrund. Ein praeparierter Stand mit 499 Origin-Cursorn sah vorher
+  // aus wie jeder andere.
+  function vorschauHtml(liste) {
+    if (!Array.isArray(liste) || !liste.length) {
+      return '<p class="import-nichts">Es entstehen <strong>keine</strong> handelbaren Items.</p>';
+    }
+    return '<div class="import-vorschau">' + liste.map(function (v) {
+      var rar = String(v.rarity || "");
+      return '<span class="import-item ' + escapeHtml(rar) + '">' +
+        escapeHtml(v.icon || "") + " " + escapeHtml(formatZahl(v.stueck)) + "\u00d7 " +
+        escapeHtml(v.name || "") + ' <span class="rar">' + escapeHtml(rar) + "</span></span>";
+    }).join("") + "</div>";
+  }
+
   function formatDateTime(iso) {
     if (!iso) return "—";
     try { return new Date(iso).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }); }
@@ -342,7 +358,10 @@
       var s = r.summary || {};
       var flags = Array.isArray(r.risk_flags) && r.risk_flags.length ? r.risk_flags.join(", ") : "Keine";
       return "<tr><td><strong>" + escapeHtml(r.username) + "</strong><br><span class=\"admin-mono\">" + escapeHtml(r.player_id) + "</span></td>" +
-        "<td>" + escapeHtml(formatZahl(s.cursorCopies)) + " Cursor · " + escapeHtml(formatZahl(s.employeeCopies)) + " Mitarbeiter<br>" + escapeHtml(formatZahl(s.coins)) + " Coins</td>" +
+        "<td>" + vorschauHtml(r.vorschau) +
+          "<div class=\"import-summe\">" + escapeHtml(formatZahl(s.cursorCopies)) + " Cursor · " +
+          escapeHtml(formatZahl(s.employeeCopies)) + " Mitarbeiter · " +
+          escapeHtml(formatZahl(s.coins)) + " Coins im Spielstand</div></td>" +
         "<td>" + escapeHtml(flags) + "</td><td class=\"admin-actions\"><button class=\"admin-btn admin-btn-small\" data-migration=\"approved\" data-id=\"" + r.user_id + "\">Freigeben</button><button class=\"admin-btn admin-btn-small admin-btn-danger\" data-migration=\"rejected\" data-id=\"" + r.user_id + "\">Ablehnen</button></td></tr>";
     }).join("") : '<tr><td colspan="4" class="admin-empty">Keine offenen Importanträge.</td></tr>';
   }
