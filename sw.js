@@ -20,7 +20,7 @@
 //   config/*.js              (als ES-Modul importiert, ohne Version)
 //   games/*/config.json      (per Pfad geladen, ohne Version)
 
-const VERSION = "v1";
+const VERSION = "v2";
 const ABSCHALTEN = false;
 const CACHE = "spielebibliothek-" + VERSION;
 
@@ -46,9 +46,50 @@ const VORRAT = ["/offline.html", "/manifest.json", "/assets/img/app-icon-192.png
 
 function passt(liste, pfad) { return liste.some((r) => r.test(pfad)); }
 
+// /reaction/ und /reaction/index.html sind dieselbe Seite, aber ZWEI
+// Schluessel im Zwischenspeicher. Wer ueber die Startseite kommt, landet auf
+// der zweiten Form (game.entry), wer die Adresse tippt, auf der ersten.
+// Ohne diesen Ausgleich zeigt ein Link offline ins Leere, obwohl die Seite
+// laengst da ist - genau so ist es passiert.
+async function ausDemVorrat(anfrage) {
+  const treffer = await caches.match(anfrage);
+  if (treffer) return treffer;
+  const u = new URL(anfrage.url);
+  const andere = u.pathname.endsWith("/")
+    ? u.pathname + "index.html"
+    : u.pathname.replace(/\/index\.html$/, "/");
+  if (andere === u.pathname) return null;
+  return (await caches.match(u.origin + andere + u.search)) || null;
+}
+
+// Letzte Rettung, falls selbst offline.html nicht im Vorrat liegt: iOS
+// raeumt kalte Eintraege weg, und diese Datei wird beim normalen Surfen nie
+// angefragt - sie ist also der erste Kandidat. Ohne das bekaeme
+// respondWith() undefined und der Browser zeigt seine eigene Fehlerseite.
+function ersatzseite() {
+  return new Response(
+    '<!doctype html><html lang=de><meta charset=utf-8>' +
+    '<meta name=viewport content="width=device-width,initial-scale=1">' +
+    '<title>Offline</title><style>body{margin:0;min-height:100vh;display:grid;' +
+    'place-items:center;padding:24px;background:#fff6ea;color:#241c3d;text-align:center;' +
+    'font:16px/1.6 ui-rounded,system-ui,-apple-system,sans-serif}a{display:block;margin:8px 0;' +
+    'padding:13px 18px;border-radius:14px;background:#fff;border:1px solid rgba(36,28,61,.1);' +
+    'color:#241c3d;text-decoration:none;font-weight:800}</style><div><h1>Gerade kein Netz</h1>' +
+    '<p>Zwei Spiele gehen trotzdem:</p>' +
+    '<a href="/reaction/index.html">\u26a1 REACTION!</a>' +
+    '<a href="/tic-tac-toe/index.html">\u2b55 Tic-Tac-Toe</a></div>',
+    { headers: { "Content-Type": "text/html; charset=utf-8" } });
+}
+
 self.addEventListener("install", (e) => {
   if (ABSCHALTEN) return;
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(VORRAT)).then(() => self.skipWaiting()));
+  // Einzeln statt addAll: Scheitert EINE Datei, wuerde addAll die ganze
+  // Installation verwerfen - und dann gaebe es gar keinen Service Worker.
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    for (const datei of VORRAT) { try { await c.add(datei); } catch (_) {} }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (e) => {
@@ -88,7 +129,7 @@ self.addEventListener("fetch", (e) => {
   if (anfrage.mode === "navigate") {
     e.respondWith((async () => {
       try { return await ausDemNetz(anfrage, true); }
-      catch (_) { return (await caches.match(anfrage)) || (await caches.match("/offline.html")); }
+      catch (_) { return (await ausDemVorrat(anfrage)) || (await caches.match("/offline.html")) || ersatzseite(); }
     })());
     return;
   }
