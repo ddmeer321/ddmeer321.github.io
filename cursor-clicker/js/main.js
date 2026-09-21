@@ -95,18 +95,31 @@ function wireGlobalEvents() {
   setInterval(saveGame, FULL_AUTOSAVE_INTERVAL_MS);
 }
 
+// Nur auf dem eigenen Rechner. Gleiches Prinzip wie CLOUD_SYNC_ENABLED in
+// core/save.js: was beim Entwickeln nützlich ist, darf auf der Live-Seite
+// nicht existieren. Die Prüfung hängt am Hostnamen und nicht an einem
+// Schalter, damit sie beim Kopieren der Datei automatisch mitkommt.
+const IST_LOKAL = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
+
 // Kleine, bewusst stabile externe Schnittstelle für spätere Systeme (Quests,
 // Cloud-Saves, ein gemeinsames Bibliotheks-Inventar o.ä.), ohne dass diese
 // Systeme die internen Module direkt importieren müssten.
 function exposeExternalApi() {
   window.CursorClicker = {
     getSnapshot: () => structuredClone(state),
-    addCoins: (amount) => {
-      if (!Number.isFinite(amount) || amount <= 0) return;
-      addCoins(amount);
-      saveGame();
-    },
     version: SAVE_VERSION,
+  };
+
+  // addCoins war ein Werkzeug zum lokalen Testen und ist beim Veröffentlichen
+  // mitgekommen: eine Zeile in der Browser-Konsole reichte, um sich beliebig
+  // viele Münzen zu geben, und saveGame() schrieb das sofort in die Cloud.
+  // Münzen kaufen Kisten, Kisten geben echte Cursor -- der Weg ins Inventar
+  // ging also durch die ganz normale Mechanik und fiel entsprechend nicht auf.
+  if (!IST_LOKAL) return;
+  window.CursorClicker.addCoins = (amount) => {
+    if (!Number.isFinite(amount) || amount <= 0) return;
+    addCoins(amount);
+    saveGame();
   };
 }
 
