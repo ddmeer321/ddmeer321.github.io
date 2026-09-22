@@ -311,12 +311,23 @@
   // sie statt des Antragsformulars eine Fehlermeldung gesehen.
   // Rueckgabe: true, wenn das Trading-Inventar aktiv ist.
   async function laden() {
+    var st = null;
     try {
-      var st = await ruf("status");
-      var aktiv = !!(st && st.tradingEnabled);
-      zeigeImport(aktiv, st && st.migration);
-      if (!aktiv) return false;
+      st = await ruf("status");
+    } catch (e) {
+      // Scheitert schon "status", zeigen wir trotzdem das Antragsformular und
+      // schreiben daneben, was los ist. Frueher blieb in diesem Fall das Panel
+      // versteckt, weil zeigeImport() nie lief -- man stand dann vor einer
+      // leeren Lounge samt Fehlermeldung und ohne jeden Weg weiter.
+      zeigeImport(false, null, e.message);
+      return false;
+    }
 
+    var aktiv = !!(st && st.tradingEnabled);
+    zeigeImport(aktiv, st && st.migration);
+    if (!aktiv) return false;
+
+    try {
       schnappschuss = await ruf("trading_snapshot");
       zeichneTrades();
       if (aktiveTradeId) zeichneTrade();
@@ -331,13 +342,20 @@
   //
   // Ohne aktives Trading-Inventar gibt es nichts anzubieten. Statt eine leere
   // Lounge zu zeigen, uebernimmt hier der Antrag die Seite.
-  function zeigeImport(aktiv, stand) {
+  function zeigeImport(aktiv, stand, fehlertext) {
     el.importPanel.hidden = aktiv;
     el.loungeInhalt.hidden = !aktiv;
     // Der Einleitungstext beschreibt die Lounge. Solange die nicht zu sehen
     // ist, redet er ueber etwas, das gar nicht da ist.
     el.loungeIntro.hidden = !aktiv;
     if (aktiv) return;
+
+    if (fehlertext) {
+      el.importStand.textContent = fehlertext;
+      el.importBeantragen.hidden = false;   // Versuchen darf man es trotzdem.
+      el.importAktivieren.hidden = true;
+      return;
+    }
 
     if (!stand) {
       el.importStand.textContent = "Noch kein Import beantragt.";
