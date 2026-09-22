@@ -58,6 +58,9 @@
     tippt: $("lounge-tippt"), hinweis: $("kanal-hinweis"),
     tradeChat: $("trade-chat"), tradeForm: $("trade-form"), tradeEingabe: $("trade-eingabe"),
     titel: $("trade-titel"), meta: $("trade-meta"), status: $("trade-status"),
+    importPanel: $("import-panel"), loungeInhalt: $("lounge-inhalt"),
+    importBeantragen: $("import-beantragen"), importAktivieren: $("import-aktivieren"),
+    importStand: $("import-stand"), loungeIntro: $("lounge-intro"),
     mein: $("mein-angebot"), ihr: $("ihr-angebot"), inventar: $("inventar"),
     zurueck: $("zurueck"), bestaetigen: $("bestaetigen"),
     speichern: $("speichern"), senden: $("senden"), abbrechen: $("abbrechen"),
@@ -302,11 +305,56 @@
   async function laden() {
     try {
       schnappschuss = await ruf("trading_snapshot");
+      if (!(await zeigeImportWennNoetig())) return;
       zeichneTrades();
       if (aktiveTradeId) zeichneTrade();
     } catch (e) {
       fehler(e.message);
     }
+  }
+
+  // ---------- Import ----------
+  //
+  // Ohne aktives Trading-Inventar gibt es nichts anzubieten. Statt eine leere
+  // Lounge zu zeigen, uebernimmt hier der Antrag. Rueckgabe: true, wenn das
+  // Konto aktiv ist und die Lounge normal weiterlaufen darf.
+  async function zeigeImportWennNoetig() {
+    var aktiv = schnappschuss && schnappschuss.accountState === "active";
+    el.importPanel.hidden = aktiv;
+    el.loungeInhalt.hidden = !aktiv;
+    // Der Einleitungstext beschreibt die Lounge. Solange die nicht zu sehen
+    // ist, redet er ueber etwas, das gar nicht da ist.
+    el.loungeIntro.hidden = !aktiv;
+    if (aktiv) return true;
+
+    var stand = null;
+    try {
+      var st = await ruf("status");
+      stand = st && st.migration;
+    } catch (e) {
+      el.importStand.textContent = "Der Stand konnte gerade nicht geladen werden.";
+      return false;
+    }
+
+    if (!stand) {
+      el.importStand.textContent = "Noch kein Import beantragt.";
+      el.importBeantragen.hidden = false;
+      el.importAktivieren.hidden = true;
+      return false;
+    }
+
+    var text = { pending: "Beantragt. Ein Owner schaut ihn sich an.",
+                 approved: "Freigegeben. Du kannst den Import jetzt aktivieren.",
+                 rejected: "Abgelehnt.",
+                 imported: "Bereits importiert." }[stand.status] || ("Status: " + stand.status);
+    if (stand.riskFlags && stand.riskFlags.length) {
+      text += " · Prüfpunkte: " + stand.riskFlags.join(", ");
+    }
+    el.importStand.textContent = text;
+    // Nach dem Antrag hilft ein zweiter Antrag niemandem.
+    el.importBeantragen.hidden = stand.status === "pending" || stand.status === "approved";
+    el.importAktivieren.hidden = stand.status !== "approved";
+    return false;
   }
 
   async function starteTrade(p, knopf) {
@@ -532,6 +580,34 @@
   });
   el.tradeForm.addEventListener("submit", function (e) {
     chatAbsenden(e, el.tradeEingabe, el.tradeChat, function () { return tradeKanal; });
+  });
+
+  el.importBeantragen.addEventListener("click", async function () {
+    el.importBeantragen.disabled = true;
+    try {
+      await ruf("request_legacy_migration", {}, true);
+      // Bewusst KEINE Selbstfreigabe fuer Owner. Im Testbereich gab es die,
+      // damit man schnell durchkam -- sie umgeht aber genau die Pruefung, in
+      // der der Owner die Items sieht, bevor sie entstehen.
+      el.importStand.textContent = "Beantragt. Ein Owner schaut ihn sich an.";
+      await laden();
+    } catch (e) {
+      fehler(e.message);
+    } finally {
+      el.importBeantragen.disabled = false;
+    }
+  });
+
+  el.importAktivieren.addEventListener("click", async function () {
+    el.importAktivieren.disabled = true;
+    try {
+      await ruf("activate_trading", {}, true);
+      await laden();
+    } catch (e) {
+      fehler(e.message);
+    } finally {
+      el.importAktivieren.disabled = false;
+    }
   });
 
   zeichneLeute();

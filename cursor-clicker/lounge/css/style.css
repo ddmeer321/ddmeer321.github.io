@@ -166,3 +166,12 @@ main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
 }
 .chat-regel strong{color:var(--text)}
 .chat-regel a{color:var(--cyan)}
+
+/* Import-Antrag. Sichtbar nur, solange das Trading-Inventar nicht aktiv ist --
+   dann ist ER die Seite, und die Lounge dahinter bleibt ausgeblendet. */
+.import-panel{max-width:640px;margin:0 auto}
+.import-panel h2{margin:6px 0 10px}
+.import-panel p{margin:0 0 12px;line-height:1.6}
+.import-aktionen{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 12px}
+.import-aktionen .btn{flex:1 1 auto;min-width:0;min-height:44px}
+#import-stand{margin:0;font-size:14px}
