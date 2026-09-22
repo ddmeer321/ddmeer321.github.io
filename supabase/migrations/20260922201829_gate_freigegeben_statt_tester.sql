@@ -1,7 +1,5 @@
 -- GATE: "vom Owner freigegeben" statt "hat den Tester-Rang".
 --
--- NICHT ANGEWENDET. Siehe README.md in diesem Ordner.
---
 -- Der Tester-Rang oeffnet den ganzen Testbereich. Wer nur handeln koennen
 -- soll, braucht das nicht. Die Freigabe des Imports gibt es ohnehin schon -
 -- sie wird jetzt zum Eintritt.
