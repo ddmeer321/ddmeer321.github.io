@@ -1,0 +1,168 @@
+/* Trading-Lounge — Vorschau.
+   Farben 1:1 aus trading.css, damit sich die Lounge wie derselbe Ort
+   anfuehlt und nicht wie eine fremde Seite. */
+
+:root{
+  color-scheme:dark;
+  --bg:#080a10; --panel:#111520; --line:#252c3b;
+  --text:#f3f6fb; --muted:#8e98aa;
+  --cyan:#63e6f5; --blue:#7897ff; --green:#5ce6a8; --red:#ff6f86;
+  --gelb:#ffe091;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;
+  background:radial-gradient(circle at 20% 0,#152137 0,transparent 36%),var(--bg);
+  color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif;
+}
+[hidden]{display:none!important}
+
+
+.lounge-header{
+  height:74px;padding:0 clamp(18px,4vw,64px);display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid var(--line);
+  /* Safari kennt backdrop-filter nur mit -webkit-. Ohne Praefix bleibt die
+     Unschaerfe aus, und bei .82 liest man den Inhalt scharf durch den Kopf
+     hindurch. Deshalb beides: Praefix UND ein Grundton, der auch ohne
+     Unschaerfe traegt. */
+  background:rgba(8,10,16,.96);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  position:sticky;top:0;z-index:5;
+}
+.lounge-header>div:first-child{display:flex;gap:20px;align-items:center}
+.lounge-header a{color:var(--muted);text-decoration:none}
+.lounge-header a:hover{color:var(--text)}
+.lounge-header h1{margin:0;font-size:21px}
+
+main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
+
+.attrappe{
+  margin:0 0 18px;padding:11px 14px;border-radius:12px;
+  background:#332a0c;color:var(--gelb);font-size:13px;
+}
+.attrappe.warnung{background:#3a1216;color:#ffc2cc}
+.leer-hinweis{margin:10px 0 0;color:var(--muted);font-size:14px}
+
+.lounge-layout{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:18px;align-items:start}
+/* Ohne min-width:0 waechst eine Rasterspalte auf die Breite ihres laengsten
+   Inhalts - auf schmalen Handys schob das die ganze Seite zur Seite. */
+.lounge-layout>*{min-width:0}
+.sidebar{display:grid;gap:18px;align-content:start;min-width:0}
+
+.panel{
+  background:linear-gradient(145deg,rgba(19,24,36,.96),rgba(12,15,23,.96));
+  border:1px solid var(--line);border-radius:18px;padding:20px;
+  box-shadow:0 18px 60px rgba(0,0,0,.22);
+}
+.panel h2,.panel h3{margin:3px 0 12px}
+.klein{font-size:15px}
+.eyebrow{font-size:11px;color:var(--blue);font-weight:850;letter-spacing:.12em}
+.muted{color:var(--muted)}
+.section-head,.detail-head{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
+
+.zaehler{font-size:12px;color:var(--muted);white-space:nowrap;padding-top:4px}
+
+/* ---------- Wer ist da ---------- */
+
+.leute{display:grid;gap:8px}
+.person{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:center;
+  border:1px solid var(--line);background:#0c1018;border-radius:12px;padding:11px 12px;
+  min-width:0;
+}
+.person>div{min-width:0}
+.person-name,.person-meta{overflow-wrap:anywhere}
+.person.neu{animation:rein .45s ease}
+@keyframes rein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* Der Punkt sagt dasselbe wie der Text daneben - Farbe allein reicht nicht,
+   wer sie nicht unterscheiden kann, liest "frei" bzw. "im Trade". */
+.punkt{width:9px;height:9px;border-radius:50%;background:var(--green)}
+.person[data-zustand="beschaeftigt"] .punkt{background:var(--gelb)}
+.person-name{font-weight:750}
+.panel{min-width:0}
+.person-meta{font:12px ui-monospace,monospace;color:var(--muted)}
+.person-zustand{font-size:12px;color:var(--muted)}
+
+.btn,.icon-btn{
+  border:1px solid #30394d;background:#192030;color:var(--text);
+  border-radius:11px;padding:10px 14px;font:inherit;font-weight:750;cursor:pointer;
+}
+.btn:hover:not(:disabled){filter:brightness(1.16)}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.btn.primary{background:#375ed7;border-color:#587ef2}
+.btn.success{background:#176542;border-color:#318a63}
+.btn.danger{background:#501e2b;border-color:#873246}
+.btn.mini{padding:7px 11px;font-size:13px}
+
+.trades{display:grid;gap:8px}
+.trade-row{
+  display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%;
+  border:1px solid var(--line);background:#0c1018;border-radius:12px;padding:11px 12px;
+  color:inherit;text-align:left;font:inherit;cursor:pointer;
+}
+.trade-row:hover{border-color:#3b465e}
+.status{display:inline-flex;border-radius:99px;padding:4px 9px;background:#262e40;color:#cbd3e2;font-size:11px;font-weight:850;text-transform:uppercase}
+.status.offered{background:#27375d;color:#9db5ff}
+.status.completed{background:#143d2d;color:#74e9b4}
+
+/* ---------- Chat ---------- */
+
+.chat{
+  display:flex;flex-direction:column;gap:9px;
+  height:min(46vh,420px);overflow-y:auto;padding:4px 2px;
+  overscroll-behavior:contain;
+}
+.chat.klein-chat{height:min(26vh,220px)}
+.zeile{display:grid;gap:2px}
+.zeile .kopf{display:flex;gap:8px;align-items:baseline}
+.zeile .wer{font-weight:750;font-size:13px}
+.zeile .zeit{font:11px ui-monospace,monospace;color:var(--muted)}
+.zeile .was{color:#dde3ef;overflow-wrap:anywhere}
+.zeile.ich .wer{color:var(--cyan)}
+.zeile.system .was{color:var(--muted);font-style:italic}
+
+.tippt{min-height:20px;margin:6px 0 0;font-size:12px;color:var(--muted)}
+
+.chat-form{display:flex;gap:8px;margin-top:10px}
+.chat-form input{
+  flex:1;min-width:0;border:1px solid var(--line);background:#090c13;color:var(--text);
+  border-radius:11px;padding:11px 12px;font:inherit;
+}
+.chat-form input:focus-visible{outline:2px solid var(--cyan);outline-offset:-1px}
+
+/* ---------- Trade ---------- */
+
+.offer-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.offer-columns>div{border:1px solid var(--line);border-radius:14px;padding:14px}
+.offer-items{display:flex;flex-wrap:wrap;gap:8px;min-height:38px}
+.item-chip{padding:7px 9px;border-radius:9px;background:#171e2b;border:1px solid #2b3549;font-size:14px}
+.inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:9px}
+.inventory-item{display:flex;gap:9px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px;background:#0d111a;cursor:pointer}
+.inventory-item input{width:auto;accent-color:var(--blue)}
+.item-icon{font-size:22px}
+.trade-actions{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0 0}
+.trade-chat{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+
+@media(max-width:900px){
+  .lounge-layout{grid-template-columns:1fr}
+  .offer-columns{grid-template-columns:1fr}
+  .lounge-header{height:auto;padding-block:14px}
+  .lounge-header>div:first-child{align-items:start;flex-direction:column;gap:2px}
+  .chat{height:min(38vh,300px)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .person.neu{animation:none}
+}
+
+/* Die Regel steht ueber dem Verlauf, nicht in einer Fussnote: Wer sie erst
+   liest, nachdem er getippt hat, liest sie zu spaet. */
+.chat-regel{
+  margin:0 0 10px;padding:9px 12px;border-radius:11px;
+  background:rgba(120,151,255,.09);border:1px solid rgba(120,151,255,.22);
+  font-size:12.5px;line-height:1.45;color:var(--muted);
+}
+.chat-regel strong{color:var(--text)}
+.chat-regel a{color:var(--cyan)}

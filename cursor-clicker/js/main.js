@@ -2,6 +2,7 @@
 // globale Abläufe (Autosave, Achievement-Toasts, tägliche Belohnung).
 import { startGameSession } from "./core/session.js";
 import { initFactoryEntry } from "./ui/factoryEntry.js";
+import { initLoungeEntry } from "./ui/loungeEntry.js";
 import { state, SAVE_VERSION } from "./core/state.js";
 import { loadGame, saveGame, quickSaveGame, syncFromCloud } from "./core/save.js";
 import { events } from "./core/events.js";
@@ -149,6 +150,7 @@ async function init() {
   startPlaytimeTracking();
   wireGlobalEvents();
   initFactoryEntry();
+  initLoungeEntry();
   exposeExternalApi();
   checkAchievements();
 
