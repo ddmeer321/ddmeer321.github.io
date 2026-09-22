@@ -9,7 +9,15 @@ const ORIGINS = new Set([
   "http://127.0.0.1:8916", "http://localhost:8916",
 ]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const MUTATING = new Set(["request_legacy_migration", "activate_trading", "create_trade", "set_offer", "send_offer", "confirm_trade", "close_trade", "owner_review_migration"]);
+const MUTATING = new Set(["prepare_trading", "request_legacy_migration", "activate_trading", "create_trade", "set_offer", "send_offer", "confirm_trade", "close_trade", "owner_review_migration"]);
+
+// Diese drei Aktionen brauchen KEINEN Rang. Sie sind der Eingang: wo stehe
+// ich, und ich moechte meinen Import beantragen. Vorher wurde jede Aktion
+// gegen tester/admin/owner geprueft -- damit konnte niemand je einen Antrag
+// stellen und deshalb auch nie freigegeben werden. Alles andere (Lounge,
+// Suche, Trades) verlangt weiterhin den Rang.
+const OHNE_RANG = new Set(["status", "prepare_trading", "request_legacy_migration"]);
+const RANG = ["tester", "admin", "owner"];
 
 function cors(req: Request) {
   const origin = req.headers.get("origin") ?? "";
@@ -32,6 +40,7 @@ function knownError(message: string) {
     trade_changed_or_expired: "Das Angebot wurde geändert oder ist abgelaufen. Bitte neu laden.",
     trade_not_editable: "Dieses Angebot kann nicht mehr geändert werden.", trade_not_sendable: "Dieses Angebot kann gerade nicht gesendet werden.",
     cursor_save_missing: "Für diesen Spieler wurde kein Cursor-Clicker-Spielstand gefunden.", pending_request_not_found: "Kein offener Importantrag gefunden.",
+    legacy_save_not_found: "Noch kein synchronisierter Cursor-Clicker-Spielstand gefunden.",
   };
   return map[message] || "Aktion konnte nicht verarbeitet werden.";
 }
@@ -53,6 +62,10 @@ Deno.serve(async req => {
   try { body=await req.json(); } catch { return json(headers,{error:"Ungültige Anfrage."},400); }
   const action=typeof body.action==="string"?body.action:"";
   const actionId=typeof body.clientActionId==="string"?body.clientActionId:"";
+  // Rangpruefung erst jetzt, weil sie von der Aktion abhaengt.
+  if (!OHNE_RANG.has(action) && !RANG.includes(profile.role)) {
+    return json(headers,{error:"Trading ist noch nicht für alle offen. Beantrage den Import — der Owner schaltet dich frei."},403);
+  }
   if (MUTATING.has(action)) {
     if (!UUID.test(actionId)) return json(headers,{error:"Ungültige Aktions-ID."},400);
     const since=new Date(Date.now()-60000).toISOString();
@@ -64,6 +77,7 @@ Deno.serve(async req => {
   try {
     let data:unknown;
     if (action==="status") data=await rpc(admin,"cc_security_status",{p_user_id:auth.user.id});
+    else if (action==="prepare_trading") data=await rpc(admin,"cc_prepare_trading",{p_user_id:auth.user.id});
     else if (action==="request_legacy_migration") data=await rpc(admin,"cc_request_legacy_migration",{p_user_id:auth.user.id});
     else if (action==="activate_trading") data=await rpc(admin,"cc_bootstrap_trading",{p_user_id:auth.user.id});
     else if (action==="search_players") data=await rpc(admin,"cc_search_players",{p_user_id:auth.user.id,p_query:typeof body.query==="string"?body.query.slice(0,32):""});
