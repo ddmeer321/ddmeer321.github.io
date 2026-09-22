@@ -5,10 +5,13 @@
 //
 // DIE KANAELE SIND PRIVAT. Der Anon-Key steht im Quelltext jeder Seite - ein
 // offener Realtime-Kanal waere damit fuer jeden im Internet offen, der den
-// Quelltext liest. js/zugang.js sperrt die SEITE, nicht den KANAL. Die Regeln
-// liegen als RLS-Policies auf realtime.messages (siehe
+// Quelltext liest. js/zugang.js laesst jeden Angemeldeten auf die SEITE --
+// der Import-Antrag liegt hier, und ohne Antrag gibt es nie eine Freigabe.
+// Der KANAL bleibt davon unberuehrt: er wird nur geoeffnet, wenn das
+// Trading-Inventar aktiv ist, und die Regeln dazu liegen als RLS-Policies
+// auf realtime.messages (siehe
 // supabase/migrations/..._realtime_lounge_authorization).
-//   cc-lounge       -> tester/admin/owner
+//   cc-lounge       -> wer in die Lounge darf (cc_darf_in_die_lounge)
 //   cc-trade-<id>   -> nur die beiden Beteiligten
 //
 // DER TAUSCH SELBST wird nicht hier entschieden. Jede Aenderung geht durch
@@ -302,45 +305,45 @@
 
   // ---------- Laden und Ansichten ----------
 
+  // Reihenfolge ist wichtig: "status" ist die Aktion, die auch ohne Freigabe
+  // beantwortet wird. "trading_snapshot" nicht -- die haette fuer alle, die
+  // noch keine Freigabe haben, nur einen Fehler geliefert, und dann haetten
+  // sie statt des Antragsformulars eine Fehlermeldung gesehen.
+  // Rueckgabe: true, wenn das Trading-Inventar aktiv ist.
   async function laden() {
     try {
+      var st = await ruf("status");
+      var aktiv = !!(st && st.tradingEnabled);
+      zeigeImport(aktiv, st && st.migration);
+      if (!aktiv) return false;
+
       schnappschuss = await ruf("trading_snapshot");
-      if (!(await zeigeImportWennNoetig())) return;
       zeichneTrades();
       if (aktiveTradeId) zeichneTrade();
+      return true;
     } catch (e) {
       fehler(e.message);
+      return false;
     }
   }
 
   // ---------- Import ----------
   //
   // Ohne aktives Trading-Inventar gibt es nichts anzubieten. Statt eine leere
-  // Lounge zu zeigen, uebernimmt hier der Antrag. Rueckgabe: true, wenn das
-  // Konto aktiv ist und die Lounge normal weiterlaufen darf.
-  async function zeigeImportWennNoetig() {
-    var aktiv = schnappschuss && schnappschuss.accountState === "active";
+  // Lounge zu zeigen, uebernimmt hier der Antrag die Seite.
+  function zeigeImport(aktiv, stand) {
     el.importPanel.hidden = aktiv;
     el.loungeInhalt.hidden = !aktiv;
     // Der Einleitungstext beschreibt die Lounge. Solange die nicht zu sehen
     // ist, redet er ueber etwas, das gar nicht da ist.
     el.loungeIntro.hidden = !aktiv;
-    if (aktiv) return true;
-
-    var stand = null;
-    try {
-      var st = await ruf("status");
-      stand = st && st.migration;
-    } catch (e) {
-      el.importStand.textContent = "Der Stand konnte gerade nicht geladen werden.";
-      return false;
-    }
+    if (aktiv) return;
 
     if (!stand) {
       el.importStand.textContent = "Noch kein Import beantragt.";
       el.importBeantragen.hidden = false;
       el.importAktivieren.hidden = true;
-      return false;
+      return;
     }
 
     var text = { pending: "Beantragt. Ein Owner schaut ihn sich an.",
@@ -354,7 +357,6 @@
     // Nach dem Antrag hilft ein zweiter Antrag niemandem.
     el.importBeantragen.hidden = stand.status === "pending" || stand.status === "approved";
     el.importAktivieren.hidden = stand.status !== "approved";
-    return false;
   }
 
   async function starteTrade(p, knopf) {
@@ -482,7 +484,10 @@
     // Policies auf realtime.messages lehnen sie ab.
     try { sb.realtime.setAuth(s.access_token); } catch (e) { /* aeltere SDKs */ }
 
-    laden();
+    // Ohne aktives Trading-Inventar gibt es keine Lounge zu zeigen -- und der
+    // private Kanal wuerde die Anmeldung ohnehin ablehnen. Dann bleibt es beim
+    // Import-Antrag, und zwar ohne Fehlermeldung daneben.
+    if (!(await laden())) return;
 
     kanal = sb.channel(TOPIC, {
       config: { private: true, presence: { key: ich.id }, broadcast: { self: true } },
@@ -519,7 +524,7 @@
       if (status === "CHANNEL_ERROR") {
         fehler("Die Lounge konnte nicht geöffnet werden" +
           (err && err.message ? " (" + err.message + ")" : "") +
-          ". Der Chat braucht die Rolle Tester, Admin oder Owner.");
+          ". Dafür braucht es eine Trading-Freigabe.");
       }
       if (status === "TIMED_OUT") fehler("Die Verbindung zur Lounge ist abgelaufen. Bitte neu laden.");
       if (status === "CLOSED") { verbunden = false; zeichneLeute(); }

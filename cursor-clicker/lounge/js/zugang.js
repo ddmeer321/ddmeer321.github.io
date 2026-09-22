@@ -57,24 +57,10 @@
       return;
     }
 
-    var antwort = await sb.rpc("cc_darf_in_die_lounge");
-    if (antwort.error) {
-      sperre(
-        "Gerade nicht erreichbar",
-        "Der Zugang konnte nicht geprüft werden. Bitte versuch es gleich nochmal.",
-        { text: "Zurück zum Spiel", ziel: "../" }
-      );
-      return;
-    }
-    if (antwort.data !== true) {
-      sperre(
-        "Noch nicht freigeschaltet",
-        "Trading ist noch nicht für alle offen. Sobald dein Inventar freigegeben ist, kommst du hier rein.",
-        { text: "Zurück zum Spiel", ziel: "../" }
-      );
-      return;
-    }
-
+    // Hier wird NICHT mehr auf die Trading-Freigabe geprueft. Wer noch keine
+    // hat, soll genau hierher kommen koennen -- der Import-Antrag liegt auf
+    // dieser Seite, und ohne Antrag gibt es nie eine Freigabe. Was sichtbar
+    // wird, entscheidet js/main.js anhand von "status": Antrag oder Lounge.
     document.documentElement.style.visibility = "visible";
   })();
 })();

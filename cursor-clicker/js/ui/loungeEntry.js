@@ -2,16 +2,16 @@ import { navigateWithSave } from "../core/save.js";
 
 // Einstieg in die Trading-Lounge, nach demselben Muster wie der Fabrik-Knopf.
 //
-// Anders als die Fabrik haengt er nicht am Spielstand, sondern an einer
-// Serverantwort: cc_darf_in_die_lounge(). Das ist dieselbe Funktion, an der
-// auch die RLS-Regeln der Realtime-Kanaele haengen. Es gibt also genau EINE
-// Stelle, die entscheidet, wer Trading sehen darf -- und wenn der Gate-
-// Schalter umgelegt wird, zieht dieser Knopf ohne Aenderung mit.
+// ER ERSCHEINT FUER JEDEN ANGEMELDETEN -- absichtlich, auch fuer Leute ohne
+// Freigabe. Der Grund ist keine Bequemlichkeit, sondern eine Sackgasse:
+// Freigegeben wird man nur, nachdem man einen Import beantragt hat, und den
+// beantragt man auf genau dieser Seite. Waere der Knopf an die Freigabe
+// gekoppelt, kaeme nie wieder jemand neu herein.
 //
-// ER BLEIBT BEI JEDEM FEHLER VERSTECKT. Kein Netz, keine Anmeldung, Antwort
-// kaputt: alles fuehrt dazu, dass gar nichts erscheint. Ein Knopf, der da ist
-// und dann "kein Zugriff" sagt, waere die schlechtere Haelfte von beidem --
-// er macht neugierig und enttaeuscht direkt danach.
+// Was jemand dann SIEHT, entscheidet die Seite selbst: ohne aktives
+// Trading-Inventar den Import-Antrag, sonst die Lounge. Und was jemand DARF,
+// entscheidet ohnehin der Server -- Kanaele und Aktionen haengen an
+// denselben Regeln, egal wer den Knopf findet.
 export function initLoungeEntry() {
   const link = document.getElementById("lounge-entry");
   if (!link) return;
@@ -28,11 +28,9 @@ export function initLoungeEntry() {
     if (!sb) return;
     try {
       const sitzung = await sb.auth.getSession();
-      if (!(sitzung.data && sitzung.data.session)) return;
-      const antwort = await sb.rpc("cc_darf_in_die_lounge");
-      if (!antwort.error && antwort.data === true) link.hidden = false;
+      if (sitzung.data && sitzung.data.session) link.hidden = false;
     } catch {
-      // Versteckt lassen. Siehe Kommentar oben.
+      // Versteckt lassen -- ohne Anmeldung gibt es dort nichts zu holen.
     }
   })();
 }
