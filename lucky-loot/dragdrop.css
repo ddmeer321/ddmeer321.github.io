@@ -1,0 +1,149 @@
+/* Optik fuer das Ziehen und Ablegen. Gleiche Sprache wie der Rest der
+   Sammelstube: Papier, Messing, gestrichelte Kanten, harte Schatten statt
+   weicher Verlaeufe. */
+
+/* --------------------------------------------------------- Die Karte selbst
+
+   :has() bestimmt, welche Karten ueberhaupt anfassbar aussehen -- genau die,
+   die auch die Logik als ziehbar erkennt (ein Einlegen- oder Herausnehmen-
+   Knopf). Karten im Sammelalbum haben keinen und bleiben unberuehrt.
+   Faellt :has() im Browser aus, fehlt nur der Griff; gezogen werden kann
+   trotzdem, denn das Skript haengt nicht an dieser Regel. */
+.item-card:has([data-deposit]),
+.item-card:has([data-withdraw]) {
+  position: relative;
+  cursor: grab;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+.item-card:has([data-deposit])::before,
+.item-card:has([data-withdraw])::before {
+  content: "⠿";
+  position: absolute; top: 5px; left: 8px; z-index: 2;
+  font: 13px/1 "Courier New", monospace; color: #a78b58;
+  pointer-events: none;
+}
+
+/* Rueckmeldung, dass der Finger lange genug liegt. Ohne das weiss man auf
+   dem Handy nicht, ob das Halten schon gezaehlt hat. */
+.item-card.ll-gehalten { transform: scale(.97); transition: transform .19s ease-out; }
+
+/* Die Karte, die gerade in der Luft ist, bleibt als blasser Platzhalter
+   liegen -- so sieht man, woher der Fund kam. */
+.item-card.ll-quelle { opacity: .3; filter: saturate(.35); }
+
+body.ll-zieht { -webkit-user-select: none; user-select: none; }
+body.ll-zieht, body.ll-zieht * { cursor: grabbing !important; }
+
+/* ------------------------------------------------------- Der Zettel im Griff
+
+   Am Zeiger haengt nicht die Karte, sondern ein kleiner Zettel: eine Karte
+   ist auf dem Handy fast halb so breit wie der Bildschirm und wuerde genau
+   die Plaetze verdecken, auf die man zielt. Die Farbe der Unterkante ist die
+   Seltenheitsfarbe des Fundes -- man traegt sichtbar etwas Bestimmtes. */
+.ll-zettel {
+  position: fixed; left: 0; top: 0; z-index: 70;
+  width: 96px; height: 96px; padding: 6px;
+  pointer-events: none; will-change: transform; transform-origin: 50% 50%;
+  background: #f9edcd;
+  border: 3px double #a9884f;
+  border-bottom: 5px solid var(--rarity, #b49968);
+  box-shadow: 5px 8px 0 #b99b6740, 0 14px 26px #2a1c0e55;
+}
+.ll-innen {
+  display: grid; place-items: center; align-content: center; gap: 5px;
+  width: 100%; height: 100%;
+  font-family: Arial, Helvetica, sans-serif; text-align: center;
+  animation: ll-anheben .16s cubic-bezier(.2,.9,.25,1);
+}
+.ll-zeichen { font-size: 30px; line-height: 1; color: var(--rarity, #7b6342); }
+.ll-zettel strong {
+  font: 700 11px/1.15 Arial, sans-serif; color: #553e22;
+  max-width: 100%; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+@keyframes ll-anheben {
+  from { transform: scale(1.32); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* ------------------------------------------------------------ Die Leiste */
+
+.ll-leiste {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  background: #f2e3bb;
+  border-top: 5px double #8a6a3c;
+  box-shadow: 0 -6px 0 #b99b6726, 0 -14px 30px #3a281433;
+  padding: 11px 16px calc(11px + env(safe-area-inset-bottom));
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  transform: translateY(105%);
+  transition: transform .22s cubic-bezier(.2,.9,.25,1);
+}
+.ll-leiste.offen { transform: none; }
+
+.ll-leiste-titel {
+  margin: 0 0 9px;
+  font: 700 11px/1 Arial, sans-serif; letter-spacing: 1.1px; color: #553e22;
+}
+.ll-leiste-titel span {
+  font-family: "Courier New", monospace; letter-spacing: 0;
+  background: #e2cd9c; border: 1px solid #bda371; padding: 2px 6px; margin-left: 4px;
+}
+
+.ll-reihe { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px; }
+
+.ll-platz {
+  width: 62px; height: 62px; display: grid; place-items: center;
+  font-size: 25px; color: #553e22;
+  background: #e8d6ab; border: 2px dashed #b2924f;
+  transition: transform .14s cubic-bezier(.2,.9,.25,1), background .14s, border-color .14s, box-shadow .14s;
+}
+.ll-platz.weit {
+  width: auto; min-width: 210px; padding: 0 20px; gap: 9px;
+  grid-auto-flow: column; font: 700 13px Arial, sans-serif; letter-spacing: .5px;
+}
+/* Belegte Plaetze sind sichtbar, aber offensichtlich kein Ziel. */
+.ll-platz.belegt {
+  border-style: solid; background: #dcc79b; color: #7b6342;
+  box-shadow: inset 2px 2px 0 #b99b6733;
+}
+
+.ll-platz.drueber {
+  transform: scale(1.13);
+  background: #fff4d4; border-style: solid; border-color: #8a6a3c;
+  box-shadow: 0 0 0 3px #d8b06e99, 3px 4px 0 #b99b6755;
+}
+
+.ll-hinweis {
+  margin: 9px 0 0;
+  font: 12px Arial, sans-serif; color: #5a4327;
+}
+/* Sobald ein Platz getroffen ist, sagt die Leiste es auch in Worten --
+   als ganzer Satz, nicht als angehaengter Halbsatz. */
+.ll-hinweis .ll-an { display: none; }
+.ll-leiste.trifft .ll-hinweis { color: #7d4a2a; font-weight: 700; }
+.ll-leiste.trifft .ll-hinweis .ll-aus { display: none; }
+.ll-leiste.trifft .ll-hinweis .ll-an { display: inline; }
+
+/* Kurzes Setzen, wenn der Fund im Platz landet. */
+.ll-platz.einschnappen { animation: ll-einschnappen .3s cubic-bezier(.2,.9,.25,1); }
+@keyframes ll-einschnappen {
+  0%   { transform: scale(1.13); }
+  45%  { transform: scale(.93); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  .ll-platz { width: 54px; height: 54px; font-size: 22px; }
+  .ll-platz.weit { min-width: 0; width: auto; padding: 0 16px; font-size: 12px; }
+  .ll-hinweis { font-size: 11px; }
+}
+
+/* Wer Bewegung abbestellt hat, bekommt dieselbe Funktion ohne Zappeln: die
+   Leiste ist einfach da, der Fund ist einfach drin. */
+@media (prefers-reduced-motion: reduce) {
+  .ll-leiste { transition: none; }
+  .ll-platz, .item-card.ll-gehalten { transition: none; }
+  .ll-platz.einschnappen, .ll-innen { animation: none; }
+}
