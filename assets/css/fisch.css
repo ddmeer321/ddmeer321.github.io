@@ -1,0 +1,175 @@
+/* Der Fisch. Gehoert zu assets/js/fisch.js und wird von dort selbst geladen --
+   kein eigener <link> noetig.
+
+   Farben aus der Bibliothekspalette (siehe assets/css/style.css): Cyan als
+   Koerper, Limette an den Flossen, damit er in der dunklen Oberflaeche
+   leuchtet statt darin zu verschwinden.
+
+   ECKE UNTEN LINKS, nicht rechts: rechts sitzen in Cursor Clicker die
+   Einstiege zu Fabrik und Lounge, und unten rechts erwartet man heute ein
+   Chat-Fenster. Links ist frei und verspricht nichts Falsches. */
+
+.fisch-wurzel {
+  position: fixed;
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.fisch-wurzel[hidden] { display: none; }
+
+/* ------------------------------------------------------------------ Der Fisch */
+
+/* DER KNOPF STEHT STILL, NUR DAS BILD SCHWIMMT. Laege die Bewegung auf dem
+   Knopf, waere der Klickbereich dauernd unterwegs -- unangenehm fuer jeden,
+   der nicht zielsicher tippt, und automatisierte Klicks scheitern daran
+   ebenfalls ("element is not stable"). Der Knopf ist deshalb etwas hoeher
+   als der Fisch, damit dessen Auf und Ab innerhalb der Flaeche bleibt. */
+.fisch-knopf {
+  width: 72px; height: 70px;
+  display: grid; place-items: center;
+  padding: 0; border: 0; background: none;
+  cursor: pointer; line-height: 0;
+}
+.fisch-knopf:focus-visible { outline: 3px solid #b7ff4a; outline-offset: 4px; border-radius: 10px; }
+
+.fisch-bild {
+  width: 72px; height: 54px; overflow: visible;
+  filter: drop-shadow(0 0 6px rgba(56, 216, 255, .35));
+  animation: fisch-schwimmen 3.4s ease-in-out infinite;
+  transition: scale .18s ease-out;
+}
+.fisch-knopf:hover .fisch-bild { scale: 1.07; }
+
+.fisch-koerper { fill: #38d8ff; }
+.fisch-bauch { fill: #9deeff; }                      /* hellerer Bauch, gibt Volumen */
+.fisch-flosse, .fisch-flosse-seite, .fisch-schwanz { fill: #b7ff4a; }
+.fisch-flosse-seite { opacity: .9; }
+.fisch-kieme { fill: none; stroke: #0e7fa3; stroke-width: 1.6; stroke-linecap: round; opacity: .32; }
+.fisch-auge-weiss { fill: #f4fdff; }
+.fisch-pupille { fill: #06111c; }
+.fisch-glanz { fill: #ffffff; }
+.fisch-mund { fill: none; stroke: #0e7fa3; stroke-width: 1.9; stroke-linecap: round; }
+
+/* Der Schwanz dreht um die Stelle, an der er am Koerper sitzt (x=14, y=24 im
+   viewBox) -- nicht um die Mitte der Grafik, sonst rudert er neben dem Fisch
+   her statt an ihm. */
+.fisch-schwanz-g {
+  transform-box: view-box;
+  transform-origin: 14px 24px;
+  animation: fisch-wedeln 1.1s ease-in-out infinite;
+}
+.fisch-flosse-seite {
+  transform-box: view-box;
+  transform-origin: 39px 28px;
+  animation: fisch-wedeln 1.5s ease-in-out infinite;
+}
+/* Blinzeln: lange offen, kurz zu. Beide Augenteile mit demselben Drehpunkt,
+   sonst rutscht die Pupille beim Zukneifen aus dem Auge. */
+.fisch-auge-weiss, .fisch-pupille, .fisch-glanz {
+  transform-box: view-box;
+  transform-origin: 48px 19px;
+  animation: fisch-blinzeln 5.6s ease-in-out infinite;
+}
+
+@keyframes fisch-schwimmen {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+@keyframes fisch-wedeln {
+  0%, 100% { transform: rotate(-9deg); }
+  50%      { transform: rotate(9deg); }
+}
+@keyframes fisch-blinzeln {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(.1); }
+}
+
+/* Hereinschwimmen von links. */
+.fisch-kommt .fisch-bild { animation: fisch-herein .62s cubic-bezier(.22,.9,.28,1) both; }
+@keyframes fisch-herein {
+  0%   { transform: translateX(-150%) translateY(14px) rotate(-8deg); opacity: 0; }
+  70%  { transform: translateX(10%) translateY(-4px) rotate(3deg); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+/* Beim Reden nickt er leicht -- das verbindet Blase und Figur. */
+.fisch-redet .fisch-bild { animation: fisch-nicken 1.6s ease-in-out infinite; }
+@keyframes fisch-nicken {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  30%      { transform: rotate(-4deg) translateY(-3px); }
+  60%      { transform: rotate(2deg) translateY(1px); }
+}
+
+/* ----------------------------------------------------------------- Die Blase */
+
+.fisch-blase {
+  position: relative;
+  max-width: min(320px, calc(100vw - 40px));
+  padding: 14px 16px 12px;
+  background: #0d1a29;
+  border: 1px solid rgba(56, 216, 255, .35);
+  border-radius: 14px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .55), 0 0 0 1px rgba(0, 0, 0, .3);
+  animation: fisch-blase-auf .18s ease-out;
+}
+.fisch-blase[hidden] { display: none; }
+/* Spitze nach unten links, zeigt auf den Fisch. */
+.fisch-blase::after {
+  content: "";
+  position: absolute; left: 24px; bottom: -8px;
+  width: 14px; height: 14px;
+  background: #0d1a29;
+  border-right: 1px solid rgba(56, 216, 255, .35);
+  border-bottom: 1px solid rgba(56, 216, 255, .35);
+  transform: rotate(45deg);
+}
+@keyframes fisch-blase-auf {
+  from { opacity: 0; transform: translateY(6px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.fisch-text {
+  margin: 0 0 12px;
+  color: #eef8ff;
+  font-size: 15px; line-height: 1.55;
+}
+
+.fisch-knoepfe { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.fisch-weiter {
+  padding: 8px 16px;
+  border: 0; border-radius: 9px;
+  background: #38d8ff; color: #04131c;
+  font: 700 14px/1 inherit; cursor: pointer;
+}
+.fisch-weiter:hover { background: #63e2ff; }
+
+/* Bewusst leise: das Abschalten soll auffindbar sein, aber nicht einladen. */
+.fisch-aus {
+  padding: 0; border: 0; background: none;
+  color: #91a8b8; font: 13px/1 inherit; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.fisch-aus:hover { color: #eef8ff; }
+.fisch-weiter:focus-visible, .fisch-aus:focus-visible {
+  outline: 3px solid #b7ff4a; outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .fisch-knopf { width: 58px; height: 58px; }
+  .fisch-bild { width: 58px; height: 44px; }
+  .fisch-text { font-size: 14px; }
+}
+
+/* Wer Bewegung abbestellt hat, bekommt denselben Fisch -- er schwimmt nur
+   nicht. Die Figur bleibt, das Zappeln geht. */
+@media (prefers-reduced-motion: reduce) {
+  .fisch-bild, .fisch-schwanz-g, .fisch-flosse-seite,
+  .fisch-auge-weiss, .fisch-pupille, .fisch-glanz, .fisch-blase { animation: none !important; }
+  .fisch-bild { transition: none; }
+}

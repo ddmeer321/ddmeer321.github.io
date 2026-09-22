@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Der Fisch · Spielwiese</title>
+<style>
+  :root{color-scheme:dark;--bg:#050a10;--panel:#09131f;--panel-2:#0d1a29;
+    --text:#eef8ff;--muted:#91a8b8;--cyan:#38d8ff;--lime:#b7ff4a;
+    --line:rgba(56,216,255,.2);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;min-width:280px;color:var(--text);line-height:1.6;
+    background:radial-gradient(circle at 78% 8%,rgba(56,216,255,.12),transparent 31rem),
+               radial-gradient(circle at 8% 45%,rgba(183,255,74,.07),transparent 28rem),var(--bg)}
+  main{width:min(760px,calc(100% - 40px));margin:0 auto;padding:40px 0 180px}
+  h1{font-size:clamp(28px,5vw,40px);margin:0 0 6px;letter-spacing:-.02em}
+  .unter{color:var(--muted);margin:0 0 34px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:22px;margin-bottom:18px}
+  h2{font-size:17px;margin:0 0 10px;color:var(--cyan);letter-spacing:.02em}
+  p{margin:0 0 12px}
+  .muted{color:var(--muted);font-size:14px}
+  .stand{display:flex;align-items:baseline;gap:12px;margin:18px 0}
+  .stand b{font-size:44px;font-variant-numeric:tabular-nums;color:var(--lime);line-height:1}
+  .knoepfe{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  button{font:600 14px/1 inherit;padding:11px 16px;border-radius:10px;cursor:pointer;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--text)}
+  button:hover{border-color:var(--cyan)}
+  button.haupt{background:var(--cyan);color:#04131c;border-color:transparent;font-weight:700}
+  button:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+  ol{margin:0;padding-left:20px}
+  li{margin-bottom:10px}
+  code{background:#04131c;border:1px solid var(--line);border-radius:5px;
+    padding:2px 6px;font-size:13px}
+  pre{background:#04131c;border:1px solid var(--line);border-radius:10px;
+    padding:14px;overflow:auto;font-size:13px;margin:0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Der Fisch</h1>
+  <p class="unter">Spielwiese — hier steht kein echtes Spiel dahinter, nur ein Zähler.
+    So lassen sich alle drei Zustände vorführen, ohne erst spielen zu müssen.</p>
+
+  <section>
+    <h2>Das „Spiel“</h2>
+    <p class="muted">Der Fisch liest genau diese Zahl. Steigt sie, ist alles gut.
+      Bleibt sie stehen, während du die Seite benutzt, meldet er sich.</p>
+    <div class="stand"><b id="demo-stand">0</b><span class="muted">Fortschritt</span></div>
+    <div class="knoepfe">
+      <button class="haupt" id="mehr">Fortschritt +1</button>
+      <button id="nichts">Etwas tun, ohne voranzukommen</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Die drei Zustände</h2>
+    <ol>
+      <li><b>Erklären.</b> Beim allerersten Besuch schwimmt er herein und sagt in
+        wenigen Blasen, worum es geht. Danach nie wieder.</li>
+      <li><b>Warten.</b> Er sitzt unten links. Anklicken gibt einen Tipp — der
+        Reihe nach, nicht zufällig.</li>
+      <li><b>Feststecken.</b> Hier auf <b>8 Sekunden</b> gestellt (normal sind
+        vier Minuten). Drück ein paarmal den rechten Knopf und warte — er kommt
+        von selbst. Aber nur <b>einmal pro Sitzung</b>.</li>
+    </ol>
+    <p class="muted">Er zählt nur Zeit mit, in der der Tab sichtbar ist <em>und</em>
+      du in der letzten Minute etwas gemacht hast. Wer Kaffee holt, steckt nicht
+      fest — der ist weg.</p>
+  </section>
+
+  <section>
+    <h2>Nochmal von vorn</h2>
+    <p class="muted">Setzt zurück, was der Fisch sich gemerkt hat, und lädt neu.</p>
+    <div class="knoepfe">
+      <button id="vergessen">Gedächtnis löschen</button>
+      <button id="abschalten">„Nicht mehr zeigen“ rückgängig</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Einbinden</h2>
+    <pre>&lt;script src="/assets/js/fisch-texte.js?v=1"&gt;&lt;/script&gt;
+&lt;script src="/assets/js/fisch.js?v=1" data-spiel="snake"&gt;&lt;/script&gt;</pre>
+    <p class="muted" style="margin-top:12px">Das CSS lädt <code>fisch.js</code> selbst nach.
+      Texte und Fortschrittsmessung pro Spiel stehen in <code>fisch-texte.js</code> —
+      Einträge gibt es dort bereits für <code>snake</code>,
+      <code>cursor-clicker</code> und <code>tic-tac-toe</code>.
+      Kein Spiel wurde dafür bisher angefasst.</p>
+  </section>
+</main>
+
+<script>
+  var stand = document.getElementById("demo-stand");
+  document.getElementById("mehr").addEventListener("click", function () {
+    stand.textContent = Number(stand.textContent) + 1;
+  });
+  // Erzeugt Eingaben, aber keinen Fortschritt -- genau der Fall, auf den der
+  // Fisch wartet.
+  document.getElementById("nichts").addEventListener("click", function () {});
+  document.getElementById("vergessen").addEventListener("click", function () {
+    Object.keys(localStorage).forEach(function (k) {
+      if (k.indexOf("fisch.") === 0) localStorage.removeItem(k);
+    });
+    location.reload();
+  });
+  document.getElementById("abschalten").addEventListener("click", function () {
+    localStorage.removeItem("fisch.demo.aus");
+    localStorage.removeItem("fisch.aus");
+    location.reload();
+  });
+</script>
+
+<script src="../assets/js/fisch-texte.js?v=1"></script>
+<script src="../assets/js/fisch.js?v=1" data-spiel="demo" data-steckt-nach="8"></script>
+</body>
+</html>
