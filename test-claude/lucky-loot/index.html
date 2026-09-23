@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <!-- Bleibt versteckt, bis test-gate.js den Zugriff geprueft hat. Ohne das
+         waere der Testbereich fuer einen Moment sichtbar, bevor die Sperre
+         greift. Die Zeile gehoert untrennbar zu test-gate.js weiter unten. -->
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="theme-color" content="#3a2a17">
+    <title>Lucky Loot (Test: Claude) – Spielebibliothek</title>
+    <!-- style.css ist der einzige <link> des Spiels; sammelstube.css,
+         readability.css, factors.css und dragdrop.css haengt es sich selbst
+         nach (siehe Kopf von app.js und dragdrop.js) -- die landen also
+         HINTER testbereich.css, obwohl die hier steht. Was dort ueberschrieben
+         werden muss, braucht deshalb hoehere Spezifitaet, nicht Reihenfolge. -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="testbereich.css?v=1">
+  </head>
+  <body>
+    <script src="../../assets/js/steckengeblieben.js?v=1"></script>
+
+    <div class="ll-testband">
+      <span>🧪 Testbereich „Claude" — Spielstand liegt nur in diesem Browser</span>
+      <a href="../index.html">← Zur Spielebibliothek</a>
+    </div>
+
+    <header><a class="brand" href="#">✳ <span>lucky<span class="purple">loot.</span></span></a><span class="prototype">SPIELWIESE / PROTOTYP</span><div class="wallet"><small>DEIN GUTHABEN</small><strong id="balance">0 ◉</strong></div></header>
+    <div class="layout">
+      <aside>
+        <p class="nav-label">DEIN KLEINES IMPERIUM</p>
+        <nav id="nav"><button data-page="crates" class="active">▣ <span>Kistenladen</span><b>12</b></button><button data-page="inventory">▦ <span>Inventar</span><b id="inv-count">0</b></button><button data-page="bank">▤ <span>Meine Bank</span></button><button data-page="upgrade">↗ <span>Aufwerter</span></button><button data-page="collection">✧ <span>Sammlung</span><b>250</b></button></nav>
+        <div class="side-note"><span>☀</span><h3>Klein anfangen.<br>Groß sammeln.</h3><p>Deine erste Kiste geht aufs Haus. Was drin ist? Das entscheidet das Glück.</p></div>
+        <div class="save-note">● Automatisch lokal gespeichert<br><small>Spielgeld · Kein Echtgeld</small></div>
+      </aside>
+      <main><div id="page"></div></main>
+    </div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="reveal"><button class="close" id="close-reveal" aria-label="Schließen">×</button><p class="eyebrow">DEIN NEUER FUND</p><div id="reveal-content"></div><button class="primary" id="keep">Ab ins Inventar →</button></dialog>
+
+    <!-- Die Sperre zuerst: sie braucht nur supabase-client.js, nicht das
+         Spiel. auth.js fehlt mit Absicht — es steigt ohne #auth-status sofort
+         wieder aus (auth.js, Zeile 27), und Lucky Loot hat im Kopf keinen
+         Platz dafuer. Dasselbe macht skin-labor/index.html. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../../assets/js/supabase-client.js"></script>
+    <script src="../../assets/js/test-gate.js?v=1"></script>
+
+    <script src="game.js" data-noetig-fuer="Das Spiel"></script>
+    <script src="app.js" data-noetig-fuer="Das Spiel"></script>
+    <script src="dragdrop.js"></script>
+  </body>
+</html>

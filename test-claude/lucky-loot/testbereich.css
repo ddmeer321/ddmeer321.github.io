@@ -1,0 +1,72 @@
+/* Was der Testbereich zu Lucky Loot dazutut -- und NUR das.
+ *
+ * Diese Datei ist der einzige Unterschied im Aussehen zwischen dieser Kopie
+ * und dem Spiel auf dem Zweig lucky-loot-dragdrop. Die neun Spieldateien
+ * (style.css, sammelstube.css, readability.css, factors.css, dragdrop.css,
+ * game.js, app.js, dragdrop.js) sind hier Byte fuer Byte dieselben. Wer das
+ * Spiel spaeter vom Zweig nachzieht, kopiert sie einfach drueber; nur
+ * index.html und diese Datei gehoeren dem Testbereich.
+ *
+ * Farben aus der Sammelstube (sammelstube.css): Papier #f0e1ba, Tinte
+ * #4d3825, Messing #94723d, doppelte Linien #846039, Courier fuer alles
+ * Gestempelte.
+ */
+
+/* ------------------------------------------------------------- Das Band */
+
+/* Dunkles Leder statt der hellen Banner der anderen Testseiten: Lucky Loot
+   ist von oben bis unten hell, ein helles Band waere darauf kein Band mehr,
+   sondern nur eine weitere Zeile. 11,1:1 gegen die Schrift. */
+.ll-testband {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 6px 18px;
+  padding: 9px 16px;
+  background: #3a2a17;
+  border-bottom: 4px double #94723d;
+  color: #f4e6c2;
+  font: 700 12px/1.4 "Courier New", monospace;
+  letter-spacing: .6px;
+  text-align: center;
+}
+.ll-testband a {
+  color: #f4e6c2;
+  border-bottom: 1px solid #b2965e;
+  padding-bottom: 2px;
+  white-space: nowrap;
+}
+.ll-testband a:hover { color: #fff8e4; border-bottom-color: #f4e6c2; }
+.ll-testband a:focus-visible { outline: 3px solid #d8b06e; outline-offset: 3px; }
+
+@media (max-width: 640px) {
+  .ll-testband { font-size: 11px; padding: 8px 12px; letter-spacing: .3px; }
+}
+
+/* ------------------------------------------- Platz fuer das Zugriffsabzeichen
+
+   test-gate.js haengt nach bestandener Pruefung ein Abzeichen ("Testzugriff:
+   owner") unten links an, fest verdrahtet auf z-index 9998. Genau dort sitzen
+   zwei Dinge von Lucky Loot:
+
+     .ll-leiste  die Ablegeleiste beim Ziehen (z-index 60, ganz unten)
+     #toast      die Rueckmeldung nach jedem Zug (z-index 10, bottom 25px)
+
+   Ohne die Regeln hier deckt das Abzeichen die Zeile "Auf einen freien Platz
+   ziehen" am Fuss der Leiste zu und knabbert unten links an der Meldung.
+   Geaendert wird deshalb die Seite, nicht das Abzeichen: test-gate.js gilt
+   fuer alle Testseiten und wird hier nicht angefasst.
+
+   DAS body DAVOR IST NOETIG, NICHT SCHMUCK. Diese Datei haengt als <link> im
+   Kopf, dragdrop.css haengt sich app.js/dragdrop.js erst zur Laufzeit nach --
+   sie kommt also SPAETER und gewinnt bei gleicher Spezifitaet. ".ll-leiste"
+   allein blieb wirkungslos (nachgemessen: z-index blieb 60). Mit body davor
+   (0,1,1 gegen 0,1,0) gewinnt die Regel unabhaengig von der Reihenfolge.
+   Dieselbe Falle steht in readability.css ueber dem Bankband.
+
+   Bei #toast reicht die ID von allein: eine ID schlaegt jede Klassenregel,
+   egal wer spaeter laedt. Deshalb steht dort kein body.
+
+   Das Abzeichen ist pointer-events:none -- es hat nie einen Zug blockiert,
+   es lag nur im Weg. */
+body .ll-leiste { z-index: 10000; }
+body .ll-zettel { z-index: 10001; }   /* der Zettel am Finger ueber der Leiste */
+#toast { z-index: 10002; bottom: 46px; }
