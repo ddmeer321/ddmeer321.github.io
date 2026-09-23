@@ -362,7 +362,7 @@
           "<div class=\"import-summe\">" + escapeHtml(formatZahl(s.cursorCopies)) + " Cursor · " +
           escapeHtml(formatZahl(s.employeeCopies)) + " Mitarbeiter · " +
           escapeHtml(formatZahl(s.coins)) + " Coins im Spielstand</div></td>" +
-        "<td>" + escapeHtml(flags) + "</td><td class=\"admin-actions\"><button class=\"admin-btn admin-btn-small\" data-migration=\"approved\" data-id=\"" + r.user_id + "\">Freigeben</button><button class=\"admin-btn admin-btn-small admin-btn-danger\" data-migration=\"rejected\" data-id=\"" + r.user_id + "\">Ablehnen</button></td></tr>";
+        "<td>" + escapeHtml(flags) + "</td><td class=\"admin-actions\"><button class=\"admin-btn admin-btn-small\" data-migration=\"approved\" data-id=\"" + r.user_id + "\" data-hash=\"" + escapeHtml(r.vorschau_hash || "") + "\">Freigeben</button><button class=\"admin-btn admin-btn-small admin-btn-danger\" data-migration=\"rejected\" data-id=\"" + r.user_id + "\">Ablehnen</button></td></tr>";
     }).join("") : '<tr><td colspan="4" class="admin-empty">Keine offenen Importanträge.</td></tr>';
   }
   els.migrationRefresh.addEventListener("click", loadMigrationQueue);
@@ -371,7 +371,7 @@
     var decision = btn.dataset.migration;
     if (decision === "approved" && !confirm("Diesen unveränderten Spielstand für den einmaligen Trading-Import freigeben?")) return;
     btn.disabled = true;
-    var res = await invokeAuthenticated("cursor-clicker-security", { body: { action: "owner_review_migration", clientActionId: crypto.randomUUID(), targetId: btn.dataset.id, decision: decision } });
+    var res = await invokeAuthenticated("cursor-clicker-security", { body: { action: "owner_review_migration", clientActionId: crypto.randomUUID(), targetId: btn.dataset.id, decision: decision, vorschauHash: btn.dataset.hash || null } });
     if (res.error) els.migrationMessage.textContent = await extractErrorMessage(res, "Entscheidung konnte nicht gespeichert werden.");
     await loadMigrationQueue();
   });
