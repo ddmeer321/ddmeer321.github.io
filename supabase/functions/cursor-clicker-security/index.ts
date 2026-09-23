@@ -1,3 +1,7 @@
+// Die Owner-Freigabe schickt den Hash der Vorschau mit, die sie angezeigt
+// bekommen hat (vorschauHash). Die Datenbank lehnt ab, wenn sich die Vorschau
+// seitdem geaendert hat -- siehe cc_owner_review_migration.
+//
 // Tor zum Trading.
 //
 // Das Tor ist NICHT mehr der Tester-Rang, sondern die Freigabe durch den
@@ -48,6 +52,7 @@ function knownError(message: string) {
     cursor_save_missing: "Für diesen Spieler wurde kein Cursor-Clicker-Spielstand gefunden.",
     pending_request_not_found: "Kein offener Importantrag gefunden.",
     legacy_save_not_found: "Noch kein synchronisierter Cursor-Clicker-Spielstand gefunden.",
+    vorschau_veraltet: "Die Vorschau hat sich geändert, seit du sie geladen hast. Bitte die Liste neu laden und noch einmal ansehen.",
   };
   return map[message] || "Aktion konnte nicht verarbeitet werden.";
 }
@@ -119,7 +124,9 @@ Deno.serve(async req => {
     } else if (action==="owner_review_migration") {
       if (profile.role!=="owner") return json(headers,{error:"Keine Berechtigung."},403);
       const targetId=String(body.targetId||""); if (!UUID.test(targetId)) return json(headers,{error:"Ungültiger Spieler."},400);
-      data=await rpc(admin,"cc_owner_review_migration",{p_owner_id:auth.user.id,p_user_id:targetId,p_decision:body.decision==="approved"?"approved":"rejected",p_note:String(body.note||"").slice(0,500)});
+      // Der Hash kommt aus der Warteschlange, die der Owner angesehen hat.
+      // Fehlt er, lehnt die Datenbank eine Freigabe ab -- absichtlich.
+      data=await rpc(admin,"cc_owner_review_migration",{p_owner_id:auth.user.id,p_user_id:targetId,p_decision:body.decision==="approved"?"approved":"rejected",p_note:String(body.note||"").slice(0,500),p_vorschau_hash:typeof body.vorschauHash==="string"?body.vorschauHash:null});
     } else return json(headers,{error:"Unbekannte Aktion."},400);
     if (MUTATING.has(action)) await record(admin,auth.user.id,actionId,action,"accepted",null,data);
     return json(headers,data??{});

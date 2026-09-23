@@ -1,5 +1,3 @@
--- NICHT ANGEWENDET. Siehe README.md in diesem Ordner.
---
 -- Die Freigabe ist nicht an das gebunden, was der Owner gesehen hat.
 --
 -- VORGESCHICHTE: 20260922202148 hat den Hash-Vergleich auf den ROHEN
@@ -27,10 +25,6 @@
 -- mit, was er gesehen hat, und wird abgewiesen, wenn sich das inzwischen
 -- geaendert hat. Der Owner laedt dann neu und sieht die neue Liste.
 --
--- REIHENFOLGE: erst diese SQL, dann 02 deployen, dann admin.js auf main.
--- Zwischen SQL und Deploy schlaegt jede Freigabe fehl ("Vorschau veraltet"),
--- weil die Function den Hash noch nicht mitschickt. Das ist die sichere
--- Richtung -- es geht nichts durch, was nicht geprueft wurde.
 
 create or replace function public.cc_vorschau_hash(p_save jsonb)
 returns text language sql stable security definer set search_path='' as $$

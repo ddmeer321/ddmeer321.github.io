@@ -1,21 +1,13 @@
 # Vorbereitet, nicht angewendet
 
-## Was gerade wartet
+**Aktuell liegt hier nichts.** Angewendet am 22./23.09.:
 
-- **`01_freigabe_bindet_an_vorschau.sql`** — bindet die Owner-Freigabe an die
-  Vorschau, die der Owner tatsaechlich gesehen hat, und nimmt einen
-  ueberfluessigen Grant auf `cc_ist_freigegeben` zurueck. Hintergrund im Kopf
-  der Datei und in `SECURITY_CHECK.md` (Eintrag vom 22.09.).
-- **`02_cursor-clicker-security.index.ts`** — dieselbe Umstellung in der Edge
-  Function: die Freigabe schickt `vorschauHash` mit.
+- `../migrations/20260922201829_gate_freigegeben_statt_tester.sql`
+- `../migrations/20260923051754_freigabe_bindet_an_vorschau.sql`
+- `../functions/cursor-clicker-security/index.ts` (deployt als Version 8)
 
-Der passende Frontend-Teil (`admin/admin.js` reicht den Hash durch) liegt
-bereits auf dem Branch `freigabe-bindet-an-vorschau` und ist ohne die beiden
-Dateien hier wirkungslos — er schickt dann ein Feld mit, das niemand liest.
-
-Der Gate-Umbau vom 22.09. ist dagegen angewendet und steht dort, wo
-Angewendetes hingehoert: `../migrations/20260922201829_...` und
-`../functions/cursor-clicker-security/index.ts` (deployt als Version 7).
+Der Ordner bleibt bestehen, weil der naechste Eingriff an Datenbank oder Edge
+Function wieder einen Ort zum Hinlegen braucht.
 
 ## Wozu dieser Ordner
 Was hier liegt, ist **nicht** auf der Datenbank und **nicht** deployt. Der
