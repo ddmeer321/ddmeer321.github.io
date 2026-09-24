@@ -44,7 +44,10 @@ function knownError(message: string) {
     save_changed_after_review: "Der Spielstand hat sich nach der Prüfung geändert. Bitte einen neuen Import beantragen.",
     target_not_active: "Dieser Spieler ist noch nicht fürs Trading freigegeben.",
     trading_not_active: "Du bist noch nicht fürs Trading freigegeben.",
+    // Greift ab jetzt beim BESTAETIGEN, nicht mehr beim Senden -- dort war
+    // der Satz schlicht falsch, weil die Gegenseite noch gar nicht dran war.
     both_sides_need_items: "Beide Spieler müssen mindestens einen Cursor anbieten.",
+    sender_needs_items: "Leg zuerst mindestens einen Cursor ins Angebot, dann kannst du es senden.",
     invalid_or_locked_item: "Mindestens ein Cursor ist nicht verfügbar oder bereits gesperrt.",
     trade_changed_or_expired: "Das Angebot wurde geändert oder ist abgelaufen. Bitte neu laden.",
     trade_not_editable: "Dieses Angebot kann nicht mehr geändert werden.",
