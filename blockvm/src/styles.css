@@ -78,6 +78,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .vm-type-input, .snapshot-name { min-height: 32px; border: 1px solid #343c50; border-radius: 8px; padding: 6px 8px; color: #e9edff; background: #090d14; }
 .vm-type-input { min-width: 220px; flex: 1; }
 .snapshot-name { width: 110px; }
+.vm-click-controls { display: inline-flex; gap: 5px; align-items: center; }
+.vm-coordinate { width: 58px; min-height: 32px; border: 1px solid #343c50; border-radius: 8px; padding: 6px; color: #e9edff; background: #090d14; font: 10px ui-monospace, monospace; }
+.vm-click-button { color: #ffd0e6; border-color: #60334d; }
 .vm-diagnostics { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(100px, 220px) auto; gap: 10px; align-items: center; min-height: 54px; padding: 8px 10px; border-bottom: 1px solid #242b39; background: #10151e; }
 .vm-diag-dot { width: 10px; height: 10px; border-radius: 50%; background: #728097; box-shadow: 0 0 12px currentColor; }
 .vm-diagnostics.loading .vm-diag-dot { color: #ff5b67; background: #ff5b67; animation: vmPulse 1s infinite alternate; }

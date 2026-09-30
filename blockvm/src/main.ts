@@ -6,6 +6,7 @@ import initSqlJs, { type Database } from 'sql.js';
 import { loadPyodide, type PyodideInterface } from 'pyodide';
 import { V86, type V86Options } from 'v86';
 import v86WasmUrl from 'v86/build/v86.wasm?url';
+import v86FallbackWasmUrl from 'v86/build/v86-fallback.wasm?url';
 
 type RuntimeKind = 'iframe' | 'controlled' | 'automation' | 'sqlite' | 'python' | 'terminal' | 'files' | 'vmception';
 type Category = 'Systeme' | 'Coding' | 'Kreativ' | 'Tools' | 'Chaos';
@@ -60,6 +61,7 @@ type SnapshotRecord = {
 };
 
 const V86_WASM = v86WasmUrl;
+const V86_WASM_FALLBACK = v86FallbackWasmUrl;
 const V86_ROOT = 'https://copy.sh/v86/';
 const IMAGE_ROOT = 'https://i.copy.sh/';
 const PYODIDE_INDEX = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/';
@@ -480,6 +482,7 @@ function vmScreenMarkup(profileId: string) {
     '<input class="vm-type-input" data-vm-type="' + profileId + '" placeholder="Text absichtlich an VM senden">' +
     '<button class="mini-button" data-vm-send="' + profileId + '">Text senden</button>' +
     '<button class="mini-button" data-vm-enter="' + profileId + '">Enter</button>' +
+    '<span class="vm-click-controls"><input class="vm-coordinate" data-vm-x="' + profileId + '" type="number" min="0" max="639" value="320" aria-label="VM Klick X"><input class="vm-coordinate" data-vm-y="' + profileId + '" type="number" min="0" max="479" value="240" aria-label="VM Klick Y"><button class="mini-button vm-click-button" data-vm-click="' + profileId + '">🖱️ Klick senden</button></span>' +
     '<input class="snapshot-name" data-snapshot-name="' + profileId + '" value="chaos1" maxlength="40">' +
     '<button class="mini-button" data-snapshot-save="' + profileId + '">💾 Snapshot</button>' +
     '<button class="mini-button" data-snapshot-load="' + profileId + '">↩ Laden</button>' +
@@ -579,6 +582,21 @@ function setVmDiagnostic(profileId: string, state: 'loading' | 'ok' | 'stalled' 
   bar.style.width = Math.max(0, Math.min(100, percent ?? (state === 'ok' ? 100 : 0))) + '%';
 }
 
+async function fetchWasmBytes(profileId: string, url: string, label: string) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 15000);
+  try {
+    setVmDiagnostic(profileId, 'loading', label + ' wird geladen', url, 0);
+    const response = await fetch(url, { signal: controller.signal, cache: 'force-cache' });
+    if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+    const bytes = await response.arrayBuffer();
+    setVmDiagnostic(profileId, 'loading', label + ' geladen', formatBytes(bytes.byteLength) + ' · HTTP ' + response.status, 100);
+    return bytes;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
 async function bootControlledVm(profileId: string, shell: HTMLElement) {
   const existing = vmSessions.get(profileId);
   if (existing) return existing;
@@ -593,8 +611,28 @@ async function bootControlledVm(profileId: string, shell: HTMLElement) {
     if (!screen) throw new Error('VM-Screen fehlt');
     activeStatus.textContent = profile.title + ' lädt…';
 
+    let primaryWasm: ArrayBuffer;
+    try {
+      primaryWasm = await fetchWasmBytes(profileId, V86_WASM, 'v86 WebAssembly');
+    } catch (error) {
+      const message = error instanceof DOMException && error.name === 'AbortError' ? 'WASM-Download nach 15 Sekunden abgebrochen.' : 'WASM-Download fehlgeschlagen: ' + (error instanceof Error ? error.message : String(error));
+      setVmDiagnostic(profileId, 'error', 'v86 WebAssembly konnte nicht geladen werden', message);
+      activeStatus.textContent = profile.title + ' · WASM-Fehler';
+      throw error;
+    }
+
     const options: V86Options = {
-      wasm_path: V86_WASM,
+      wasm_fn: async (imports) => {
+        try {
+          const result = await WebAssembly.instantiate(primaryWasm.slice(0), imports);
+          return result.instance.exports;
+        } catch (primaryError) {
+          setVmDiagnostic(profileId, 'loading', 'WASM-Kompatibilitätsfallback', 'Primäres WASM konnte nicht instanziiert werden. Lade Fallback…', 0);
+          const fallback = await fetchWasmBytes(profileId, V86_WASM_FALLBACK, 'v86 Fallback-WASM');
+          const result = await WebAssembly.instantiate(fallback, imports);
+          return result.instance.exports;
+        }
+      },
       memory_size: 64 * 1024 * 1024,
       vga_memory_size: 8 * 1024 * 1024,
       screen_container: screen,
@@ -603,10 +641,10 @@ async function bootControlledVm(profileId: string, shell: HTMLElement) {
       autostart: true,
       ...profile.options,
     };
-    setVmDiagnostic(profileId, 'loading', 'v86 startet…', 'Lade BIOS, VM-State und Betriebssystem-Image.');
+    setVmDiagnostic(profileId, 'loading', 'v86 startet…', 'WASM ist lokal geladen. Als Nächstes: BIOS und Gast-Image.');
     let lastDownloadActivity = performance.now();
     let ready = false;
-    let lastFile = 'noch keine Datei gemeldet';
+    let lastFile = 'lokales WASM erfolgreich geladen';
 
     const emulator = new V86(options);
     const touchDevice = navigator.maxTouchPoints > 0;
@@ -782,20 +820,18 @@ function clickVm(x: number, y: number, profileId?: string) {
   const id = profileId || runtimeProfileId(activeRuntimeId);
   const vm = vmSessions.get(id);
   const shell = Array.from(sessions.values()).find((node) => node.querySelector('[data-vm-screen="' + id + '"]'));
-  const screen = shell?.querySelector<HTMLElement>('[data-vm-screen="' + id + '"]');
-  const canvas = screen?.querySelector<HTMLCanvasElement>('canvas');
-  if (!vm || !screen || !canvas) throw new Error('Keine steuerbare VM aktiv.');
-  const rect = screen.getBoundingClientRect();
-  const px = Math.max(0, Math.min(639, x));
-  const py = Math.max(0, Math.min(479, y));
-  const clientX = rect.left + (px / 640) * rect.width;
-  const clientY = rect.top + (py / 480) * rect.height;
-  canvas.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX, clientY }));
-  canvas.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX, clientY, button: 0, buttons: 1 }));
-  canvas.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX, clientY, button: 0, buttons: 0 }));
+  if (!vm || !shell) throw new Error('Keine steuerbare VM aktiv.');
+  const px = Math.max(0, Math.min(639, Math.round(x)));
+  const py = Math.max(0, Math.min(479, Math.round(y)));
+  vm.emulator.mouse_set_enabled(true);
+  const bus = (vm.emulator as unknown as { bus?: { send: (name: string, value: unknown) => void } }).bus;
+  if (!bus) throw new Error('v86 Mouse-Bus ist nicht verfügbar.');
+  bus.send('mouse-absolute', [px, py, 640, 480]);
+  bus.send('mouse-click', [true, false, false]);
+  window.setTimeout(() => bus.send('mouse-click', [false, false, false]), 55);
   vm.cursorX = px;
   vm.cursorY = py;
-  const cursor = shell?.querySelector<HTMLElement>('[data-vm-cursor="' + id + '"]');
+  const cursor = shell.querySelector<HTMLElement>('[data-vm-cursor="' + id + '"]');
   if (cursor) {
     cursor.style.left = (px / 640) * 100 + '%';
     cursor.style.top = (py / 480) * 100 + '%';
@@ -1151,6 +1187,17 @@ runtimeStack.addEventListener('click', (event) => {
   if (target.dataset.vmEnter) {
     try {
       sendVmKey('enter', target.dataset.vmEnter);
+    } catch (error) {
+      showToast(String(error));
+    }
+  }
+  if (target.dataset.vmClick) {
+    const id = target.dataset.vmClick;
+    const xInput = document.querySelector<HTMLInputElement>('[data-vm-x="' + id + '"]');
+    const yInput = document.querySelector<HTMLInputElement>('[data-vm-y="' + id + '"]');
+    try {
+      clickVm(Number(xInput?.value || 320), Number(yInput?.value || 240), id);
+      showToast('🖱️ Klick an ' + (xInput?.value || '320') + ', ' + (yInput?.value || '240') + ' gesendet.');
     } catch (error) {
       showToast(String(error));
     }
