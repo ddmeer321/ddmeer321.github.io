@@ -5,6 +5,7 @@ import * as Blockly from 'blockly';
 import initSqlJs, { type Database } from 'sql.js';
 import { loadPyodide, type PyodideInterface } from 'pyodide';
 import { V86, type V86Options } from 'v86';
+import v86WasmUrl from 'v86/build/v86.wasm?url';
 
 type RuntimeKind = 'iframe' | 'controlled' | 'automation' | 'sqlite' | 'python' | 'terminal' | 'files' | 'vmception';
 type Category = 'Systeme' | 'Coding' | 'Kreativ' | 'Tools' | 'Chaos';
@@ -58,7 +59,7 @@ type SnapshotRecord = {
   state: ArrayBuffer;
 };
 
-const V86_WASM = 'https://cdn.jsdelivr.net/npm/v86@0.5/build/v86.wasm';
+const V86_WASM = v86WasmUrl;
 const V86_ROOT = 'https://copy.sh/v86/';
 const IMAGE_ROOT = 'https://i.copy.sh/';
 const PYODIDE_INDEX = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/';
