@@ -507,6 +507,12 @@ function makeSessionShell(item: AppDef) {
   shell.dataset.runtime = item.id;
 
   if (item.kind === 'iframe') {
+    if (item.id === 'lubuntu' || item.id === 'windows98') {
+      const externalControls = document.createElement('div');
+      externalControls.className = 'vm-toolbar';
+      externalControls.innerHTML = '<span class="vm-api-badge">EXTERNAL VM</span><span class="vm-click-controls"><input class="vm-coordinate" data-external-vm-x="' + item.id + '" type="number" min="0" max="639" value="320" aria-label="VM Klick X"><input class="vm-coordinate" data-external-vm-y="' + item.id + '" type="number" min="0" max="479" value="240" aria-label="VM Klick Y"><button class="mini-button vm-click-button" data-external-vm-click="' + item.id + '">🖱️ Klick simulieren</button></span>';
+      shell.appendChild(externalControls);
+    }
     const frame = document.createElement('iframe');
     frame.className = 'runtime-frame';
     frame.title = item.title;
@@ -1201,6 +1207,12 @@ runtimeStack.addEventListener('click', (event) => {
     } catch (error) {
       showToast(String(error));
     }
+  }
+  if (target.dataset.externalVmClick) {
+    const id = target.dataset.externalVmClick;
+    const frame = sessions.get(id)?.querySelector<HTMLIFrameElement>('iframe');
+    frame?.focus();
+    showToast('🖱️ Button vorhanden — Klick IN diese externe VM blockiert der Browser wegen Cross-Origin. iframe wurde fokussiert.');
   }
   if (target.dataset.snapshotSave) {
     const id = target.dataset.snapshotSave;
