@@ -1,0 +1,29 @@
+{
+  "name": "html-static-app",
+  "private": true,
+  "version": "0.0.3",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "blockly": "^12.3.1",
+    "lucide": "^0.469.0",
+    "pyodide": "314.0.7",
+    "sql.js": "^1.13.0",
+    "v86": "0.5"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/sql.js": "^1.4.9",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}
