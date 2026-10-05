@@ -1,0 +1,115 @@
+/* Arcade-Automaten (Coin Pusher, Basketball, Stapler, Lichtwirbel). */
+
+.arcade-stage {
+  background:
+    radial-gradient(80% 60% at 50% 20%, color-mix(in srgb, var(--ac, var(--cyan)) 18%, transparent), transparent 70%),
+    linear-gradient(180deg, #0d0820, #05030c);
+  touch-action: none;
+}
+
+.arcade-hud {
+  position: absolute;
+  z-index: 4;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.arcade-hud .slot-display {
+  min-width: 78px;
+  padding: 4px 10px;
+}
+
+.arcade-hint {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--line-strong);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity var(--t-slow);
+}
+
+.arcade-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 45%, rgba(20, 11, 36, 0.82), rgba(5, 3, 12, 0.94));
+  animation: fade-in var(--t-med) linear both;
+}
+
+.arcade-overlay h3 {
+  margin: 0;
+  font-size: clamp(1.6rem, 7vw, 2.6rem);
+}
+
+.arcade-overlay p {
+  margin: 0;
+  max-width: 420px;
+  color: var(--ink-dim);
+  font-weight: 600;
+}
+
+.arcade-overlay .big-num {
+  font-size: clamp(2.4rem, 12vw, 4rem);
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255, 197, 61, 0.6);
+  line-height: 1;
+}
+
+.prize-table {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 18px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink-dim);
+}
+
+.prize-table b {
+  color: var(--gold);
+  text-align: right;
+}
+
+.combo-flash {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(1.4rem, 7vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow: 0 0 6px var(--orange), 0 0 22px var(--orange);
+  pointer-events: none;
+  animation: combo 900ms var(--ease-out) both;
+  white-space: nowrap;
+}
+
+@keyframes combo {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  70% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(0.95); }
+}
