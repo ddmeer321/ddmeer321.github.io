@@ -166,7 +166,9 @@ function noise({ t, dur = 0.05, attack = 0.001, peak = 0.3, filter = "bandpass",
 
 /** Metallischer Klang aus unharmonischen Teiltönen (Münzen, Ring, Glocken). */
 function metal({ t, f, ratios = [1, 2.76, 5.4, 8.93], dur = 0.2, peak = 0.12, bus = "sfx", pan = 0 }) {
+  const nyquist = ctx.sampleRate * 0.45;
   ratios.forEach((r, i) => {
+    if (f * r > nyquist) return;
     tone({ t, f: f * r, dur: dur / (1 + i * 0.6), peak: peak / (1 + i * 0.8), bus, pan, attack: 0.001 });
   });
 }
