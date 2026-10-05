@@ -1,0 +1,93 @@
+/* Designsystem-Tokens für Neonpalast.
+   Alle Farben, Abstände, Radien, Schatten und Zeiten stehen hier – Spiele und Hub
+   verwenden ausschließlich diese Variablen (in JS gespiegelt in js/render/palette.js). */
+
+:root {
+  /* Grundflächen */
+  --bg-0: #0b0614;
+  --bg-1: #140b24;
+  --bg-2: #1e1236;
+  --bg-3: #2a1a4a;
+  --panel: rgba(30, 18, 54, 0.86);
+  --panel-solid: #1c1133;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  /* Text */
+  --ink: #f4ecff;
+  --ink-dim: #b7a8d6;
+  --ink-mute: #7d6f9c;
+
+  /* Neon-Akzente (Bedeutung siehe ART_DIRECTION.md) */
+  --pink: #ff3d9a;
+  --cyan: #2de2e6;
+  --gold: #ffc53d;
+  --lime: #8cff5a;
+  --violet: #9b5cff;
+  --red: #ff5a5a;
+  --orange: #ff8a3d;
+
+  /* Tische */
+  --felt: #0c5c55;
+  --felt-dark: #073a36;
+  --felt-line: rgba(255, 255, 255, 0.22);
+  --wood: #5a2f1e;
+
+  /* Typografie */
+  --font: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-num: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.75rem;
+  --fs-xxl: clamp(2rem, 6vw, 3.25rem);
+
+  /* Abstände */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+
+  /* Radien */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* Schatten / Licht */
+  --shadow-1: 0 2px 0 rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 4px 0 rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.5);
+  --glow-pink: 0 0 0 1px rgba(255, 61, 154, 0.6), 0 0 18px rgba(255, 61, 154, 0.45);
+  --glow-cyan: 0 0 0 1px rgba(45, 226, 230, 0.6), 0 0 18px rgba(45, 226, 230, 0.4);
+  --glow-gold: 0 0 0 1px rgba(255, 197, 61, 0.7), 0 0 22px rgba(255, 197, 61, 0.45);
+
+  /* Bewegung */
+  --t-fast: 120ms;
+  --t-med: 220ms;
+  --t-slow: 360ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Layout */
+  --hud-h: 56px;
+  --tap: 44px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* Themes können --accent / --accent-2 überschreiben (Progression) */
+  --accent: var(--pink);
+  --accent-2: var(--cyan);
+
+  color-scheme: dark;
+}
+
+/* Kosmetische Hallen-Themes (freischaltbar über Level) */
+:root[data-theme="sunset"] { --accent: #ff8a3d; --accent-2: #ffc53d; --bg-0: #120712; --bg-1: #1f0c1c; --bg-2: #2c1228; }
+:root[data-theme="ocean"]  { --accent: #2de2e6; --accent-2: #5c8dff; --bg-0: #050b16; --bg-1: #0a1426; --bg-2: #101f3a; }
+:root[data-theme="jungle"] { --accent: #8cff5a; --accent-2: #ffc53d; --bg-0: #06100a; --bg-1: #0b1a12; --bg-2: #12281b; }
+:root[data-theme="royal"]  { --accent: #ffc53d; --accent-2: #9b5cff; --bg-0: #0a0612; --bg-1: #160d26; --bg-2: #241640; }
