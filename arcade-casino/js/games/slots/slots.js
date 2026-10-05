@@ -30,13 +30,14 @@ export default {
       style: { "--sf": t.frame, "--sf2": t.frame2, "--sbg0": t.bg[0], "--sbg1": t.bg[1] },
     });
     const marquee = h("div.slot-marquee", {}, h("div.marquee-bulbs", { "aria-hidden": "true" }, Array.from({ length: 9 }, () => h("i"))), h("h2", {}, m.name), h("p", {}, m.tagline));
-    const windowEl = h("div.slot-window", { style: { "--aspect": `${m.reels} / ${m.rows * (m.reels === 5 ? 1.05 : 1)}` }, role: "button", "aria-label": "Walzen drehen", tabindex: "-1" });
+    const aspect = m.reels / (m.rows * (m.reels === 5 ? 1.05 : 1));
+    const windowEl = h("div.slot-window", { style: { "--aspect": String(aspect), "--ar": String(aspect) }, role: "button", "aria-label": "Walzen drehen", tabindex: "-1" });
     const winVal = h("strong.num", {}, "0");
     const msgVal = h("strong", {}, "Viel Glück!");
     const freeBadge = h("div.slot-free", { hidden: true });
     const cabinet = h(
       "div.slot-cabinet",
-      { style: { "--cab-w": m.reels === 5 ? "640px" : "430px" } },
+      { style: { "--cab-w": m.reels === 5 ? "640px" : "430px", "--ar": String(aspect) } },
       freeBadge,
       windowEl,
       h("div.slot-meter", {}, h("div.slot-display", {}, h("small", {}, "Gewinn"), winVal), h("div.slot-display.msg", { style: { flex: "1.6" } }, h("small", {}, "Info"), msgVal))

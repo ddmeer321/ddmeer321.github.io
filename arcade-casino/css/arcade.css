@@ -49,7 +49,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   gap: 14px;
   padding: 20px;
   text-align: center;
@@ -112,4 +115,18 @@
   20% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
   70% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -80%) scale(0.95); }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .arcade-hud {
+    left: calc(10px + var(--safe-left));
+    transform: none;
+    flex-direction: column;
+  }
+  .arcade-overlay { gap: 8px; padding: 10px; }
+  .arcade-overlay h3 { font-size: 1.4rem; }
+  .arcade-overlay p { font-size: 13px; }
+  .arcade-overlay .big-num { font-size: 2.2rem; }
+  .prize-table { grid-template-columns: repeat(4, auto); font-size: 12px; }
+  .arcade-hint { bottom: 6px; }
 }

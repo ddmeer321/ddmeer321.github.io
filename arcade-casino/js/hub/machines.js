@@ -362,7 +362,7 @@ export function cycloneArt(id) {
   ${pts.join("")}
   <text x="${cx}" y="${cy + 3}" text-anchor="middle" font-family="system-ui" font-weight="900" font-size="9" fill="#ffc53d" class="blink">JACKPOT</text>
   <rect x="30" y="160" width="70" height="14" rx="3" fill="#0b0614" opacity=".6"/>
-  <text x="65" y="170" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7" fill="#e2d1ff">STOPP IM RICHTIGEN MOMENT</text>
+  <text x="65" y="170" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7" fill="#e2d1ff">TIMING IST ALLES</text>
   <circle cx="65" cy="191" r="11" fill="#ffc53d" stroke="#fff" stroke-width="2"/>
 </svg>`;
 }

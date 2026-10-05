@@ -1,6 +1,7 @@
 /* Slotmaschinen – gemeinsames Gehäuse, Farben pro Maschine über Variablen. */
 
 .slot-stage {
+  container-type: size;
   --sf: var(--pink);
   --sf2: var(--gold);
   display: flex;
@@ -69,6 +70,7 @@
 .slot-cabinet {
   position: relative;
   width: min(100%, var(--cab-w, 560px));
+  width: min(100%, var(--cab-w, 560px), calc((100cqh - var(--chrome, 250px)) * var(--ar, 1) + 24px));
   padding: 10px;
   border-radius: 22px;
   background: linear-gradient(160deg, color-mix(in srgb, var(--sf) 70%, #000), color-mix(in srgb, var(--sf) 30%, #000));
@@ -80,7 +82,6 @@
   position: relative;
   width: 100%;
   aspect-ratio: var(--aspect, 1);
-  max-height: 52vh;
   border-radius: 14px;
   overflow: hidden;
   background: #05030c;
@@ -170,12 +171,14 @@
 
 @media (max-height: 640px) {
   .slot-marquee p { display: none; }
-  .slot-window { max-height: 44vh; }
+  .slot-stage { --chrome: 210px; }
   .spin-btn { width: 70px; height: 70px; }
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .slot-stage { flex-direction: row; }
   .slot-marquee { display: none; }
-  .slot-window { max-height: 58vh; }
+  .slot-stage { --chrome: 96px; padding-top: 6px; padding-bottom: 6px; }
+  .slot-meter { margin-top: 6px; }
+  .slot-display { padding: 3px 8px; }
+  .spin-btn { width: 60px; height: 60px; font-size: 13px; }
 }

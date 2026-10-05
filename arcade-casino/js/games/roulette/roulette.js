@@ -139,7 +139,8 @@ export default {
     ro?.observe(side);
     function checkLayout() {
       const w = side.getBoundingClientRect().width;
-      const hz = w >= 560;
+      const hgt = side.getBoundingClientRect().height;
+      const hz = w >= 560 || w > hgt * 1.4;
       if (hz !== horizontal) {
         horizontal = hz;
         buildBoard(hz);

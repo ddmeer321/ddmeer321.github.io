@@ -246,3 +246,12 @@
   .rl-ctrl .lbl { display: none; }
   .rl-ctrl .btn-lg { padding: 0 18px; min-height: 50px; }
 }
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .rl-chips .chip-btn { width: 40px; height: 40px; }
+  .rl-chips .chip-btn > span { inset: 8px; font-size: 10px; }
+  .rl-ctrl .lbl { display: none; }
+  .rl-ctrl .btn-lg { min-height: 46px; padding: 0 18px; }
+  .rl-board.horizontal { grid-template-rows: repeat(3, minmax(0, 1fr)) repeat(2, minmax(0, 0.8fr)); }
+  .rl-history { display: none; }
+}

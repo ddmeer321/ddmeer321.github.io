@@ -311,3 +311,12 @@
   gap: var(--s3);
   flex-wrap: wrap;
 }
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .bj-stage { --cw: clamp(38px, 12vh, 64px); padding-top: 8px; gap: 2px; }
+  .bj-rules { display: none; }
+  .bj-zone { min-height: calc(var(--ch) + 28px); gap: 2px; }
+  .bj-actions .btn { min-height: 44px; }
+  .bj-actions .btn span { display: none; }
+  .game-controls .status-line { display: none; }
+}
