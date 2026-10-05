@@ -78,6 +78,7 @@ export default {
     let outcome = null;
     let ticket = null;
     let spinT = 0;
+    let quick = false;
     let isFree = false;
     let auto = false;
     let autoTimer = 0;
@@ -142,6 +143,7 @@ export default {
       ctx.save();
 
       phase = "spinning";
+      quick = false;
       highlight = null;
       winShown = 0;
       winVal.textContent = "0";
@@ -183,7 +185,7 @@ export default {
     }
 
     function quickStop() {
-      for (const r of reels) if (r.state === "spin") r.stopAt = Math.min(r.stopAt, spinT + 0.02);
+      quick = true;
       reels.forEach((r, i) => {
         if (r.state === "spin") r.stopAt = spinT + 0.02 + i * 0.06;
       });
@@ -195,8 +197,13 @@ export default {
       let d = mod(r.pos - outcome.stops[i], len);
       const minTravel = r.speed > 10 ? 3 : 1;
       if (d < minTravel) d += len;
+      if (quick) {
+        // Schnellstopp: kürzester Weg zum (bereits feststehenden) Ziel
+        d = mod(r.pos - outcome.stops[i], len);
+        if (d < 0.5) d += len;
+      }
       const target = r.pos - d;
-      const dur = Math.max(0.28, Math.min(1.2, (d / Math.max(8, r.speed)) * 1.5));
+      const dur = quick ? 0.22 : Math.max(0.28, Math.min(1.2, (d / Math.max(8, r.speed)) * 1.5));
       r.tween = { from: r.pos, to: target, t: 0, d: dur };
       r.state = "stopping";
     }

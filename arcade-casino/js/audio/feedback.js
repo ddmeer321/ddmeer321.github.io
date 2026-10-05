@@ -14,6 +14,8 @@ export function setFeedbackSettings(next) {
 
 function vibrate(pattern) {
   if (!opts.vibration || !canVibrate) return;
+  // Vor der ersten Benutzergeste blockiert der Browser Vibration (mit Konsolenwarnung).
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
   const now = performance.now();
   if (now - lastVibe < 35) return;
   lastVibe = now;

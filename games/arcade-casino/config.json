@@ -1,0 +1,12 @@
+{
+  "id": "arcade-casino",
+  "name": "Neonpalast",
+  "type": "minigame",
+  "status": "beta",
+  "features": ["highscore", "pc", "tablet", "mobile"],
+  "version": "0.9.0",
+  "author": "Dodo",
+  "description": "Arcade-Casino mit Blackjack, Roulette, drei Slots, Coin Pusher und Skill-Automaten wie Basketball. Ausschließlich virtuelles Spielgeld – keine Käufe, keine Auszahlungen.",
+  "icon": "🎰",
+  "entry": "arcade-casino/index.html"
+}
