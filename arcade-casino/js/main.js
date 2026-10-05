@@ -207,8 +207,26 @@ hub = createHub(viewHub, {
     showSettings();
   },
   getBest: (k) => getState().bests[k] || 0,
+  tickerItems,
 });
 applyLook();
+
+function tickerItems() {
+  const s = getState();
+  const info = levelInfo(s.xp);
+  const items = [
+    "★ WILLKOMMEN IM NEONPALAST ★",
+    `LEVEL ${info.level} · NOCH ${fmt(info.need - info.into)} XP BIS LEVEL ${info.level + 1}`,
+    "NUR SPIELGELD · KEINE KÄUFE · KEINE AUSZAHLUNG",
+  ];
+  if (s.stats.biggestWin > 0) items.push(`GRÖSSTER GEWINN: ${fmt(s.stats.biggestWin)} CREDITS`);
+  if (s.bests.hoops) items.push(`NEON HOOPS REKORD: ${fmt(s.bests.hoops)} PUNKTE`);
+  if (s.bests.stacker) items.push(`TURMBAU REKORD: REIHE ${s.bests.stacker}`);
+  if (s.counters["pusher-coins"]) items.push(`MÜNZKASKADE: ${fmt(s.counters["pusher-coins"])} MÜNZEN ÜBER DIE KANTE`);
+  items.push("TIPP: BEI NEON HOOPS ZÄHLT DAS WISCH-TEMPO AM ENDE");
+  items.push("TIPP: KOSMO 5 – DREI KOMETEN BRINGEN FREISPIELE");
+  return items;
+}
 
 function renderPerks() {
   const s = getState();

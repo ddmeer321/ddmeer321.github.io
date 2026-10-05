@@ -6,9 +6,11 @@ import { ART } from "./machines.js";
 import { GAMES, ZONES } from "../games/registry.js";
 import { fmt } from "../ui/format.js";
 
-export function createHub(root, { onOpen, renderPerks, onStats, onSettings, getBest }) {
+export function createHub(root, { onOpen, renderPerks, onStats, onSettings, getBest, tickerItems }) {
   const ambient = h("canvas.hall-ambient", { "aria-hidden": "true" });
   const perks = h("div.hall-perks");
+  const tickerTrack = h("div.ticker-track");
+  const ticker = h("div.hall-ticker", { "aria-hidden": "true" }, tickerTrack);
   const zonesEl = h("div.zones");
   const machines = new Map();
 
@@ -38,6 +40,7 @@ export function createHub(root, { onOpen, renderPerks, onStats, onSettings, getB
       h("h1", { html: 'NEON<span class="flick">P</span>ALAST' }),
       h("p", {}, "Arcade · Casino · nur Spielgeld")
     ),
+    ticker,
     perks,
     zonesEl,
     h(
@@ -146,9 +149,17 @@ export function createHub(root, { onOpen, renderPerks, onStats, onSettings, getB
     if (!document.hidden && visible) startAmbient();
   });
 
+  function refreshTicker() {
+    const items = tickerItems();
+    // zweimal hintereinander für nahtlose Endlosschleife
+    tickerTrack.replaceChildren(...[...items, ...items].map((t) => h("span", {}, t)));
+    tickerTrack.style.animationDuration = `${Math.max(18, items.join(" ").length * 0.22)}s`;
+  }
+
   return {
     show() {
       visible = true;
+      refreshTicker();
       clear(perks);
       const p = renderPerks();
       if (p) perks.append(...[].concat(p));
