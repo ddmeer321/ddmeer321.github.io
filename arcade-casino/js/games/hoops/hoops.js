@@ -95,7 +95,7 @@ export default {
           h("h3.neon-title", {}, info.newBest ? "Neuer Rekord!" : "Zeit!"),
           h("div.big-num.num", {}, ctx.fmt(info.score)),
           h("p", {}, `${info.baskets} Körbe · beste Serie ${info.bestStreak} · Bestwert ${ctx.fmt(ctx.progression.best("hoops"))}`),
-          h("p", { style: { color: prize ? "var(--gold)" : "var(--ink-dim)", fontWeight: 900, fontSize: "1.2rem" } }, prize ? `Gewinn: ${prize} Credits` : "Diesmal kein Preis"),
+          h("p", { style: { color: prize > ENTRY ? "var(--gold)" : "var(--ink-dim)", fontWeight: 900, fontSize: "1.2rem" } }, prize > ENTRY ? `Gewinn: ${prize} Credits (+${prize - ENTRY})` : prize > 0 ? `${prize} Credits zurück · Einsatz ${ENTRY}` : "Diesmal kein Preis"),
           h("button.btn.btn-primary.btn-lg", { type: "button", onclick: start }, `Nochmal · ${ENTRY} Credits`),
         ];
       }

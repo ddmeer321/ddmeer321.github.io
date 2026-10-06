@@ -48,9 +48,9 @@ test("Plinko-RTP je Risikostufe im Zielbereich", () => {
   const low = rtpOf(RISKS.low.mult);
   const mid = rtpOf(RISKS.mid.mult);
   const high = rtpOf(RISKS.high.mult);
-  assert.ok(low > 0.95 && low < 0.97, `Niedrig ${low}`);
-  assert.ok(mid > 0.94 && mid < 0.96, `Mittel ${mid}`);
-  assert.ok(high > 0.92 && high < 0.95, `Hoch ${high}`);
+  for (const [name, r] of [["Niedrig", low], ["Mittel", mid], ["Hoch", high]]) assert.ok(r > 0.94 && r < 0.96, `${name} ${r}`);
+  // V1.2: Risiko = Varianz, nicht schlechtere Quote – Spanne höchstens 1 Prozentpunkt
+  assert.ok(Math.max(low, mid, high) - Math.min(low, mid, high) < 0.01);
   // Hoch hat die größten, seltensten Multiplikatoren
   assert.ok(Math.max(...RISKS.high.mult) > Math.max(...RISKS.mid.mult));
   assert.ok(Math.max(...RISKS.mid.mult) > Math.max(...RISKS.low.mult));

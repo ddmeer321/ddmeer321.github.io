@@ -13,9 +13,11 @@ export const MEASURED_P = [0.000775, 0.004471, 0.013448, 0.040091, 0.105689, 0.2
 const mirror = (half) => [...half, ...half.slice(0, -1).reverse()];
 
 export const RISKS = {
-  low: { name: "Niedrig", mult: mirror([12, 4, 2, 1.4, 1.2, 0.8, 0.6]) },
+  // V1.2: Risiko soll vor allem Varianz bedeuten – die RTPs liegen jetzt eng
+  // beieinander (95,1 / 94,8 / 95,3 %) statt 96,0 / 94,8 / 93,7 % in V1.1.
+  low: { name: "Niedrig", mult: mirror([12, 3, 2, 1.4, 1.2, 0.8, 0.6]) },
   mid: { name: "Mittel", mult: mirror([50, 12, 4, 1.8, 1, 0.6, 0.2]) },
-  high: { name: "Hoch", mult: mirror([200, 18, 5, 1.4, 0.4, 0.2, 0.2]) },
+  high: { name: "Hoch", mult: mirror([200, 18, 5, 1.6, 0.4, 0.2, 0.2]) },
 };
 
 export function rtpOf(mult, p = MEASURED_P) {

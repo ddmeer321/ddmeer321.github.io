@@ -8,7 +8,7 @@
 
 import { TRACKS, TRACK_IDS, trackById } from "../audio/tracks.js";
 
-export const JUKEBOX_PRICE = 6000;
+export const JUKEBOX_PRICE = 5000;
 export const SONG_PRICE = 1500;
 export const MUSIC_IN_GAMES = ["duck", "full", "off"];
 

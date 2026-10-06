@@ -164,7 +164,7 @@ export default {
       ctx.report("cyclone:round", { points, jackpots });
       const perfect = points === C.MAX_POINTS;
       ctx.celebrate({ stake: ENTRY, payout: prize, jackpot: perfect, title: perfect ? "PERFEKTE RUNDE" : undefined, detail: `${points} Punkte` });
-      status.textContent = `${points} Punkte → ${prize ? `${prize} Credits` : "kein Preis"}`;
+      status.textContent = `${points} Punkte → ${prize > ENTRY ? `${prize} Credits (+${prize - ENTRY})` : prize > 0 ? `${prize} Credits zurück · Einsatz ${ENTRY}` : "kein Preis"}`;
       actBtn.textContent = `Nochmal · ${ENTRY}`;
       actBtn.classList.remove("btn-gold");
       hud();
