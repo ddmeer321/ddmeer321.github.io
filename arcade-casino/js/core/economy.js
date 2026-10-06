@@ -119,6 +119,20 @@ export function createEconomy({ getState, save = () => {}, emit = () => {}, guar
       return true;
     },
 
+    /**
+     * Kauf eines dauerhaften Gegenstands (Jukebox, Songs). Kein Einsatz: zählt
+     * nicht als „eingesetzt“, sondern als „ausgegeben“. Bilanz:
+     * Guthaben = Start − Einsätze + Auszahlungen + Boni − Ausgaben.
+     */
+    spend(amount, reason = "purchase") {
+      if (!api.canAfford(amount)) return false;
+      const s = getState();
+      s.stats.spent = (s.stats.spent || 0) + amount;
+      setBalance(s.balance - amount, -amount, reason);
+      emit("spend", { amount, reason });
+      return true;
+    },
+
     /** Direkte Gutschrift (Coin Pusher, Skill-Preise, Boni). */
     credit(gameId, amount, reason = "credit") {
       if (!isValidAmount(amount)) return false;

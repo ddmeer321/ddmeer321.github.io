@@ -9,11 +9,14 @@
 import { readJSON, writeJSON } from "./storage.js";
 import { defaultControl, sanitizeControl } from "./control.js";
 import { sanitizeChallenges } from "./challenges.js";
+import { defaultJukebox, sanitizeJukebox } from "./jukebox.js";
+import { defaultLotto, sanitizeLotto } from "./lotto.js";
+import { defaultInbox, sanitizeInbox } from "./inbox.js";
 
 // Der Schlüssel behält bewusst seinen alten Namen, damit V1.0-Spielstände
 // gefunden und migriert werden. Die Schema-Version steht im Feld `v`.
 export const SAVE_KEY = "neonpalast.save.v1";
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export const START_BALANCE = 1000;
 export const MAX_BALANCE = 999_999_999;
 
@@ -22,6 +25,7 @@ export function defaultSettings() {
     master: 0.8,
     sfx: 0.9,
     ambience: 0.35,
+    music: 0.6,
     vibration: true,
     audioHaptics: true,
     motion: "auto", // auto | reduced | full
@@ -45,6 +49,7 @@ export function defaultState(now = Date.now()) {
       won: 0,
       biggestWin: 0,
       bonus: 0,
+      spent: 0,
       perGame: {},
     },
     bests: {},
@@ -53,6 +58,9 @@ export function defaultState(now = Date.now()) {
     games: {},
     control: defaultControl(),
     challenges: { day: "", items: [], bonus: false },
+    jukebox: defaultJukebox(),
+    lotto: defaultLotto(),
+    inbox: defaultInbox(),
   };
 }
 
@@ -72,6 +80,18 @@ export function migrateState(raw) {
     out.control = defaultControl();
     out.challenges = { day: "", items: [], bonus: false };
     out.migratedFrom = 1;
+  }
+  if (v < 3) {
+    // v2 → v3 (V1.2): Jukebox, Lotto und Posteingang kommen leer dazu.
+    // „Gesunde Pause“ war ein Erfolg fürs Pausieren – Pausen sollen nicht
+    // gamifiziert werden, der Erfolg entfällt (bereits erhaltene XP bleiben).
+    const ach = out.achievements && typeof out.achievements === "object" ? { ...out.achievements } : {};
+    delete ach["break-taken"];
+    out.achievements = ach;
+    out.jukebox = defaultJukebox();
+    out.lotto = defaultLotto();
+    out.inbox = defaultInbox();
+    out.migratedFrom = out.migratedFrom || 2;
   }
   out.v = SAVE_VERSION;
   return out;
@@ -148,6 +168,7 @@ export function sanitizeState(raw, now = Date.now()) {
       master: num(s.master, def.settings.master, 0, 1),
       sfx: num(s.sfx, def.settings.sfx, 0, 1),
       ambience: num(s.ambience, def.settings.ambience, 0, 1),
+      music: num(s.music, def.settings.music, 0, 1),
       vibration: bool(s.vibration, def.settings.vibration),
       audioHaptics: bool(s.audioHaptics, def.settings.audioHaptics),
       motion: oneOf(s.motion, ["auto", "reduced", "full"], "auto"),
@@ -159,6 +180,7 @@ export function sanitizeState(raw, now = Date.now()) {
       won: int(st.won, 0),
       biggestWin: int(st.biggestWin, 0),
       bonus: int(st.bonus, 0),
+      spent: int(st.spent, 0),
       perGame,
     },
     bests: intMap(src.bests),
@@ -168,6 +190,9 @@ export function sanitizeState(raw, now = Date.now()) {
     games: plainObject(src.games),
     control: sanitizeControl(src.control),
     challenges: sanitizeChallenges(src.challenges),
+    jukebox: sanitizeJukebox(src.jukebox),
+    lotto: sanitizeLotto(src.lotto),
+    inbox: sanitizeInbox(src.inbox),
   };
 }
 

@@ -521,7 +521,7 @@ console.log("Neonpalast E2E (V1.1)");
     await page.clock.runFor(16000);
     await page.waitForFunction(() => !document.documentElement.classList.contains("is-play-locked"), null, { timeout: 5000 });
     const s = await state(page);
-    assert(s.achievements["break-taken"], "Erfolg „Pause gemacht“ fehlt");
+    assert(!s.achievements["break-taken"], "Pausen dürfen nicht belohnt werden");
   });
   await check("Keine Konsolenfehler (Pause)", async () => assert(!errors.length, errors.join(" | ")));
   await ctx.close();

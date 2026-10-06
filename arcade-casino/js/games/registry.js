@@ -2,12 +2,17 @@
 // load() wird erst beim Öffnen aufgerufen (Code-Splitting per dynamic import).
 
 export const ZONES = [
+  { id: "lounge", title: "Palast-Lounge" },
   { id: "slots", title: "Slot-Allee" },
   { id: "tables", title: "Tisch-Lounge" },
   { id: "arcade", title: "Arcade-Ecke" },
 ];
 
+// Feste Einrichtung der Halle (kein Spiel): wird von main.js direkt bedient.
+export const FIXTURES = [{ id: "jukebox", zone: "lounge", title: "Jukebox", art: "jukebox" }];
+
 export const GAMES = [
+  { id: "lotto", zone: "lounge", kind: "event", title: "Neon Lotto", blurb: "Ziehung täglich 20 Uhr", art: "lotto", table: true, css: "lotto", load: () => import("./lotto/lotto.js") },
   { id: "slots-fruit", zone: "slots", title: "Fruchtfiesta", blurb: "3×3 · 5 Linien", art: "slotFruit", css: "slots", load: () => import("./slots/slots.js"), opts: { machine: "fruit" } },
   { id: "slots-seven", zone: "slots", title: "Goldene Sieben", blurb: "Klassik · 1 Linie", art: "slotSeven", css: "slots", load: () => import("./slots/slots.js"), opts: { machine: "seven" } },
   { id: "slots-cosmo", zone: "slots", title: "Kosmo 5", blurb: "5×3 · Freispiele", art: "slotCosmo", css: "slots", wide: true, load: () => import("./slots/slots.js"), opts: { machine: "cosmo" } },
@@ -25,3 +30,6 @@ export const GAMES = [
 export function gameById(id) {
   return GAMES.find((g) => g.id === id) || null;
 }
+
+/** Die eigentlichen Automaten (ohne Lotto-Studio). */
+export const MACHINES = GAMES.filter((g) => g.kind !== "event");
