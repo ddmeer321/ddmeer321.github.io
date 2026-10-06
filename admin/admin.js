@@ -6,6 +6,7 @@
     loading: document.getElementById("admin-loading"),
     noAccess: document.getElementById("admin-no-access"),
     noAccessText: document.getElementById("admin-no-access-text"),
+    noAccessLink: document.getElementById("admin-no-access-link"),
     app: document.getElementById("admin-app"),
     whoami: document.getElementById("admin-whoami"),
     logoutBtn: document.getElementById("admin-logout-btn"),
@@ -13,12 +14,21 @@
     count: document.getElementById("admin-count"),
     message: document.getElementById("admin-message"),
     tableBody: document.getElementById("admin-table-body"),
+    tradeSearch: document.getElementById("trade-search"),
+    tradeCount: document.getElementById("trade-count"),
+    tradeMessage: document.getElementById("trade-message"),
+    tradeBody: document.getElementById("trade-table-body"),
+    tradeRefresh: document.getElementById("trade-refresh"),
+    migrationBody: document.getElementById("migration-table-body"),
+    migrationMessage: document.getElementById("migration-message"),
+    migrationRefresh: document.getElementById("migration-refresh"),
   };
 
   var ROLES = ["user", "tester", "admin", "owner"];
   var ROLE_LABELS = { user: "User", tester: "Tester", admin: "Admin", owner: "Owner" };
 
   var users = [];
+  var trades = [];
   var currentUserId = null;
 
   function showState(state) {
@@ -60,16 +70,32 @@
     return fallback;
   }
 
+  async function invokeAuthenticated(functionName, options) {
+    return window.invokeAuthenticatedFunction(functionName, options);
+  }
+
   async function init() {
     var sessionRes = await sb.auth.getSession();
     var session = sessionRes.data && sessionRes.data.session;
     if (!session) {
       els.noAccessText.textContent = "Du bist nicht angemeldet.";
+      els.noAccessLink.href = "../login.html";
+      els.noAccessLink.textContent = "Zum Login";
       showState("no-access");
       return;
     }
 
-    currentUserId = session.user.id;
+    var userRes = await sb.auth.getUser();
+    var authenticatedUser = userRes.data && userRes.data.user;
+    if (userRes.error || !authenticatedUser) {
+      els.noAccessText.textContent = "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.";
+      els.noAccessLink.href = "../login.html";
+      els.noAccessLink.textContent = "Erneut anmelden";
+      showState("no-access");
+      return;
+    }
+
+    currentUserId = authenticatedUser.id;
 
     var profileRes = await sb.from("profiles").select("role, username").eq("id", currentUserId).maybeSingle();
     var myProfile = profileRes.data;
@@ -83,6 +109,8 @@
     els.whoami.textContent = "Angemeldet als " + myProfile.username;
     showState("app");
     await loadUsers();
+    await loadMigrationQueue();
+    await loadTradeHistory();
   }
 
   async function loadUsers() {
@@ -158,7 +186,7 @@
     }
 
     select.disabled = true;
-    var res = await sb.functions.invoke("admin-update-role", { body: { targetId: id, newRole: newRole } });
+    var res = await invokeAuthenticated("admin-update-role", { body: { targetId: id, newRole: newRole } });
     select.disabled = false;
 
     if (res.error) {
@@ -183,7 +211,7 @@
       if (willBan && !confirm('"' + user.username + '" wirklich sperren?')) return;
 
       btn.disabled = true;
-      var res = await sb.functions.invoke("admin-set-ban", { body: { targetId: id, banned: willBan } });
+      var res = await invokeAuthenticated("admin-set-ban", { body: { targetId: id, banned: willBan } });
       btn.disabled = false;
 
       if (res.error) {
@@ -200,7 +228,7 @@
       if (!confirm('"' + user.username + '" wirklich endgültig löschen? Das kann nicht rückgängig gemacht werden.')) return;
 
       btn.disabled = true;
-      var res2 = await sb.functions.invoke("admin-delete-user", { body: { targetId: id } });
+      var res2 = await invokeAuthenticated("admin-delete-user", { body: { targetId: id } });
       btn.disabled = false;
 
       if (res2.error) {
@@ -208,9 +236,144 @@
         return;
       }
       users = users.filter(function (u) { return u.id !== id; });
-      setMessage(user.username + " wurde gelöscht.", false);
+      // Die Funktion loescht erst das Konto, dann das Profilbild ueber die
+      // Storage-API. Klappt der zweite Schritt nicht, ist das Konto trotzdem
+      // weg - aber ein Profilbild ist ein personenbezogenes Datum und soll
+      // nicht stillschweigend liegenbleiben. Deshalb den Hinweis zeigen,
+      // wenn die Funktion einen mitschickt.
+      var hinweis = res2.data && res2.data.hinweis;
+      setMessage(hinweis || user.username + " wurde gelöscht.", !!hinweis);
       render();
     }
+  });
+
+
+  // Spielstand-Zahlen kommen roh aus dem Spielstand: Coins werden dort in
+  // Bruchteilen addiert, und weil Kommazahlen binaer gespeichert werden,
+  // sammeln sich winzige Ungenauigkeiten zu einem sichtbaren Rest
+  // (1206.900000000001 statt 1206,9). Der Wert stimmt - die Abweichung liegt
+  // bei einem Billionstel.
+  //
+  // Wichtiger als die Kosmetik ist aber der Zweck dieser Spalte: Der Owner
+  // soll auf einen Blick sehen, ob eine Zahl unplausibel ist. Ohne
+  // Tausenderpunkte muesste er dafuer Nullen zaehlen, um eine Billion von
+  // einer Milliarde zu unterscheiden.
+  function formatZahl(wert) {
+    var n = Number(wert);
+    if (!isFinite(n)) return "0";
+    try { return n.toLocaleString("de-DE", { maximumFractionDigits: 2 }); }
+    catch (e) { return String(Math.round(n)); }
+  }
+
+  // Was beim Import wirklich entsteht. Das ist die Entscheidung, die der
+  // Owner hier trifft - die Zusammenfassung des Spielstands daneben ist nur
+  // Hintergrund. Ein praeparierter Stand mit 499 Origin-Cursorn sah vorher
+  // aus wie jeder andere.
+  function vorschauHtml(liste) {
+    if (!Array.isArray(liste) || !liste.length) {
+      return '<p class="import-nichts">Es entstehen <strong>keine</strong> handelbaren Items.</p>';
+    }
+    return '<div class="import-vorschau">' + liste.map(function (v) {
+      var rar = String(v.rarity || "");
+      return '<span class="import-item ' + escapeHtml(rar) + '">' +
+        escapeHtml(v.icon || "") + " " + escapeHtml(formatZahl(v.stueck)) + "\u00d7 " +
+        escapeHtml(v.name || "") + ' <span class="rar">' + escapeHtml(rar) + "</span></span>";
+    }).join("") + "</div>";
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return "—";
+    try { return new Date(iso).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }); }
+    catch (e) { return iso; }
+  }
+
+  async function loadTradeHistory() {
+    els.tradeRefresh.disabled = true;
+    els.tradeMessage.textContent = "Trading-Verlauf wird geladen …";
+    var res = await invokeAuthenticated("cursor-clicker-security", {
+      body: { action: "owner_trade_history", clientActionId: crypto.randomUUID(), limit: 100 }
+    });
+    els.tradeRefresh.disabled = false;
+    if (res.error || !res.data) {
+      els.tradeMessage.textContent = await extractErrorMessage(res, "Trading-Verlauf konnte nicht geladen werden.");
+      els.tradeMessage.className = "admin-message error";
+      return;
+    }
+    trades = Array.isArray(res.data.trades) ? res.data.trades : [];
+    els.tradeMessage.textContent = "";
+    els.tradeMessage.className = "admin-message";
+    renderTrades();
+  }
+
+  function renderTrades() {
+    var query = els.tradeSearch.value.trim().toLowerCase();
+    var filtered = trades.filter(function (trade) {
+      if (!query) return true;
+      return [trade.id, trade.initiator_username, trade.initiator_player_id,
+        trade.recipient_username, trade.recipient_player_id, trade.status]
+        .some(function (value) { return String(value || "").toLowerCase().indexOf(query) !== -1; });
+    });
+    els.tradeCount.textContent = filtered.length + " von " + trades.length + " Trades";
+    if (!filtered.length) {
+      els.tradeBody.innerHTML = '<tr><td colspan="6" class="admin-empty">' +
+        (trades.length ? "Keine passenden Trades." : "Noch keine Trades vorhanden.") + "</td></tr>";
+      return;
+    }
+    els.tradeBody.innerHTML = filtered.map(function (trade) {
+      var items = Array.isArray(trade.items) ? trade.items : [];
+      var events = Array.isArray(trade.events) ? trade.events : [];
+      var itemHtml = items.length ? items.map(function (item) {
+        var snapshot = item.snapshot || {};
+        return "<li>" + escapeHtml(snapshot.name || snapshot.catalogId || snapshot.catalog_id || "Gegenstand") +
+          " · " + escapeHtml(snapshot.rarity || snapshot.itemType || snapshot.item_type || "unbekannt") + "</li>";
+      }).join("") : "<li>Keine Gegenstände protokolliert</li>";
+      var eventHtml = events.length ? events.map(function (event) {
+        return "<li>" + escapeHtml(formatDateTime(event.createdAt)) + " · " + escapeHtml(event.type) + "</li>";
+      }).join("") : "<li>Noch keine Ereignisse</li>";
+      return "<tr>" +
+        "<td>" + escapeHtml(formatDateTime(trade.created_at)) + "</td>" +
+        '<td class="admin-mono">' + escapeHtml(trade.id) + "</td>" +
+        "<td><strong>" + escapeHtml(trade.initiator_username) + "</strong><br><span class=\"admin-mono\">" + escapeHtml(trade.initiator_player_id) + "</span></td>" +
+        "<td><strong>" + escapeHtml(trade.recipient_username) + "</strong><br><span class=\"admin-mono\">" + escapeHtml(trade.recipient_player_id) + "</span></td>" +
+        '<td><span class="admin-trade-status status-' + escapeHtml(trade.status) + '">' + escapeHtml(trade.status) + "</span></td>" +
+        '<td><details class="admin-trade-details"><summary>Anzeigen</summary><strong>Gegenstände</strong><ul>' + itemHtml +
+        "</ul><strong>Ereignisse</strong><ul>" + eventHtml + "</ul></details></td></tr>";
+    }).join("");
+  }
+
+  els.tradeSearch.addEventListener("input", renderTrades);
+  els.tradeRefresh.addEventListener("click", loadTradeHistory);
+
+  async function loadMigrationQueue() {
+    els.migrationRefresh.disabled = true;
+    var res = await invokeAuthenticated("cursor-clicker-security", { body: { action: "owner_migration_queue" } });
+    els.migrationRefresh.disabled = false;
+    if (res.error || !Array.isArray(res.data)) {
+      els.migrationMessage.textContent = await extractErrorMessage(res, "Importanträge konnten nicht geladen werden.");
+      els.migrationMessage.className = "admin-message error";
+      return;
+    }
+    els.migrationMessage.textContent = "";
+    els.migrationBody.innerHTML = res.data.length ? res.data.map(function (r) {
+      var s = r.summary || {};
+      var flags = Array.isArray(r.risk_flags) && r.risk_flags.length ? r.risk_flags.join(", ") : "Keine";
+      return "<tr><td><strong>" + escapeHtml(r.username) + "</strong><br><span class=\"admin-mono\">" + escapeHtml(r.player_id) + "</span></td>" +
+        "<td>" + vorschauHtml(r.vorschau) +
+          "<div class=\"import-summe\">" + escapeHtml(formatZahl(s.cursorCopies)) + " Cursor · " +
+          escapeHtml(formatZahl(s.employeeCopies)) + " Mitarbeiter · " +
+          escapeHtml(formatZahl(s.coins)) + " Coins im Spielstand</div></td>" +
+        "<td>" + escapeHtml(flags) + "</td><td class=\"admin-actions\"><button class=\"admin-btn admin-btn-small\" data-migration=\"approved\" data-id=\"" + r.user_id + "\" data-hash=\"" + escapeHtml(r.vorschau_hash || "") + "\">Freigeben</button><button class=\"admin-btn admin-btn-small admin-btn-danger\" data-migration=\"rejected\" data-id=\"" + r.user_id + "\">Ablehnen</button></td></tr>";
+    }).join("") : '<tr><td colspan="4" class="admin-empty">Keine offenen Importanträge.</td></tr>';
+  }
+  els.migrationRefresh.addEventListener("click", loadMigrationQueue);
+  els.migrationBody.addEventListener("click", async function (e) {
+    var btn = e.target.closest("button[data-migration]"); if (!btn) return;
+    var decision = btn.dataset.migration;
+    if (decision === "approved" && !confirm("Diesen unveränderten Spielstand für den einmaligen Trading-Import freigeben?")) return;
+    btn.disabled = true;
+    var res = await invokeAuthenticated("cursor-clicker-security", { body: { action: "owner_review_migration", clientActionId: crypto.randomUUID(), targetId: btn.dataset.id, decision: decision, vorschauHash: btn.dataset.hash || null } });
+    if (res.error) els.migrationMessage.textContent = await extractErrorMessage(res, "Entscheidung konnte nicht gespeichert werden.");
+    await loadMigrationQueue();
   });
 
   els.logoutBtn.addEventListener("click", async function () {

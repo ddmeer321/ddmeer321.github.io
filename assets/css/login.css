@@ -101,6 +101,16 @@
 }
 .login-password-rules li.ok { background: rgba(47, 214, 192, 0.2); color: #128a72; }
 
+/* Turnstile-Widget. Das [hidden] steht explizit dabei, weil display:flex
+   sonst gegen das Attribut gewinnt und ein leerer Kasten stehenbliebe,
+   solange kein Sitekey eingetragen ist. */
+.login-turnstile {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 14px;
+}
+.login-turnstile[hidden] { display: none; }
+
 .login-submit { width: 100%; justify-content: center; }
 .login-submit:disabled { opacity: 0.6; cursor: default; }
 

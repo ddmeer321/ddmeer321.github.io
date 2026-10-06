@@ -631,6 +631,134 @@
     }
   }
 
+  // ---------- Biti-Karte ----------
+  //
+  // Runder Umschalter 2D/3D: sowohl Klick als auch Ziehen bedienbar. Waehrend
+  // des Ziehens wird der Kopf per Inline-Transform direkt der Maus
+  // nachgefuehrt (CSS-Transition ueber .is-dragging abgeschaltet); beim
+  // Loslassen entscheidet die naehere Seite (oder, bei kaum Bewegung, ein
+  // einfacher Wechsel wie bei einem Klick).
+  function setupBitiViewToggle(onChange) {
+    var toggle = document.getElementById("profil-biti-view-toggle");
+    var knob = document.getElementById("profil-biti-view-knob");
+    if (!toggle || !knob) return { get: function () { return "2d"; }, set: function () {} };
+
+    var KNOB_MIN = 3, KNOB_MAX = 47; // 3 + 44px Hub, siehe .profil-biti-view-knob/-toggle[aria-checked] in profil.css
+    var view = "2d";
+    var dragging = false;
+    var moved = false;
+    var startX = 0;
+    var knobStartLeft = KNOB_MIN;
+
+    function clamp(x) {
+      return Math.max(KNOB_MIN, Math.min(KNOB_MAX, x));
+    }
+
+    function setView(next) {
+      view = next;
+      toggle.setAttribute("aria-checked", String(next === "3d"));
+      onChange(view);
+    }
+
+    toggle.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      moved = false;
+      startX = e.clientX;
+      knobStartLeft = view === "3d" ? KNOB_MAX : KNOB_MIN;
+      toggle.classList.add("is-dragging");
+      try { toggle.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    toggle.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      if (Math.abs(dx) > 3) moved = true;
+      var x = clamp(knobStartLeft + dx);
+      knob.style.transform = "translateX(" + (x - KNOB_MIN) + "px)";
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      toggle.classList.remove("is-dragging");
+      knob.style.transform = "";
+      if (!moved) {
+        setView(view === "2d" ? "3d" : "2d");
+        return;
+      }
+      var dx = e.clientX - startX;
+      var x = clamp(knobStartLeft + dx);
+      setView(x >= (KNOB_MIN + KNOB_MAX) / 2 ? "3d" : "2d");
+    }
+    toggle.addEventListener("pointerup", endDrag);
+    toggle.addEventListener("pointercancel", endDrag);
+
+    return {
+      get: function () { return view; },
+      set: setView,
+    };
+  }
+
+  // Laedt die gespeicherte Figur (oder den Standard-Jungen-Biti, wenn noch
+  // keine gespeichert ist - siehe BitiFigureData.DEFAULT_CHAR) und zeigt sie
+  // 2D oder 3D an, je nach Umschalter. Beide Ansichten werden erst beim
+  // ersten Gebrauch gemountet (lazy), damit niemand fuer eine WebGL-Szene
+  // bezahlt, die er nie ansieht.
+  function setupBitiCard() {
+    var stage = document.getElementById("profil-biti-stage");
+    if (!stage || !window.BitiFigureData || !window.BitiFigure2d || !window.BitiFigure3d || !window.CloudSave) return;
+
+    var SAVE_GAME_ID = "biti-charakter";
+    var character = null;
+    var view2d = null; // { el, api }
+    var view3d = null; // { el, api }
+
+    function ensure2d() {
+      if (view2d) return view2d;
+      var el = document.createElement("div");
+      el.className = "profil-biti-view profil-biti-view-2d";
+      el.hidden = true;
+      stage.appendChild(el);
+      view2d = { el: el, api: window.BitiFigure2d.mount(el) };
+      return view2d;
+    }
+    function ensure3d() {
+      if (view3d) return view3d;
+      var el = document.createElement("div");
+      el.className = "profil-biti-view profil-biti-view-3d";
+      el.hidden = true;
+      stage.appendChild(el);
+      // Kein Auto-Drehen in der Profilkarte (anders als im Creator) - auf
+      // Wunsch eine ruhige, nur per Ziehen drehbare Ansicht statt staendiger
+      // Bewegung auf der eigenen Profilseite.
+      view3d = { el: el, api: window.BitiFigure3d.mount(el, { autoRotate: false }) };
+      return view3d;
+    }
+
+    function showView(mode) {
+      if (!character) return;
+      stage.setAttribute("data-view", mode);
+      if (mode === "3d") {
+        var v3 = ensure3d();
+        if (view2d) view2d.el.hidden = true;
+        v3.el.hidden = false;
+        v3.api.applyCharacter(character);
+      } else {
+        var v2 = ensure2d();
+        if (view3d) view3d.el.hidden = true;
+        v2.el.hidden = false;
+        v2.api.applyCharacter(character);
+      }
+    }
+
+    var toggleApi = setupBitiViewToggle(function (mode) {
+      showView(mode);
+    });
+
+    window.CloudSave.load(SAVE_GAME_ID).then(function (saved) {
+      character = window.BitiFigureData.withDefaults(saved);
+      showView(toggleApi.get());
+    });
+  }
+
   async function render() {
     var sessionRes = await sb.auth.getSession();
     var session = sessionRes && sessionRes.data && sessionRes.data.session;
@@ -679,6 +807,7 @@
     setupStatusEditor(session.user.id);
     setupUsernameEditor(profile.username || "");
     setupShowcase(session.user.id);
+    setupBitiCard();
 
     var toggle = document.getElementById("profil-last-seen-toggle");
     if (toggle) {

@@ -1,5 +1,8 @@
 // Einstiegspunkt: lädt den Spielstand, initialisiert alle UI-Module und verdrahtet
 // globale Abläufe (Autosave, Achievement-Toasts, tägliche Belohnung).
+import { startGameSession } from "./core/session.js";
+import { initFactoryEntry } from "./ui/factoryEntry.js";
+import { initLoungeEntry } from "./ui/loungeEntry.js";
 import { state, SAVE_VERSION } from "./core/state.js";
 import { loadGame, saveGame, quickSaveGame, syncFromCloud } from "./core/save.js";
 import { events } from "./core/events.js";
@@ -65,6 +68,7 @@ function announceUnlockedAchievements(achievements) {
 }
 
 function wireGlobalEvents() {
+  window.addEventListener("cursor-save-error", () => showToast("Speichern fehlgeschlagen. Bitte prüfe den lokalen Browserspeicher.", "error"));
   events.on("state:changed", renderAll);
   events.on("achievements:unlocked", announceUnlockedAchievements);
 
@@ -92,28 +96,43 @@ function wireGlobalEvents() {
   setInterval(saveGame, FULL_AUTOSAVE_INTERVAL_MS);
 }
 
+// Nur auf dem eigenen Rechner. Gleiches Prinzip wie CLOUD_SYNC_ENABLED in
+// core/save.js: was beim Entwickeln nützlich ist, darf auf der Live-Seite
+// nicht existieren. Die Prüfung hängt am Hostnamen und nicht an einem
+// Schalter, damit sie beim Kopieren der Datei automatisch mitkommt.
+const IST_LOKAL = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
+
 // Kleine, bewusst stabile externe Schnittstelle für spätere Systeme (Quests,
 // Cloud-Saves, ein gemeinsames Bibliotheks-Inventar o.ä.), ohne dass diese
 // Systeme die internen Module direkt importieren müssten.
 function exposeExternalApi() {
   window.CursorClicker = {
     getSnapshot: () => structuredClone(state),
-    addCoins: (amount) => {
-      if (!Number.isFinite(amount) || amount <= 0) return;
-      addCoins(amount);
-      saveGame();
-    },
     version: SAVE_VERSION,
+  };
+
+  // addCoins war ein Werkzeug zum lokalen Testen und ist beim Veröffentlichen
+  // mitgekommen: eine Zeile in der Browser-Konsole reichte, um sich beliebig
+  // viele Münzen zu geben, und saveGame() schrieb das sofort in die Cloud.
+  // Münzen kaufen Kisten, Kisten geben echte Cursor -- der Weg ins Inventar
+  // ging also durch die ganz normale Mechanik und fiel entsprechend nicht auf.
+  if (!IST_LOKAL) return;
+  window.CursorClicker.addCoins = (amount) => {
+    if (!Number.isFinite(amount) || amount <= 0) return;
+    addCoins(amount);
+    saveGame();
   };
 }
 
-function init() {
+async function init() {
   // test-gate.js prüft Zugriff asynchron und kann die Seite währenddessen durch
   // "Kein Zugriff" ersetzen. Bricht das hier bereits passiert, gibt es nichts
   // mehr zu initialisieren.
   if (!document.getElementById("big-cursor-btn")) return;
 
+  if (!await startGameSession(saveGame)) return;
   loadGame();
+  await syncFromCloud();
 
   initTabs();
   initMainPanel();
@@ -130,20 +149,20 @@ function init() {
   syncMusicWithSettings();
   startPlaytimeTracking();
   wireGlobalEvents();
+  initFactoryEntry();
+  initLoungeEntry();
   exposeExternalApi();
   checkAchievements();
 
-  // Ladebildschirm bleibt bis der Cloud-Abgleich fertig ist (oder spaetestens
-  // nach 4s, falls das Netzwerk haengt - nie unendlich blockieren). Danach
-  // steht sofort der richtige Endzustand, kein Aufblitzen des lokalen Stands.
+  // Der initiale Cloud-Abgleich ist vor der Bedienung abgeschlossen oder
+  // nach vier Sekunden verworfen. Keine verspätete Antwort ersetzt das Spiel.
   const loadingScreen = document.getElementById("game-loading-screen");
   function hideLoadingScreen() {
     if (!loadingScreen || loadingScreen.hidden) return;
     loadingScreen.classList.add("is-fading");
     setTimeout(() => { loadingScreen.hidden = true; }, 260);
   }
-  const cloudTimeout = new Promise((resolve) => setTimeout(resolve, 4000));
-  Promise.race([syncFromCloud(), cloudTimeout]).then(hideLoadingScreen, hideLoadingScreen);
+  hideLoadingScreen();
 
   if (canClaimDailyReward()) {
     openDailyRewardModal();

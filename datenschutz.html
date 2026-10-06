@@ -12,7 +12,7 @@
       <div class="privacy-card">
         <p class="privacy-eyebrow">Spielebibliothek</p>
         <h1>Datenschutz</h1>
-        <p class="privacy-intro">Diese Erklärung ist in mehrere Teile gegliedert: ein allgemeiner Teil für die gesamte Website sowie je ein eigener Teil für Snake, Neon Bot Arena und Cursor Clicker, weil die Spiele unterschiedlich viel verarbeiten. Tic-Tac-Toe hat bewusst keinen eigenen Teil: Es speichert nichts auf deinem Gerät, bindet keine fremden Dienste ein und braucht kein Benutzerkonto — es gibt dort also nichts zu erklären.</p>
+        <p class="privacy-intro">Diese Erklärung ist in mehrere Teile gegliedert: ein allgemeiner Teil für die gesamte Website sowie eigene Teile für die Spiele und Testfunktionen, weil sie unterschiedlich viel verarbeiten. Tic-Tac-Toe hat bewusst keinen eigenen Teil: Es speichert nichts auf deinem Gerät, bindet keine fremden Dienste ein und braucht kein Benutzerkonto — es gibt dort also nichts zu erklären.</p>
         <p class="privacy-responsible">Angaben zur verantwortlichen Stelle stehen im <a href="impressum.html">Impressum</a>.</p>
 
         <ul class="privacy-nav">
@@ -20,6 +20,9 @@
           <li><a class="dot-snake" href="#snake"><i aria-hidden="true"></i>Snake</a></li>
           <li><a class="dot-nba" href="#neon-bot-arena"><i aria-hidden="true"></i>Neon Bot Arena</a></li>
           <li><a class="dot-cc" href="#cursor-clicker"><i aria-hidden="true"></i>Cursor Clicker</a></li>
+          <li><a class="dot-rt" href="#reaction"><i aria-hidden="true"></i>REACTION!</a></li>
+          <li><a class="dot-tl" href="#trading-lounge"><i aria-hidden="true"></i>Trading-Lounge</a></li>
+          <li><a class="dot-ca" href="#camera-arcade"><i aria-hidden="true"></i>Camera Arcade</a></li>
         </ul>
 
         <section class="privacy-part" id="allgemein">
@@ -40,7 +43,8 @@
               <div class="privacy-topic-content">
                 <p>Für Snake und Neon Bot Arena kannst du optional ein Benutzerkonto anlegen (Benutzername und Passwort, E-Mail-Adresse freiwillig). Dabei werden dein Benutzername, ein Passwort-Hash, eine zufällige interne Spieler-ID sowie – falls angegeben – deine E-Mail-Adresse gespeichert. Ohne hinterlegte E-Mail kann dein Passwort bei Verlust nicht zurückgesetzt werden.</p>
                 <p>Registrierung, Login und Passwortverwaltung laufen über <a href="https://supabase.com/privacy">Supabase</a>, das dafür als Auftragsverarbeiter tätig ist. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe b DSGVO, da die Kontoerstellung eine von dir ausdrücklich gewünschte Funktion ist.</p>
-                <p>Bei jedem Anmeldeversuch werden der eingegebene Benutzername bzw. die E-Mail sowie deine IP-Adresse kurzzeitig protokolliert, um Konten vor automatisierten Anmeldeversuchen zu schützen. Diese Einträge werden spätestens nach 48 Stunden automatisch gelöscht. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO; das berechtigte Interesse ist der Schutz von Konten vor Missbrauch.</p>
+                <p>Bei jedem Anmelde- und Registrierungsversuch werden der eingegebene bzw. gewünschte Benutzername oder die E-Mail sowie deine IP-Adresse kurzzeitig protokolliert, um Konten vor automatisierten Anmeldeversuchen und vor massenhaft angelegten Konten zu schützen. Diese Einträge werden spätestens nach 48 Stunden automatisch gelöscht. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO; das berechtigte Interesse ist der Schutz von Konten vor Missbrauch.</p>
+                <p>Auf der Anmeldeseite läuft im Registrierungsformular <strong>Cloudflare Turnstile</strong>, eine Bot-Erkennung, die verhindern soll, dass automatisiert massenhaft Konten angelegt werden. Dafür wird beim Öffnen der Anmeldeseite ein Skript von Cloudflare geladen; dabei werden deine IP-Adresse sowie technische Angaben zu Browser und Gerät an <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a> übertragen und für die Prüfung kurzzeitig ein Wert in deinem Browser abgelegt. Cloudflare gibt an, Turnstile nicht zur Wiedererkennung über Websites hinweg oder für Werbung zu verwenden. Die Prüfung läuft in der Regel ohne dein Zutun; nur in Zweifelsfällen erscheint eine Aufgabe. Rechtsgrundlage ist Art. 6 Abs. 1 Buchstabe f DSGVO; das berechtigte Interesse ist der Schutz vor automatisierter Kontoerstellung. Cloudflare ist ein Unternehmen mit Sitz in den USA und nach dem EU-US Data Privacy Framework zertifiziert. Turnstile läuft ausschließlich auf der Anmeldeseite — auf allen anderen Seiten und in den Spielen wird nichts an Cloudflare übertragen.</p>
                 <p>Der Sitzungsnachweis nach dem Login wird lokal in deinem Browser gespeichert (localStorage) und gilt geräteweit für die gesamte Spielebibliothek einschließlich Neon Bot Arena, da beide unter derselben Domain laufen.</p>
                 <p>Wenn du eingeloggt bist, wird automatisch ein Zeitstempel deines letzten Seitenaufrufs gespeichert ("zuletzt gesehen"). Diese Angabe ist aktuell nur für dich selbst sichtbar – es gibt noch keine für andere einsehbaren Profile –, lässt sich aber in den Profileinstellungen unter „Datenschutz und Privatsphäre" jederzeit ausblenden.</p>
                 <p>Beim Öffnen einer unterstützten Spielseite (aktuell Snake und Cursor Clicker) wird zusätzlich gespeichert, welches Spiel das zuletzt war und wann – angezeigt als „Zuletzt gespielt" auf deiner Profilseite. Auch diese Angabe ist aktuell nur für dich selbst sichtbar.</p>
@@ -183,8 +187,123 @@
           </div>
         </section>
 
+        <section class="privacy-part" id="reaction">
+          <div class="privacy-part-head">
+            <span class="privacy-badge rt">REACTION!</span>
+            <h2>Nur für REACTION!</h2>
+          </div>
+          <div class="privacy-topics">
+            <details class="privacy-topic" open>
+              <summary>Lokale Speicherung auf deinem Gerät</summary>
+              <div class="privacy-topic-content">
+                <p>REACTION! läuft vollständig lokal im Browser. Gespeichert werden ausschließlich deine <strong>letzten fünf gemessenen Zeiten</strong> – also fünf Zahlen in Millisekunden, sonst nichts. Kein Name, kein Gerätemerkmal, keine Verknüpfung mit einem Konto.</p>
+                <p>Diese Zahlen liegen im lokalen Speicher (localStorage) deines Geräts, verlassen es nicht und bleiben dort, bis du sie löschst. Grundlage ist § 25 Abs. 2 Nr. 2 TDDDG, soweit die Speicherung für eine ausdrücklich gewünschte Spielfunktion erforderlich ist.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Keine Cloud-Speicherung, auch nicht eingeloggt</summary>
+              <div class="privacy-topic-content">
+                <p>Anders als bei Snake und Cursor Clicker werden deine Zeiten <strong>nicht</strong> mit deinem Konto verknüpft – auch dann nicht, wenn du eingeloggt bist und die Cloud-Speicherung eingeschaltet hast. REACTION! überträgt keine Spielstände an Supabase.</p>
+                <p>Auf einem anderen Gerät oder in einem anderen Browser beginnst du deshalb wieder bei null. Das ist keine Störung, sondern die Folge davon, dass nichts das Gerät verlässt.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Kein Mehrspieler, keine Rangliste</summary>
+              <div class="privacy-topic-content">
+                <p>REACTION! enthält keinen Mehrspieler-Modus und keine Online-Rangliste. Es werden keine Spitznamen, Verbindungsdaten oder Rundendaten an einen Server übertragen. Die Anzeige „Deine letzten fünf“ ist eine reine Geräteliste und für niemanden außer dir sichtbar.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Daten löschen</summary>
+              <div class="privacy-topic-content">
+                <p>Im Hauptmenü steht unter der Liste der Knopf <strong>„Zeiten löschen“</strong>. Er entfernt die gespeicherten Zeiten sofort und dauerhaft von diesem Gerät; vorher wird einmal nachgefragt. Der Knopf erscheint nur, wenn überhaupt etwas gespeichert ist.</p>
+                <p>Ebenso wirkt das Löschen der Website-Daten in deinen Browser-Einstellungen.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+                <section class="privacy-part" id="trading-lounge">
+          <div class="privacy-part-head">
+            <span class="privacy-badge tl">TRADING</span>
+            <h2>Nur für die Trading-Lounge</h2>
+          </div>
+          <div class="privacy-topics">
+            <details class="privacy-topic" open>
+              <summary>Der Chat wird nirgends gespeichert</summary>
+              <div class="privacy-topic-content">
+                <p>Nachrichten in der Lounge und im Chat zu einem einzelnen Trade laufen über <strong>Supabase Realtime</strong>. Sie werden dabei <strong>nicht in der Datenbank abgelegt</strong> – auch nicht kurzzeitig. Eine Nachricht existiert nur auf dem Weg von einem Browser zum anderen und danach im Fenster derer, die gerade zusehen.</p>
+                <p>Das heißt im Klartext: <strong>Wenn du die Seite neu lädst, ist der Verlauf weg.</strong> Es gibt kein Archiv, das jemand später durchsuchen könnte – auch wir nicht. Wer etwas festhalten will, muss es selbst abschreiben.</p>
+                <p>Das hat eine unbequeme Kehrseite, die wir nicht verschweigen: Wer sich danebenbenimmt, hinterlässt keine Spur, die man uns melden könnte. Deshalb steht in der Lounge, dass man sich benimmt, und deshalb kann ein Konto gesperrt werden.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Wer sieht, dass du da bist</summary>
+              <div class="privacy-topic-content">
+                <p>Solange die Lounge offen ist, meldet dein Browser <strong>deinen Benutzernamen und deine Spieler-ID</strong> an alle anderen, die gleichzeitig drin sind. Das ist der Zweck der Liste – man soll ja sehen, mit wem man handeln kann.</p>
+                <p>Diese Anwesenheit wird ebenfalls nicht gespeichert. Schließt du die Seite, verschwindet dein Eintrag bei allen anderen. Wer nicht angezeigt werden will, schließt die Lounge – dann kann er allerdings auch nicht handeln.</p>
+                <p>Der Kanal ist <strong>nicht öffentlich</strong>: Nur wer angemeldet und fürs Trading freigegeben ist, kommt hinein. Das wird serverseitig geprüft, nicht im Browser.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Was beim Tauschen gespeichert wird</summary>
+              <div class="privacy-topic-content">
+                <p>Anders als der Chat wird der <strong>Tausch selbst dauerhaft festgehalten</strong> – das muss er, sonst ließe sich hinterher nicht klären, wem was gehört. Gespeichert werden: wer mit wem getauscht hat, welche Gegenstände dabei den Besitzer gewechselt haben, wann das war, und die Zwischenschritte (Angebot geändert, bestätigt, abgebrochen).</p>
+                <p>Dazu gehören dein Benutzername und deine Spieler-ID, wie sie zum Zeitpunkt des Tauschs lauteten. Grundlage ist unser berechtigtes Interesse an einem nachvollziehbaren Handel (Art. 6 Abs. 1 lit. f DSGVO) – ohne diese Aufzeichnung wäre jeder Streit über einen Tausch unauflösbar.</p>
+                <p>Der Owner kann diese Aufzeichnungen einsehen. Löschst du dein Konto, werden deine Gegenstände und dein Trading-Konto mitgelöscht; in den Aufzeichnungen abgeschlossener Tauschgeschäfte bleibt der damalige Name stehen, weil sonst die Gegenseite ihren eigenen Tausch nicht mehr nachvollziehen könnte.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Dein alter Spielstand beim Import</summary>
+              <div class="privacy-topic-content">
+                <p>Damit du überhaupt etwas zu handeln hast, kannst du einen Import deines gespeicherten Cursor-Clicker-Spielstands beantragen. Dabei wird eine <strong>Zusammenfassung</strong> davon für den Owner sichtbar: wie viele Cursor welcher Art entstehen würden, wie viele Coins und Mitarbeiter im Spielstand stehen.</p>
+                <p>Das ist kein Selbstzweck. Der Spielstand liegt im Browser und lässt sich dort verändern – ohne diese Prüfung könnte sich jeder beliebig viele seltene Gegenstände selbst ausstellen. Der Owner sieht deshalb vor der Freigabe, was genau entstehen würde.</p>
+                <p>Der Antrag samt Zusammenfassung und Entscheidung bleibt gespeichert, damit nachvollziehbar ist, woher die Gegenstände in deinem Inventar stammen.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+<section class="privacy-part" id="camera-arcade">
+          <div class="privacy-part-head">
+            <span class="privacy-badge ca">Camera Arcade</span>
+            <h2>Nur für den Camera-Kit-Test</h2>
+          </div>
+          <div class="privacy-topics">
+            <details class="privacy-topic" open>
+              <summary>Kamerazugriff und AR-Lenses</summary>
+              <div class="privacy-topic-content">
+                <p>Die Camera Arcade liegt ausschließlich im geschützten ChatGPT-Testbereich. Sie verwendet <a href="https://developers.snap.com/camera-kit/home">Camera Kit Web von Snap Inc.</a>, damit angemeldete Tester AR-Lenses ausprobieren und kurze Kamera-Minispiele spielen können.</p>
+                <p>Die Kamera startet erst, wenn du auf „Camera Arcade starten“ klickst und den Kamerazugriff im Browser erlaubst. Das Spiel fordert ausdrücklich <strong>keinen Mikrofonzugriff</strong> an. Du kannst die Berechtigung jederzeit in den Browser-Einstellungen entziehen.</p>
+                <p>Das Livebild wird dem Camera-Kit-SDK im Browser als Eingabe für die gewählte Lens bereitgestellt. Das Spiel selbst überträgt keine Fotos oder Videos an die Spielebibliothek, Supabase oder einen eigenen Upload-Server. Lens-Engine, Lens-Inhalte und weitere benötigte Dateien werden von Snap geladen; dabei verarbeitet Snap technisch erforderliche Verbindungsdaten sowie Nutzungs- und Leistungsinformationen. Einzelne Lenses können zusätzliche Funktionen verwenden – im Test werden deshalb nur die im Snap-Portal dafür eingerichteten Demo-Lenses angeboten.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Aufnahmen, Punkte und lokale Speicherung</summary>
+              <div class="privacy-topic-content">
+                <p>Mit dem Auslöser erstellte Schnappschüsse bleiben ausschließlich im Arbeitsspeicher des geöffneten Browser-Tabs. Sie werden weder hochgeladen noch dauerhaft gespeichert und verschwinden spätestens beim Neuladen oder Schließen der Seite.</p>
+                <p>Nur der höchste erreichte Punktestand wird als Zahl im lokalen Speicher (localStorage) deines Browsers abgelegt. Er ist nicht mit deinem Konto verknüpft und kann durch Löschen der Website-Daten entfernt werden.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Testzugriff und Camera-Kit-Konfiguration</summary>
+              <div class="privacy-topic-content">
+                <p>Vor dem Start wird über Supabase geprüft, ob dein Konto den Rang Tester, Admin oder Owner besitzt. Nur dann gibt eine geschützte Edge Function die für den Staging-Test benötigte Camera-Kit-Konfiguration an deinen Browser aus. Der Camera-Kit-Web-API-Token muss technisch an den Browser übermittelt werden; seine Nutzung ist deshalb zusätzlich im Snap Developer Portal auf freigegebene Website-Ursprünge begrenzt.</p>
+                <p>Rechtsgrundlage für diese Zugriffskontrolle und die vorübergehende technische Verarbeitung ist Art. 6 Abs. 1 Buchstabe f DSGVO; das berechtigte Interesse ist die sichere Erprobung einer noch nicht veröffentlichten Spielfunktion.</p>
+              </div>
+            </details>
+            <details class="privacy-topic">
+              <summary>Snap-Nutzungsbedingungen und weitere Informationen</summary>
+              <div class="privacy-topic-content">
+                <p>Vor der ersten Lens-Anwendung kann Camera Kit eine von Snap bereitgestellte Abfrage zur Annahme der Nutzungsbedingungen anzeigen. Diese Abfrage ist Bestandteil des SDKs und wird von der Spielebibliothek weder verändert noch ersetzt. Wenn du ablehnst, werden keine Lenses aktiviert.</p>
+                <p>Weitere Informationen: <a href="https://values.snap.com/privacy/privacy-policy">Datenschutzerklärung von Snap</a>, <a href="https://snap.com/terms">Nutzungsbedingungen von Snap</a> und <a href="https://help.snapchat.com/hc/en-us/articles/7012366118676">Erläuterungen zu Lenses und Datenschutz</a>.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
         <div class="privacy-footer">
-          <p class="privacy-updated">Stand: 29. August 2026</p>
+          <p class="privacy-updated">Stand: 1. September 2026</p>
           <nav class="privacy-links" aria-label="Rechtliche Seiten">
             <a href="index.html">← Zur Spielebibliothek</a>
             <a href="impressum.html">Impressum</a>

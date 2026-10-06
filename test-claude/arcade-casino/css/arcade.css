@@ -1,0 +1,306 @@
+/* Arcade-Automaten (Coin Pusher, Basketball, Stapler, Lichtwirbel). */
+
+.arcade-stage {
+  background:
+    radial-gradient(80% 60% at 50% 20%, color-mix(in srgb, var(--ac, var(--cyan)) 18%, transparent), transparent 70%),
+    linear-gradient(180deg, #0d0820, #05030c);
+  touch-action: none;
+}
+
+.arcade-hud {
+  position: absolute;
+  z-index: 4;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.arcade-hud .slot-display {
+  min-width: 78px;
+  padding: 4px 10px;
+}
+
+.arcade-hint {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--line-strong);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity var(--t-slow);
+}
+
+.arcade-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  gap: 14px;
+  padding: 20px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 45%, rgba(20, 11, 36, 0.82), rgba(5, 3, 12, 0.94));
+  animation: fade-in var(--t-med) linear both;
+}
+
+.arcade-overlay h3 {
+  margin: 0;
+  font-size: clamp(1.6rem, 7vw, 2.6rem);
+}
+
+.arcade-overlay p {
+  margin: 0;
+  max-width: 420px;
+  color: var(--ink-dim);
+  font-weight: 600;
+}
+
+.arcade-overlay .big-num {
+  font-size: clamp(2.4rem, 12vw, 4rem);
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255, 197, 61, 0.6);
+  line-height: 1;
+}
+
+.prize-table {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 18px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink-dim);
+}
+
+.prize-table b {
+  color: var(--gold);
+  text-align: right;
+}
+
+.combo-flash {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(1.4rem, 7vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow: 0 0 6px var(--orange), 0 0 22px var(--orange);
+  pointer-events: none;
+  animation: combo 900ms var(--ease-out) both;
+  white-space: nowrap;
+}
+
+@keyframes combo {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  70% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(0.95); }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .arcade-hud {
+    left: calc(10px + var(--safe-left));
+    transform: none;
+    flex-direction: column;
+  }
+  .arcade-overlay { gap: 8px; padding: 10px; }
+  .arcade-overlay h3 { font-size: 1.4rem; }
+  .arcade-overlay p { font-size: 13px; }
+  .arcade-overlay .big-num { font-size: 2.2rem; }
+  .prize-table { grid-template-columns: repeat(4, auto); font-size: 12px; }
+  .arcade-hint { bottom: 6px; }
+}
+
+/* ---------- Plinko ---------- */
+
+.plinko-history {
+  position: absolute;
+  z-index: 4;
+  top: 70px;
+  right: calc(8px + var(--safe-right));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.ph-chip {
+  min-width: 46px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-dim);
+  animation: pop-in 240ms var(--ease-spring) both;
+}
+
+.ph-chip.tier-small { color: var(--cyan); border-color: rgba(45, 226, 230, 0.5); }
+.ph-chip.tier-good { color: var(--gold); border-color: rgba(255, 197, 61, 0.6); }
+.ph-chip.tier-big,
+.ph-chip.tier-mega { color: #2b1700; background: var(--gold); border-color: #fff3c4; }
+.ph-chip.tier-jackpot { color: #fff; background: var(--pink); border-color: #fff; box-shadow: 0 0 14px var(--pink); }
+
+.plinko-stage .arcade-hud {
+  left: calc(10px + var(--safe-left));
+  transform: none;
+}
+
+/* ---------- Pferderennen ---------- */
+
+.horses-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px calc(10px + var(--safe-right)) 8px calc(10px + var(--safe-left));
+  background:
+    radial-gradient(80% 50% at 50% 0%, rgba(140, 255, 90, 0.08), transparent 70%),
+    linear-gradient(180deg, #0a1410, #05030c);
+}
+
+.horse-track {
+  position: relative;
+  flex: 0 0 auto;
+  height: clamp(170px, 34vh, 340px);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(140, 255, 90, 0.35);
+  box-shadow: 0 0 20px rgba(140, 255, 90, 0.12);
+}
+
+.horse-track canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.horse-commentary {
+  min-height: 2.6em;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #07040e;
+  border: 1px solid var(--line-strong);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+  color: var(--lime);
+  text-shadow: 0 0 8px rgba(140, 255, 90, 0.4);
+  display: flex;
+  align-items: center;
+}
+
+.horse-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  gap: 5px;
+  align-content: start;
+}
+
+.horse-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto 62px;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  text-align: left;
+  font-weight: 800;
+}
+
+.horse-row:disabled {
+  opacity: 0.85;
+  cursor: default;
+}
+
+.horse-row.is-picked {
+  border-color: var(--gold);
+  background: rgba(255, 197, 61, 0.12);
+  box-shadow: var(--glow-gold);
+}
+
+.horse-no {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--silk);
+  color: #111;
+  font-weight: 900;
+  box-shadow: 0 0 10px var(--silk);
+}
+
+.horse-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.horse-name small {
+  color: var(--ink-mute);
+  font-size: 11px;
+}
+
+.horse-prob {
+  color: var(--ink-dim);
+  font-size: var(--fs-xs);
+}
+
+.horse-odds {
+  justify-self: end;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #07040e;
+  color: var(--gold);
+  font-size: var(--fs-md);
+}
+
+@media (min-width: 900px) {
+  .horses-stage {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    grid-template-rows: auto auto 1fr;
+    column-gap: 16px;
+  }
+  .horse-track { grid-column: 1; grid-row: 1 / span 3; height: auto; min-height: 300px; }
+  .horse-commentary { grid-column: 2; grid-row: 1; }
+  .horse-list { grid-column: 2; grid-row: 2 / span 2; }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .horses-stage { display: grid; grid-template-columns: 1.3fr 1fr; grid-template-rows: auto 1fr; column-gap: 10px; }
+  .horse-track { grid-column: 1; grid-row: 1 / span 2; height: auto; }
+  .horse-commentary { grid-column: 2; grid-row: 1; font-size: 12px; }
+  .horse-list { grid-column: 2; grid-row: 2; }
+  .horse-row { min-height: 38px; }
+}

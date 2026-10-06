@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#fff6ea" />
     <link rel="stylesheet" href="assets/css/library.css?v=4" />
     <link rel="stylesheet" href="assets/css/auth.css?v=2" />
-    <link rel="stylesheet" href="assets/css/profil.css?v=9" />
+    <link rel="stylesheet" href="assets/css/profil.css?v=10" />
     <title>Mein Profil – Spielebibliothek</title>
   </head>
   <body>
@@ -74,10 +74,24 @@
           <section class="profil-panel" id="profil-panel-uebersicht" data-panel="uebersicht" role="tabpanel">
             <div class="profil-hero">
               <div class="profil-biti-card">
-                <div class="profil-biti-placeholder" aria-hidden="true">
-                  <span class="profil-biti-mark">?</span>
+                <div class="profil-biti-stage" id="profil-biti-stage" data-view="2d"></div>
+                <div class="profil-biti-controls">
+                  <button
+                    type="button"
+                    class="profil-biti-view-toggle"
+                    id="profil-biti-view-toggle"
+                    role="switch"
+                    aria-checked="false"
+                    aria-label="Ansicht: 2D oder 3D"
+                  >
+                    <span class="profil-biti-view-track" aria-hidden="true">
+                      <span class="profil-biti-view-label profil-biti-view-label-2d">2D</span>
+                      <span class="profil-biti-view-label profil-biti-view-label-3d">3D</span>
+                      <span class="profil-biti-view-knob" id="profil-biti-view-knob"></span>
+                    </span>
+                  </button>
+                  <a class="profil-biti-edit-btn" id="profil-biti-edit-btn" href="biti-charakter-creator.html">Biti bearbeiten</a>
                 </div>
-                <p class="profil-biti-caption">Bitis Design kommt bald — hier steht später dein Charakter.</p>
               </div>
 
               <div class="profil-identity">
@@ -279,6 +293,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/auth.js?v=5"></script>
-    <script src="assets/js/profil.js?v=9"></script>
+    <script src="assets/js/cloud-save.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="assets/js/biti-figure-data.js"></script>
+    <script src="assets/js/biti-figure-2d.js"></script>
+    <script src="assets/js/biti-figure-3d.js"></script>
+    <script src="assets/js/profil.js?v=10"></script>
   </body>
 </html>

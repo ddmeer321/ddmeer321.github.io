@@ -1,0 +1,250 @@
+/* Chill Plaza — Lobby-Vorschau.
+   Farben und Rundungen wie in library.css, damit sich die Vorschau nicht
+   fremd anfuehlt. Bewusst eine eigene Datei: Das hier ist eine Attrappe und
+   soll spurlos verschwinden koennen. */
+
+:root {
+  color-scheme: light;
+  --bg: #fff6ea;
+  --surface: #ffffff;
+  --ink: #241c3d;
+  --muted: #6b6285;
+  --line: rgba(36, 28, 61, 0.1);
+  --accent: #7c5cff;
+  /* Dunkler nur fuer kleinen Text auf hellem Grund - --accent erreicht dort
+     die 4,5:1 nicht. Als Flaeche und Fokusring bleibt --accent richtig. */
+  --accent-ink: #553bc9;
+  --gruen: #1c7a4a;
+  --gruen-flaeche: rgba(47, 214, 192, 0.18);
+  --gelb: #8a5a00;
+  --gelb-flaeche: rgba(255, 194, 71, 0.26);
+  --grau: #5c5470;
+  --grau-flaeche: rgba(36, 28, 61, 0.07);
+  --rot: #a51f2a;
+  --rot-flaeche: rgba(255, 95, 162, 0.16);
+  font-family: "Baloo 2", Poppins, ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 280px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(124, 92, 255, 0.14), transparent 30rem),
+    radial-gradient(circle at 88% 84%, rgba(47, 214, 192, 0.14), transparent 30rem),
+    var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.test-banner {
+  padding: 8px 14px;
+  background: var(--ink);
+  color: #fff;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.topline { width: min(760px, calc(100% - 32px)); margin: 18px auto 0; }
+
+.back-link {
+  font-weight: 700;
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+.back-link:hover { text-decoration: underline; }
+
+.wrap {
+  width: min(760px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 12px 0 56px;
+}
+
+.kopf { margin: 18px 0 22px; }
+.kicker {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+h1 { margin: 2px 0 8px; font-size: clamp(2rem, 7vw, 2.9rem); line-height: 1.1; }
+.lead { margin: 0; color: var(--muted); }
+
+.attrappe {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent);
+  background: rgba(124, 92, 255, 0.07);
+  border-radius: 0 12px 12px 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.gesamt {
+  margin: 0 0 10px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* ---------- Lobby-Karten ---------- */
+
+.lobbys { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+
+.lobby {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(36, 28, 61, 0.05);
+}
+
+.lobby-nr {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 800;
+  /* Dunkle Schrift auf hellem Farbton statt Weiss auf Vollton: Weiss auf
+     Gelb oder Tuerkis erreicht die 4,5:1 nicht. */
+  color: var(--ink);
+}
+.lobby-nr[data-nr="1"] { background: rgba(124, 92, 255, 0.22); }
+.lobby-nr[data-nr="2"] { background: rgba(255, 95, 162, 0.22); }
+.lobby-nr[data-nr="3"] { background: rgba(255, 194, 71, 0.30); }
+.lobby-nr[data-nr="4"] { background: rgba(47, 214, 192, 0.26); }
+
+.lobby-text { min-width: 0; }
+.lobby-name { margin: 0; font-size: 1.15rem; font-weight: 800; }
+
+.lobby-zeile {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+.chip-aktiv    { background: var(--gruen-flaeche); color: var(--gruen); }
+.chip-fastvoll { background: var(--gelb-flaeche);  color: var(--gelb); }
+.chip-voll     { background: var(--rot-flaeche);   color: var(--rot); }
+.chip-schlaeft { background: var(--grau-flaeche);  color: var(--grau); }
+
+/* Der Balken ist die schnellste Antwort auf "wie voll ist es?" - die Zahl
+   daneben ist die genaue. Beides, weil man auf dem Handy erst den Balken
+   sieht. */
+.balken {
+  width: 100%;
+  max-width: 180px;
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--grau-flaeche);
+  overflow: hidden;
+}
+.balken i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+.lobby[data-zustand="voll"] .balken i { background: #ff5fa2; }
+.lobby[data-zustand="schlaeft"] .balken i { background: var(--grau); }
+
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-ghost {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* ---------- Aufwachen ---------- */
+/* Kein Vollbild-Overlay: Der Rest der Auswahl bleibt bedienbar, damit man
+   waehrenddessen auch einfach eine andere Lobby nehmen kann. */
+
+.wecken { grid-column: 1 / -1; margin-top: 6px; }
+
+.wecken-text {
+  margin: 0 0 6px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--accent-ink);
+}
+.wecken-grund { margin: 0 0 8px; font-size: 0.8rem; color: var(--muted); }
+
+.wecken-balken {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--grau-flaeche);
+  overflow: hidden;
+}
+.wecken-balken i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* ---------- Bildschirm "drin" ---------- */
+
+.platzhalter {
+  padding: 40px 24px;
+  border: 2px dashed var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  color: var(--muted);
+}
+.platzhalter p { margin: 0 0 6px; }
+.platzhalter p:last-child { margin: 0; }
+.platzhalter strong { color: var(--ink); font-size: 1.1rem; }
+
+#drin .btn { margin-top: 18px; }
+
+.hinweis {
+  margin: 22px 0 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+@media (max-width: 460px) {
+  .lobby { grid-template-columns: auto 1fr; }
+  /* Der Knopf rutscht unter den Text, statt ihn auf zwei Zeichen zu quetschen. */
+  .lobby > .btn { grid-column: 1 / -1; width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .balken i, .wecken-balken i { transition: none; }
+}

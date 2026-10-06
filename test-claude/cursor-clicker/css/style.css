@@ -58,6 +58,17 @@ body {
   min-height: 100%;
 }
 
+.cc-trading-link {
+  padding: 9px 14px;
+  border: 1px solid rgba(112, 238, 255, .36);
+  border-radius: 12px;
+  color: #a9f4ff;
+  background: rgba(35, 190, 220, .1);
+  text-decoration: none;
+  font-weight: 750;
+}
+.cc-trading-link:hover { background: rgba(35, 190, 220, .18); transform: translateY(-1px); }
+
 body.cc-no-animations * {
   animation: none !important;
   transition: none !important;

@@ -3,7 +3,9 @@
 import { events } from "./events.js";
 import { getDefaultUnlockedCosmeticIds } from "../data/cosmetics.js";
 
-export const SAVE_VERSION = 3;
+import { createFactoryState } from "./factoryModel.js";
+
+export const SAVE_VERSION = 4;
 
 function defaultUnlockedCosmetics() {
   const unlocked = {};
@@ -15,6 +17,7 @@ export function createDefaultState() {
   return {
     version: SAVE_VERSION,
     coins: 0,
+    factory: createFactoryState(),
     totalCoinsEarned: 0,
     totalClicks: 0,
     boxesOpened: 0,

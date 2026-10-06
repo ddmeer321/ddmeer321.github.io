@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="stylesheet" href="../assets/css/library.css?v=4" />
+    <link rel="stylesheet" href="../assets/css/auth.css?v=2" />
+    <link rel="stylesheet" href="assets/css/profil.css?v=1" />
+    <title>Mein Profil (Test) – Spielebibliothek</title>
+  </head>
+  <body>
+    <script src="../assets/js/wartung.js?v=1"></script>
+    <header class="lib-topbar">
+      <a class="lib-brand" href="../index.html" aria-label="Zur Spielebibliothek">
+        <span class="lib-brand-mark" aria-hidden="true">D</span>
+        <span>Spielebibliothek</span>
+      </a>
+      <div id="auth-status"></div>
+    </header>
+
+    <main class="profil-main">
+      <a class="profil-back" href="../index.html">← Zur Spielebibliothek</a>
+      <div class="profil-test-banner">🧪 Testbereich „Claude" — Vorschau der Biti-Profil-Integration.</div>
+
+      <div id="profil-loading" class="profil-loading">Lädt …</div>
+
+      <div id="profil-no-session" class="profil-no-session" hidden>
+        <p>Du bist nicht angemeldet.</p>
+        <a class="mini-btn" href="/login.html">Zum Login</a>
+      </div>
+
+      <div id="profil-app" class="profil-app profil-layout" hidden>
+        <nav class="profil-sidenav" aria-label="Profilbereiche">
+          <div class="profil-sidenav-head">
+            <span class="profil-avatar-wrap" id="profil-settings-avatar-wrap"></span>
+            <div class="profil-settings-head-text">
+              <p class="profil-settings-name" id="profil-settings-name">—</p>
+              <p class="profil-settings-sub" id="profil-settings-sub">—</p>
+            </div>
+          </div>
+          <ul class="profil-sidenav-list" role="tablist" aria-orientation="vertical">
+            <li role="presentation">
+              <button
+                class="profil-sidenav-link is-active"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="profil-panel-uebersicht"
+                data-panel="uebersicht"
+              >
+                Übersicht
+              </button>
+            </li>
+            <li role="presentation">
+              <button
+                class="profil-sidenav-link"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="profil-panel-datenschutz"
+                data-panel="datenschutz"
+              >
+                Datenschutz und Privatsphäre
+              </button>
+            </li>
+          </ul>
+          <button class="profil-sidenav-logout" id="profil-settings-logout" type="button">
+            <span aria-hidden="true">↩</span> Abmelden
+          </button>
+        </nav>
+
+        <div class="profil-content">
+          <section class="profil-panel" id="profil-panel-uebersicht" data-panel="uebersicht" role="tabpanel">
+            <div class="profil-hero">
+              <div class="profil-biti-card">
+                <div class="profil-biti-stage" id="profil-biti-stage" data-view="2d"></div>
+                <div class="profil-biti-controls">
+                  <button
+                    type="button"
+                    class="profil-biti-view-toggle"
+                    id="profil-biti-view-toggle"
+                    role="switch"
+                    aria-checked="false"
+                    aria-label="Ansicht: 2D oder 3D"
+                  >
+                    <span class="profil-biti-view-track" aria-hidden="true">
+                      <span class="profil-biti-view-label profil-biti-view-label-2d">2D</span>
+                      <span class="profil-biti-view-label profil-biti-view-label-3d">3D</span>
+                      <span class="profil-biti-view-knob" id="profil-biti-view-knob"></span>
+                    </span>
+                  </button>
+                  <a class="profil-biti-edit-btn" id="profil-biti-edit-btn" href="biti-charakter-creator.html">Biti bearbeiten</a>
+                </div>
+              </div>
+
+              <div class="profil-identity">
+                <div class="profil-identity-top">
+                  <span class="profil-avatar-wrap" id="profil-avatar-wrap"></span>
+                  <div class="profil-name-block">
+                    <div class="profil-name-row">
+                      <p class="profil-name" id="profil-name">—</p>
+                      <button
+                        class="profil-name-edit"
+                        id="profil-name-edit"
+                        type="button"
+                        aria-label="Benutzername ändern"
+                        aria-controls="profil-name-editor"
+                        aria-expanded="false"
+                        title="Benutzername ändern"
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M4 20h4l10.6-10.6a2.1 2.1 0 0 0 0-3L17.6 5.4a2.1 2.1 0 0 0-3 0L4 16v4Z"></path>
+                          <path d="m13.5 6.5 4 4"></path>
+                          <path d="M3 21h18"></path>
+                        </svg>
+                      </button>
+
+                      <form class="profil-name-editor" id="profil-name-editor" hidden>
+                        <label for="profil-name-input">Neuer Benutzername</label>
+                        <input
+                          id="profil-name-input"
+                          type="text"
+                          minlength="4"
+                          maxlength="12"
+                          autocomplete="off"
+                          placeholder="4–12 Zeichen"
+                        />
+                        <p class="profil-name-hint" id="profil-name-hint" aria-live="polite"></p>
+                        <div class="profil-name-editor-footer">
+                          <button class="profil-name-cancel" id="profil-name-cancel" type="button">Abbrechen</button>
+                          <button class="profil-name-save" id="profil-name-save" type="submit">Speichern</button>
+                        </div>
+                      </form>
+                    </div>
+                    <p class="profil-handle">
+                      <span class="profil-online-dot" aria-hidden="true"></span>
+                      <span id="profil-player-id">—</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="profil-status">
+                  <div class="profil-status-copy">
+                    <span class="profil-status-label">Beschreibung</span>
+                    <p class="profil-status-text" id="profil-status-text" aria-live="polite">
+                      Ich liebe Spiele
+                    </p>
+                  </div>
+                  <button
+                    class="profil-status-edit"
+                    id="profil-status-edit"
+                    type="button"
+                    aria-label="Beschreibung bearbeiten"
+                    aria-controls="profil-status-editor"
+                    aria-expanded="false"
+                    title="Beschreibung bearbeiten"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 20h4l10.6-10.6a2.1 2.1 0 0 0 0-3L17.6 5.4a2.1 2.1 0 0 0-3 0L4 16v4Z"></path>
+                      <path d="m13.5 6.5 4 4"></path>
+                      <path d="M3 21h18"></path>
+                    </svg>
+                  </button>
+
+                  <form class="profil-status-editor" id="profil-status-editor" hidden>
+                    <label for="profil-status-input">Beschreibung ändern</label>
+                    <textarea
+                      id="profil-status-input"
+                      maxlength="80"
+                      rows="2"
+                      placeholder="Beschreibe dich kurz …"
+                    ></textarea>
+                    <div class="profil-status-editor-footer">
+                      <span class="profil-status-counter" id="profil-status-counter">0/80</span>
+                      <div class="profil-status-actions">
+                        <button class="profil-status-cancel" id="profil-status-cancel" type="button">Abbrechen</button>
+                        <button class="profil-status-save" type="submit">Speichern</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+
+                <p class="profil-hint">Ein austauschbarer Hintergrund kommt in einem späteren Schritt.</p>
+
+                <div class="profil-last-played" aria-label="Zuletzt gespielt">
+                  <span class="profil-last-played-label">Zuletzt gespielt</span>
+                  <span class="profil-last-played-value" id="profil-last-played">Noch nicht verfügbar</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profil-section profil-showcase-section" aria-labelledby="profil-showcase-title">
+              <h2 id="profil-showcase-title">Profil-Schaufenster</h2>
+              <p class="profil-section-lead">
+                Zeig freigeschaltete Items aus deinen Spielen — nur eine Vorschau mit Testinhalten, bis es echte
+                Freischaltungen zum Auswählen gibt.
+              </p>
+              <div class="profil-showcase-grid" id="profil-showcase-grid">
+                <button class="profil-showcase-slot" type="button" data-slot="0"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="1"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="2"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="3"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="4"></button>
+                <button class="profil-showcase-slot" type="button" data-slot="5"></button>
+              </div>
+            </div>
+
+            <div class="profil-showcase-picker" id="profil-showcase-picker" hidden>
+              <div class="profil-showcase-picker-card" role="dialog" aria-modal="true" aria-labelledby="profil-showcase-picker-title">
+                <div class="profil-showcase-picker-head">
+                  <h3 id="profil-showcase-picker-title">Item auswählen</h3>
+                  <button class="profil-showcase-picker-close" id="profil-showcase-picker-close" type="button" aria-label="Schließen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m6 6 12 12M18 6 6 18"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="profil-showcase-picker-list" id="profil-showcase-picker-list"></div>
+              </div>
+            </div>
+
+            <div class="profil-section profil-details-section" aria-labelledby="profil-kontodetails-title">
+              <h2 id="profil-kontodetails-title">Kontodetails</h2>
+              <div class="profil-stat-grid">
+                <div class="profil-stat-tile">
+                  <span class="profil-stat-label">Mitglied seit</span>
+                  <span class="profil-stat-value" id="profil-created-at">—</span>
+                </div>
+                <div class="profil-stat-tile">
+                  <span class="profil-stat-label">Rolle</span>
+                  <span class="profil-stat-value" id="profil-role">—</span>
+                </div>
+                <div class="profil-stat-tile">
+                  <span class="profil-stat-label">Spieler-ID</span>
+                  <span class="profil-stat-value" id="profil-player-id-2">—</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="profil-panel" id="profil-panel-datenschutz" data-panel="datenschutz" role="tabpanel" hidden>
+            <h2 class="profil-panel-title">Datenschutz und Privatsphäre</h2>
+
+            <div class="profil-setting-row">
+              <div>
+                <strong>„Zuletzt gesehen" anzeigen</strong>
+                <p class="profil-setting-desc">
+                  Gilt erst, sobald Profile auch für andere sichtbar sind. Aktuell:
+                  <span id="profil-last-seen">wird geladen …</span>
+                </p>
+              </div>
+              <button
+                class="profil-toggle"
+                id="profil-last-seen-toggle"
+                type="button"
+                role="switch"
+                aria-checked="true"
+              >
+                <span class="profil-toggle-knob" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <div class="profil-setting-row">
+              <div>
+                <strong>Spielstände in der Cloud speichern</strong>
+                <p class="profil-setting-desc">
+                  Bei eingeschaltet werden deine Spielstände (Highscores, Münzen, freigeschaltete Inhalte)
+                  mit deinem Account verknüpft und stehen so auf jedem Gerät zur Verfügung. Beim Ausschalten
+                  wird ab sofort nur noch lokal auf diesem Gerät gespeichert — bereits hochgeladene
+                  Spielstände bleiben dabei erhalten.
+                </p>
+              </div>
+              <button
+                class="profil-toggle"
+                id="profil-cloud-save-toggle"
+                type="button"
+                role="switch"
+                aria-checked="true"
+              >
+                <span class="profil-toggle-knob" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <a class="profil-link-row" href="/datenschutz.html">
+              Datenschutzerklärung ansehen <span aria-hidden="true">→</span>
+            </a>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/test-gate.js?v=1"></script>
+    <script src="../assets/js/auth.js?v=5"></script>
+    <script src="../assets/js/cloud-save.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="../assets/js/biti-figure-data.js"></script>
+    <script src="../assets/js/biti-figure-2d.js"></script>
+    <script src="../assets/js/biti-figure-3d.js"></script>
+    <script src="assets/js/profil.js?v=1"></script>
+  </body>
+</html>

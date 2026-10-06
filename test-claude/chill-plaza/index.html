@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <!-- Bleibt versteckt, bis test-gate.js den Zugriff geprueft hat. Ohne das
+         waere der Testbereich fuer einen Moment sichtbar, bevor die Sperre
+         greift. Die Zeile gehoert untrennbar zu test-gate.js weiter unten. -->
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#fff6ea" />
+    <link rel="stylesheet" href="css/style.css?v=1" />
+    <title>Chill Plaza – Lobby-Vorschau – Testbereich Claude</title>
+  </head>
+  <body>
+    <script src="../../assets/js/steckengeblieben.js?v=1"></script>
+    <div class="test-banner">
+      🧪 Testbereich „Claude" — nur für Tester/Admin/Owner sichtbar
+    </div>
+
+    <div class="topline">
+      <a class="back-link" href="../index.html">← Zur Spielebibliothek</a>
+    </div>
+
+    <main class="wrap">
+      <!-- ===== Bildschirm 1: Auswahl ===== -->
+      <section id="auswahl">
+        <header class="kopf">
+          <p class="kicker">Vorschau</p>
+          <h1>Chill Plaza</h1>
+          <p class="lead">
+            Such dir eine Lobby aus. Jede fasst 15 Leute — zusammen 60.
+          </p>
+          <p class="attrappe">
+            Attrappe: Diese Seite spricht mit <strong>keinem Server</strong>.
+            Spielerzahlen und Wartezeiten sind erfunden, damit man die
+            Zustände einmal sehen kann.
+          </p>
+        </header>
+
+        <p class="gesamt" id="gesamt"></p>
+
+        <ul class="lobbys" id="lobbys"></ul>
+
+        <p class="hinweis">
+          Eine Lobby schläft ein, wenn eine Stunde lang niemand da war — das
+          hält den Betrieb kostenlos. Probier die schlafende aus, dann siehst
+          du, was jemand sieht, der als Erster am Abend kommt.
+        </p>
+      </section>
+
+      <!-- ===== Bildschirm 2: drin (Platzhalter) ===== -->
+      <section id="drin" hidden>
+        <header class="kopf">
+          <p class="kicker" id="drin-kicker"></p>
+          <h1 id="drin-name"></h1>
+        </header>
+
+        <div class="platzhalter">
+          <p><strong>Hier käme der Plaza.</strong></p>
+          <p>Die Welt gibt es noch nicht — diese Vorschau zeigt nur den Weg dorthin.</p>
+        </div>
+
+        <button class="btn btn-ghost" type="button" id="verlassen">← Lobby verlassen</button>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../../assets/js/supabase-client.js"></script>
+    <script src="../../assets/js/test-gate.js?v=1"></script>
+    <script src="../../assets/js/auth.js?v=5"></script>
+    <script src="js/main.js?v=1" data-noetig-fuer="Die Lobby-Übersicht"></script>
+  </body>
+</html>

@@ -1,0 +1,344 @@
+/* Skin-Labor. Dunkel gehalten, weil Skins auf dunklem Grund beurteilt werden --
+   auf Weiss sieht jede Lackierung besser aus, als sie ist. */
+
+:root {
+  --grund: #0c0f14;
+  --karte: #141922;
+  --karte-hoch: #1b2230;
+  --rand: #26303f;
+  --text: #e8ecf3;
+  --leise: #96a1b3;
+  --akzent: #4d86ff;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--grund);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+
+/* ---------- Testbereich-Kopf ---------- */
+.test-banner {
+  background: linear-gradient(90deg, #f59e0b, #f43f5e);
+  color: #14100a;
+  font-weight: 700;
+  font-size: 0.86rem;
+  text-align: center;
+  padding: 8px 14px;
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+.topline { padding: 12px 16px 0; }
+
+.back-link {
+  color: var(--leise);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+.back-link:hover, .back-link:focus-visible { color: var(--text); }
+
+/* ---------- Grundgerüst ---------- */
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 10px 16px calc(48px + env(safe-area-inset-bottom));
+}
+
+.kopf { padding: 14px 0 6px; }
+
+.kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: var(--leise);
+}
+
+h1 {
+  margin: 4px 0 10px;
+  font-size: clamp(1.9rem, 7vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.lead { margin: 0; color: var(--leise); max-width: 62ch; }
+.lead strong { color: var(--text); }
+
+h2 { margin: 0; font-size: 1.02rem; letter-spacing: -0.01em; }
+
+/* ---------- Bühne ---------- */
+.buehne-box {
+  margin: 22px 0;
+  background: var(--karte);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.buehne {
+  --glanz: #4d86ff;
+  position: relative;
+  padding: 26px 16px 18px;
+  background:
+    radial-gradient(120% 90% at 50% 8%, color-mix(in srgb, var(--glanz) 20%, transparent), transparent 62%),
+    linear-gradient(180deg, #10151d, #0b0e13);
+}
+
+/* Bodenschatten, damit die Waffe nicht im Nichts schwebt */
+.buehne::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 12px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.6), transparent 70%);
+}
+
+.buehne .waffe {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 46vh;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.55));
+}
+
+.buehne.blitz { animation: blitz 0.5s ease-out; }
+@keyframes blitz {
+  0% { transform: scale(0.97); filter: brightness(1.9); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .buehne.blitz { animation: none; }
+}
+
+/* ---------- Namensschild ---------- */
+.schild {
+  padding: 14px 16px;
+  border-top: 1px solid var(--rand);
+  background: var(--karte-hoch);
+}
+
+.schild-oben {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.schild-oben strong {
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+  min-width: 0;
+}
+
+.stufe {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 3px 9px;
+  border: 1px solid;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.werte {
+  display: grid;
+  /* min-width:0 -- sonst erzwingen die Spalten Querscrollen unter 390px */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
+}
+.werte > div { min-width: 0; }
+.werte dt {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--leise);
+}
+.werte dd {
+  margin: 2px 0 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+}
+
+/* ---------- Knöpfe ---------- */
+.knoepfe {
+  display: flex;
+  gap: 10px;
+  padding: 0 16px 16px;
+  background: var(--karte-hoch);
+  flex-wrap: wrap;
+}
+
+.btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-weight: 650;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--rand);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.btn-stark {
+  background: linear-gradient(180deg, #5b91ff, #2f6ae6);
+  border-color: #2f6ae6;
+  color: #fff;
+}
+.btn-ghost { background: transparent; color: var(--text); }
+.btn:active { transform: translateY(1px); }
+
+/* ---------- Felder ---------- */
+.feld {
+  margin: 18px 0;
+  padding: 16px;
+  background: var(--karte);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+}
+
+.feld-kopf { margin-bottom: 12px; }
+.feld-kopf p {
+  margin: 4px 0 0;
+  color: var(--leise);
+  font-size: 0.88rem;
+}
+
+/* ---------- Regler ---------- */
+input[type="range"] {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--akzent);
+  min-height: 34px;
+}
+
+.regler-enden {
+  display: flex;
+  justify-content: space-between;
+  color: var(--leise);
+  font-size: 0.76rem;
+}
+
+/* ---------- Chips ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  --chip: var(--akzent);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 8px 13px;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--rand);
+  background: var(--karte-hoch);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.chip i {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.chip.ist-aktiv {
+  border-color: var(--chip);
+  background: color-mix(in srgb, var(--chip) 22%, var(--karte-hoch));
+  box-shadow: 0 0 0 1px var(--chip) inset;
+}
+
+.stufen .chip.ist-aktiv { color: #fff; }
+
+/* ---------- Kontaktbogen ---------- */
+.bogen {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.bogen-karte {
+  display: block;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--rand);
+  background: linear-gradient(180deg, #10151d, #0b0e13);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.bogen-karte.ist-aktiv {
+  border-color: var(--akzent);
+  box-shadow: 0 0 0 1px var(--akzent) inset;
+}
+
+.bogen-bild { display: block; }
+
+.bogen-karte .waffe {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bogen-name {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--leise);
+}
+
+.bogen-karte.ist-aktiv .bogen-name { color: var(--text); }
+
+/* ---------- Rechnung ---------- */
+.rechnung {
+  margin: 22px 0 0;
+  padding: 18px 16px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--rand);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rechnung p { color: var(--leise); }
+.rechnung strong { color: var(--text); }
+
+.punkte { margin: 12px 0; padding-left: 20px; color: var(--leise); }
+.punkte li { margin: 6px 0; }
+
+.hinweis {
+  margin: 12px 0 0;
+  font-size: 0.88rem;
+  border-left: 3px solid var(--akzent);
+  padding-left: 12px;
+}
+
+/* ---------- Tastaturbedienung sichtbar halten ---------- */
+:where(.btn, .chip, .bogen-karte, .back-link):focus-visible {
+  outline: 2px solid var(--akzent);
+  outline-offset: 2px;
+}
+
+.offen {
+  margin: 14px 0 0;
+  font-size: 0.88rem;
+  border-left: 3px solid #f59e0b;
+  padding-left: 12px;
+}

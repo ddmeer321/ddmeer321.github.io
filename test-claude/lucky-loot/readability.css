@@ -1,0 +1,85 @@
+/* Legible labels and mechanical reveal details. */
+body{font-family:Arial,Helvetica,sans-serif;color:#46311f}.subtitle,.side-note p,.crate-card>p,.footnote,.upgrade-footer p,.item-info p,.save-note,.save-note small{color:#6c5537;font-size:13px;line-height:1.65}.eyebrow{font-family:Arial,sans-serif;font-size:11px;letter-spacing:1px;color:#784527}.nav-label{font:10px Arial,sans-serif;color:#6d5230}.wallet small{font:10px Arial,sans-serif;color:#624925}.wallet strong{font-size:23px}nav button span{font:700 14px Arial,sans-serif}h1,h2,h3,.brand>span{font-family:Georgia,serif}.stats span{font:12px Arial,sans-serif;color:#6b512e;line-height:1.4}.stats strong{font-size:24px}.stats small{color:#725a37;font-size:12px}.card-top{font:10px Arial,sans-serif;letter-spacing:.4px;color:#74542e}.card-top b{font:700 11px Arial,sans-serif}.crate-card summary{font:12px Arial,sans-serif;color:#654421;line-height:1.5}.odds{font:12px Arial,sans-serif;gap:8px}.open-btn,.primary,.tabs button,.item-actions button,.item-info>button{font-family:Arial,sans-serif;font-size:13px}.item-info>small{font:12px Arial,sans-serif}.item-art small{font:10px Arial,sans-serif;letter-spacing:.4px;color:#735b37}.receipt{font:11px Arial,sans-serif;color:#725832}.rarity-stamp{font:700 14px Arial,sans-serif}.muted{font-size:13px;color:#715836}.search-label,.upgrade-panel label{font-size:14px}select,input{font:14px Arial,sans-serif;padding:14px}.upgrade-panel p{font-size:13px;color:#735a39}dialog{width:650px;max-width:94vw}dialog p{color:#695333;font-size:14px}.reel-window{position:relative;overflow:hidden;margin:26px -10px 12px;height:209px;border:5px ridge #bd934f;background:repeating-linear-gradient(90deg,#735136 0 14px,#795638 14px 28px);box-shadow:inset 0 6px 14px #2515076b,0 3px 0 #fff1c966;padding-top:20px}.reel-track{display:flex;gap:12px;width:100%;will-change:transform;transform:translateX(calc(50% - 71px))}.reel-ticket{flex:0 0 142px;width:142px;height:166px;background:#f9e9c3;border:2px solid #b39864;border-bottom:5px solid var(--rarity);box-shadow:2px 4px 3px #281a1470;padding-bottom:7px}.reel-ticket .item-art{height:105px;margin:0;border:0;border-bottom:1px dashed #ac925c;background:#edddb7}.reel-ticket .item-art>span{font-size:43px}.reel-ticket .item-art small{font-size:8px;margin-top:7px}.reel-ticket>strong{display:block;font:700 14px Georgia,serif;margin-top:9px;color:#503923}.reel-ticket>small{display:block;font:11px Arial,sans-serif;margin-top:5px;color:#705132}.reel-pointer{position:absolute;left:50%;top:-7px;transform:translateX(-50%);z-index:4;color:#f5d06d;text-shadow:0 2px 2px #4b2914;font-size:34px;line-height:1}.reel-center{position:absolute;top:18px;bottom:0;left:50%;width:2px;background:#ffe79999;box-shadow:0 0 10px #ffecc5;pointer-events:none}.reel-window:after{content:'';position:absolute;inset:0;box-shadow:inset 25px 0 25px -20px #20150b,inset -25px 0 25px -20px #20150b;pointer-events:none}.reel-labels{display:flex;justify-content:space-between;font:700 10px Arial,sans-serif;color:#73542a;padding:0 5px}.reel-disclaimer{font-size:12px!important;line-height:1.6;border-top:1px dashed #ba9a5d;padding-top:15px}.upgrade-dial{width:244px;height:244px;position:relative;margin:27px auto;border:10px ridge #bc955a;border-radius:50%;box-shadow:0 5px 0 #775132,0 10px 18px #593b2530;background:#e5d2a4}.dial-face{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(transparent 0deg 9deg,#faefd38c 9deg 10deg),conic-gradient(#528557 0deg var(--arc),#a4533b var(--arc) 360deg);border:5px solid #e6c987}.dial-face:after{content:'';position:absolute;inset:28px;border:2px dotted #e7d3a4;border-radius:50%}.dial-needle{position:absolute;inset:0;z-index:2}.dial-needle i{position:absolute;left:calc(50% - 5px);top:10px;width:10px;height:102px;background:#ffecc0;clip-path:polygon(50% 0,100% 90%,50% 100%,0 90%);filter:drop-shadow(2px 2px 2px #34210f)}.dial-hub{position:absolute;left:calc(50% - 19px);top:calc(50% - 19px);width:38px;height:38px;background:linear-gradient(110deg,#f3da93,#a97934);border:3px solid #754f28;border-radius:50%;z-index:3;display:grid;place-items:center;font-size:21px;color:#70502b}.dial-legend{display:flex;justify-content:center;gap:25px;font:700 13px Arial,sans-serif}.dial-legend span:first-child{color:#356b3b}.dial-legend span:last-child{color:#94432e}#spin-status{font-size:16px;line-height:1.5;min-height:48px}.result-success{color:#326d39!important;font-weight:700;animation:fund-appear .4s ease-out}.result-failure{color:#943d2a!important;font-weight:700}.upgrade-result .upgrade-dial{box-shadow:0 5px 0 #775132,0 0 0 4px #d5b57066}#close-reveal[hidden]{display:none}.crate-card details[open]{background:#f0dfb7;padding:12px 8px;border-bottom:1px dashed #bda371}.crate-card details[open] summary{margin-bottom:13px}.item-card:hover{box-shadow:4px 6px 0 #ad8d5750}.item-actions button:hover{background:#f4e1b9}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #886326;outline-offset:4px}@media(max-width:640px){.card-top{font-size:9px}.card-top b{font-size:10px}.stats span{font-size:10px}.stats strong{font-size:20px}.stats small{font-size:10px}.open-btn{font-size:12px;min-height:44px}.crate-card>p{font-size:12px}.crate-card summary{font-size:11px}nav button span{font-size:12px}.item-art small{font-size:9px}dialog{padding:34px 17px}.reel-window{margin-left:-7px;margin-right:-7px}.reel-labels{font-size:9px}.upgrade-panel{padding:20px}.wallet small{font-size:9px}}
+
+/* ---------------------------------------------------------------------------
+   Lesbarkeit, zweiter Durchgang. Das Design bleibt wie es ist -- nur die
+   Schrift wird kraeftiger. Drei Dinge waren das Problem:
+
+   1. GROESSE. Am Handy schrumpfte eine Media-Query Etiketten auf 9px und
+      10px. Das ist kleiner als jede Fussnote und auf dem gerasterten
+      Hintergrund kaum noch zu entziffern. Das war der groesste Brocken.
+   2. STAERKE. Fast alles lief auf Staerke 400. Arial hat nur 400 und 700 --
+      500 und 600 gibt es dort nicht, der Browser rundet sie weg. Fuer kurze
+      Etiketten ist 700 also die einzige ehrliche Wahl; Absaetze bleiben auf
+      400 und werden stattdessen groesser.
+   3. FARBE. Die Werte lagen zwischen 4,6:1 und 6,2:1 -- bestanden, aber knapp,
+      und bei 9px hilft "bestanden" wenig.
+
+   Die Farben bekommen dabei einen Deckel: KEIN Text wird dunkler als #46311f,
+   die Farbe, die der Fliesstext hier ohnehin schon hatte. Es wird also nichts
+   dunkler als das Dunkelste, das vorher schon auf der Seite stand.
+   --------------------------------------------------------------------------- */
+
+/* Absaetze: gleiche Staerke, eine Spur groesser und satter. */
+.subtitle,.side-note p,.crate-card>p,.footnote,.upgrade-footer p,.item-info p,
+.save-note,.save-note small,.muted,.upgrade-panel p{color:#5a4327;font-size:14px}
+dialog p{color:#5a4327}
+.item-info>small{font-size:13px;color:#5a4327}
+
+/* Kurze Etiketten: fett und einen Punkt groesser. */
+.nav-label{font:700 11px Arial,sans-serif;letter-spacing:.6px;color:#553e22}
+.wallet small{font:700 11px Arial,sans-serif;letter-spacing:.6px;color:#553e22}
+.card-top{font:700 11px Arial,sans-serif;letter-spacing:.5px;color:#553e22}
+.card-top b{font-size:12px}
+.stats span{font:700 12px Arial,sans-serif;color:#553e22;line-height:1.4}
+.stats small{font-weight:700;color:#553e22}
+.item-art small{font:700 11px Arial,sans-serif;letter-spacing:.5px;color:#553e22}
+.reel-labels{font-size:11px;color:#553e22}
+.reel-ticket>small{font-size:12px;color:#553e22}
+.receipt{font:700 12px Arial,sans-serif;color:#553e22}
+.crate-card summary{font:700 13px Arial,sans-serif;color:#553e22;line-height:1.5}
+.odds{font-size:13px}
+
+/* Der rote Akzent bleibt rot, wird nur eine Stufe satter. */
+.eyebrow{font:700 12px Arial,sans-serif;letter-spacing:1px;color:#68391f}
+
+/* Am Handy wurde vorher heruntergerechnet -- hier wieder auf lesbares Mass. */
+@media(max-width:640px){
+  .card-top{font-size:10px}.card-top b{font-size:11px}
+  .stats span{font-size:11px}.stats small{font-size:11px}
+  .crate-card>p{font-size:13px}.crate-card summary{font-size:12px}
+  .item-art small{font-size:10px}.reel-labels{font-size:10px}
+  .wallet small{font-size:10px}
+  nav button span{font-size:13px}.open-btn{font-size:13px}
+  /* Zurueck auf 11px: bei 12px bricht die Zeile im schmalen Kopf um. */
+  .eyebrow{font-size:11px}
+}
+
+/* Zweiter Durchgang: Stellen, die eigene Farben mitbringen und deshalb oben
+   nicht miterfasst waren. Gleiche Regel wie zuvor -- nicht dunkler als
+   #46311f, und die Form bleibt unangetastet. */
+
+/* Wahrscheinlichkeitstabelle in der Kiste. */
+.odds span,.odds b{color:#553e22}
+
+/* Umschalter "Alle Kisten / Fuer lau / Mit Muenzen". */
+.tabs button{color:#553e22}
+.tabs button[aria-pressed=true],.tabs button.active{color:inherit}
+
+/* Leere Zustaende ("Oeffne deine erste kostenlose Kiste"). */
+.empty p,.upgrade-empty,.upgrade-empty p{color:#5a4327}
+.upgrade-panel .empty p{font-size:13px}
+
+/* Erfolgsanzeige im Aufwerter -- 8px war die kleinste Schrift im ganzen Spiel. */
+.chance-ring small{font:700 10px Arial,sans-serif;letter-spacing:.8px;color:#553e22}
+.chance>span{font-size:11px;color:#553e22}
+
+/* Zaehler neben den Abschnittsueberschriften ("Der Kistenladen  12"). */
+.section-title h2 span{color:#553e22}
+
+/* Leere Bankplaetze. */
+.empty-slot h3{color:#553e22}
+.empty-slot p{color:#5a4327;font-size:12px}
+
+/* Das Bankband steht in factors.css und wird dort geaendert -- diese Datei
+   laedt VOR factors.css, eine Regel hier haette gar nicht gegriffen. */

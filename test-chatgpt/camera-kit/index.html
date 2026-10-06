@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <style>html{visibility:hidden;}</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#090d19" />
+    <link rel="stylesheet" href="../../assets/css/auth-nba.css?v=2" />
+    <link rel="stylesheet" href="camera-arcade.css?v=1" />
+    <title>Camera Arcade – ChatGPT-Testbereich</title>
+  </head>
+  <body>
+    <script src="../../assets/js/wartung.js?v=1"></script>
+
+    <div class="ca-test-banner">
+      🧪 Testbereich „ChatGPT“ — Camera-Kit-Staging, nur für Tester/Admin/Owner
+    </div>
+
+    <header class="ca-topbar">
+      <a class="ca-back" href="../index.html">← Zur Test-Spielebibliothek</a>
+      <div class="ca-brand" aria-label="Camera Arcade">
+        <span class="ca-brand-mark" aria-hidden="true">◎</span>
+        <span>Camera Arcade</span>
+      </div>
+      <div id="auth-status"></div>
+    </header>
+
+    <main class="ca-page">
+      <section class="ca-intro">
+        <div>
+          <p class="ca-eyebrow">AR-Spielplatz · Camera Kit Web</p>
+          <h1>Lenses ausprobieren. Kamera-Challenges spielen.</h1>
+          <p>
+            Wechsle frei durch die Demo-Lenses oder teste dein Timing in zwei kurzen Kamera-Minispielen.
+            Bilder bleiben nur während dieser Sitzung im Browser.
+          </p>
+        </div>
+        <div class="ca-hud" aria-label="Spielstand">
+          <div><span>Punkte</span><strong id="ca-score">0</strong></div>
+          <div><span>Runde</span><strong id="ca-round">–</strong></div>
+          <div><span>Bestwert</span><strong id="ca-best">0</strong></div>
+        </div>
+      </section>
+
+      <div class="ca-layout">
+        <section class="ca-camera-card" aria-labelledby="ca-stage-title">
+          <div class="ca-camera-head">
+            <div>
+              <p class="ca-kicker">Live-Kamera</p>
+              <h2 id="ca-stage-title">Lens-Bühne</h2>
+            </div>
+            <span class="ca-live-pill" id="ca-live-pill" data-state="off">Kamera aus</span>
+          </div>
+
+          <div class="ca-stage" id="ca-stage">
+            <canvas id="ca-canvas" width="1280" height="720" aria-label="Camera-Kit-Livevorschau"></canvas>
+
+            <div class="ca-stage-overlay" id="ca-stage-overlay">
+              <span class="ca-orbit" aria-hidden="true"><i></i><i></i><i></i></span>
+              <h2 id="ca-overlay-title">Willkommen in der Camera Arcade</h2>
+              <p id="ca-overlay-text">
+                Die Kamera startet erst nach deinem Klick. Das Mikrofon bleibt aus.
+              </p>
+              <button class="ca-primary" id="ca-start" type="button" disabled>
+                Konfiguration wird geprüft …
+              </button>
+              <p class="ca-config-state" id="ca-config-state" role="status" aria-live="polite"></p>
+            </div>
+
+            <div class="ca-challenge" id="ca-challenge" hidden>
+              <span id="ca-mode-label">Challenge</span>
+              <strong id="ca-challenge-text">Mach dich bereit</strong>
+            </div>
+
+            <div class="ca-timer" id="ca-timer" hidden aria-label="Verbleibende Zeit">
+              <span id="ca-timer-value">8.0</span>
+              <i id="ca-timer-bar"></i>
+            </div>
+
+            <div class="ca-freeze-meter" id="ca-freeze-meter" hidden aria-label="Timing-Anzeige">
+              <span class="ca-freeze-zone" aria-hidden="true"></span>
+              <i id="ca-freeze-cursor" aria-hidden="true"></i>
+            </div>
+
+            <div class="ca-flash" id="ca-flash" aria-hidden="true"></div>
+          </div>
+
+          <div class="ca-status-row">
+            <p id="ca-status" role="status" aria-live="polite">Camera Kit ist noch nicht gestartet.</p>
+            <label class="ca-camera-select-wrap" for="ca-camera-select">
+              Kamera
+              <select id="ca-camera-select" disabled>
+                <option>Standardkamera</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="ca-action-row">
+            <button class="ca-shutter" id="ca-shutter" type="button" disabled>
+              <span aria-hidden="true"></span>
+              <b id="ca-shutter-label">Foto</b>
+            </button>
+            <button class="ca-secondary" id="ca-stop" type="button" disabled>Arcade beenden</button>
+          </div>
+        </section>
+
+        <aside class="ca-side">
+          <section class="ca-panel" aria-labelledby="ca-modes-title">
+            <div class="ca-panel-head">
+              <div>
+                <p class="ca-kicker">Spiel wählen</p>
+                <h2 id="ca-modes-title">Drei Modi</h2>
+              </div>
+              <span class="ca-step">01</span>
+            </div>
+
+            <div class="ca-mode-list" id="ca-mode-list">
+              <button class="ca-mode is-active" type="button" data-mode="lab">
+                <span class="ca-mode-icon" aria-hidden="true">✦</span>
+                <span><strong>Lens-Labor</strong><small>Alle Lenses frei ausprobieren</small></span>
+              </button>
+              <button class="ca-mode" type="button" data-mode="pose">
+                <span class="ca-mode-icon" aria-hidden="true">⚡</span>
+                <span><strong>Pose-Blitz</strong><small>5 Foto-Aufgaben gegen die Zeit</small></span>
+              </button>
+              <button class="ca-mode" type="button" data-mode="freeze">
+                <span class="ca-mode-icon" aria-hidden="true">◇</span>
+                <span><strong>Freeze Frame</strong><small>Im richtigen Moment auslösen</small></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="ca-panel ca-lens-panel" aria-labelledby="ca-lenses-title">
+            <div class="ca-panel-head">
+              <div>
+                <p class="ca-kicker">Demo Lens Group</p>
+                <h2 id="ca-lenses-title">Lenses</h2>
+              </div>
+              <span class="ca-count" id="ca-lens-count">0</span>
+            </div>
+            <div class="ca-lens-list" id="ca-lens-list">
+              <p class="ca-empty">Lenses erscheinen nach dem Start.</p>
+            </div>
+          </section>
+
+          <section class="ca-panel ca-gallery-panel" aria-labelledby="ca-gallery-title">
+            <div class="ca-panel-head">
+              <div>
+                <p class="ca-kicker">Nur im Arbeitsspeicher</p>
+                <h2 id="ca-gallery-title">Letzte Momente</h2>
+              </div>
+              <span class="ca-count" id="ca-photo-count">0</span>
+            </div>
+            <div class="ca-gallery" id="ca-gallery">
+              <p class="ca-empty">Noch kein Schnappschuss.</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <section class="ca-privacy-note">
+        <strong>Kamera &amp; Datenschutz</strong>
+        <p>
+          Camera Kit verarbeitet das Livebild für die gewählte AR-Lens. Dieses Testspiel fordert keinen Ton an,
+          lädt keine Aufnahmen hoch und verwirft alle Vorschaubilder beim Neuladen. Vor der ersten Lens kann die
+          unveränderte Nutzungsbedingungen-Abfrage von Snap erscheinen.
+        </p>
+        <a href="../../datenschutz.html#camera-arcade">Details im Datenschutz</a>
+      </section>
+    </main>
+
+    <footer class="ca-footer">
+      <span>Camera Arcade · geschützter ChatGPT-Testbereich</span>
+      <nav aria-label="Rechtliche Informationen">
+        <a href="../../datenschutz.html#camera-arcade">Datenschutz</a>
+        <a href="../../impressum.html">Impressum</a>
+      </nav>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="../../assets/js/supabase-client.js"></script>
+    <script src="../../assets/js/test-gate.js?v=1"></script>
+    <script src="../../assets/js/auth.js?v=5"></script>
+    <script src="js/camera-arcade-loader.js?v=1"></script>
+  </body>
+</html>

@@ -41,6 +41,17 @@
 
   resultEl.hidden = false;
 
+  // Bei der Registrierung mit E-Mail steht auf der Login-Seite noch der
+  // Hinweis auf die Bestaetigungsmail. Wer von dort hierher wechselt, wuerde
+  // ihn sonst nie sehen - deshalb wandert er mit.
+  if (data.hinweis) {
+    var hinweisEl = document.getElementById("security-hinweis");
+    if (hinweisEl) {
+      hinweisEl.textContent = data.hinweis;
+      hinweisEl.hidden = false;
+    }
+  }
+
   var leakText = document.getElementById("security-leak-text");
   var strengthText = document.getElementById("security-strength-text");
   var strengthFill = document.getElementById("security-strength-fill");
@@ -123,26 +134,11 @@
       });
     });
 
-    function checkPassword(pw) {
-      return {
-        length: pw.length >= 8,
-        upper: /[A-Z]/.test(pw),
-        lower: /[a-z]/.test(pw),
-        digit: /[0-9]/.test(pw),
-        special: /[^A-Za-z0-9]/.test(pw),
-      };
-    }
-    function passwordValid(pw) {
-      var r = checkPassword(pw);
-      return r.length && r.upper && r.lower && r.digit && r.special;
-    }
-    fixPasswordInput.addEventListener("input", function () {
-      var result = checkPassword(fixPasswordInput.value);
-      Object.keys(result).forEach(function (rule) {
-        var li = document.querySelector('#security-fix-rules [data-rule="' + rule + '"]');
-        if (li) li.classList.toggle("ok", result[rule]);
-      });
-    });
+    // Dieselben Regeln wie bei Registrierung und Zuruecksetzen, aus
+    // assets/js/password-rules.js. Vorher standen sie hier ein zweites Mal.
+    var regeln = window.PasswortRegeln;
+    function passwordValid(pw) { return regeln.gueltig(pw); }
+    regeln.verdrahten("security-fix-password", "security-fix-rules");
 
     fixStartBtn.addEventListener("click", async function () {
       fixHint.className = "login-message";
@@ -192,7 +188,7 @@
         fixMessage.textContent = "Neues Passwort gespeichert!";
         fixMessage.className = "login-message ok";
         fixForm.reset();
-        document.querySelectorAll("#security-fix-rules li").forEach(function (li) { li.classList.remove("ok"); });
+        regeln.zuruecksetzen("security-fix-rules");
       } finally {
         submitBtn.disabled = false;
       }
