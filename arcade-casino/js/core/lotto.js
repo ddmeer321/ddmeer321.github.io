@@ -95,6 +95,8 @@ export function parseDrawId(id) {
   const m = /^(daily|grand)-(\d{4})-(\d{2})-(\d{2})$/.exec(typeof id === "string" ? id : "");
   if (!m) return null;
   const [y, mo, d] = [Number(m[2]), Number(m[3]) - 1, Number(m[4])];
+  const check = new Date(y, mo, d);
+  if (check.getFullYear() !== y || check.getMonth() !== mo || check.getDate() !== d) return null; // z. B. 2026-13-01
   const def = DRAWS[m[1]];
   const at = new Date(y, mo, d, def.hour, def.minute, 0, 0).getTime();
   return { id, type: m[1], y, m: mo, d, at };
