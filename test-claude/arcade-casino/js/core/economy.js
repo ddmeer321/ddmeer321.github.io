@@ -120,6 +120,22 @@ export function createEconomy({ getState, save = () => {}, emit = () => {}, guar
     },
 
     /**
+     * Macht eine frühere debit-Abbuchung rückgängig (z. B. erstattete Lotto-Scheine
+     * nach einer Regeländerung). Kein Gewinn: Der Einsatz wird aus der Statistik
+     * herausgerechnet, die Bilanz bleibt stimmig.
+     */
+    refund(gameId, amount, reason = "refund") {
+      if (!isValidAmount(amount)) return false;
+      const s = getState();
+      const g = statFor(gameId);
+      s.stats.wagered = Math.max(0, s.stats.wagered - amount);
+      g.wagered = Math.max(0, g.wagered - amount);
+      setBalance(s.balance + amount, amount, reason);
+      emit("refund", { gameId, amount });
+      return true;
+    },
+
+    /**
      * Kauf eines dauerhaften Gegenstands (Jukebox, Songs). Kein Einsatz: zählt
      * nicht als „eingesetzt“, sondern als „ausgegeben“. Bilanz:
      * Guthaben = Start − Einsätze + Auszahlungen + Boni − Ausgaben.

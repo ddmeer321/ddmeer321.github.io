@@ -33,7 +33,7 @@ export default {
     );
     const controls = h("div.game-controls");
     const status = h("div.status-line", { role: "status" }, `Startgebühr ${ENTRY} Credits · 5 Stopps pro Runde`);
-    const actBtn = h("button.btn.btn-primary.btn-lg", { type: "button", style: { minWidth: "200px" }, "aria-keyshortcuts": "Space" }, `Start · ${ENTRY}`);
+    const actBtn = h("button.btn.btn-primary.btn-lg.touch-hold", { type: "button", style: { minWidth: "200px" }, "aria-keyshortcuts": "Space" }, `Start · ${ENTRY}`);
     controls.append(status, actBtn);
     root.append(stage, controls);
     const st = createStage(stage);

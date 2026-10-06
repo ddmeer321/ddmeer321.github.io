@@ -4,7 +4,24 @@
   background:
     radial-gradient(80% 60% at 50% 20%, color-mix(in srgb, var(--ac, var(--cyan)) 18%, transparent), transparent 70%),
     linear-gradient(180deg, #0d0820, #05030c);
+  /* V1.2.1: direkte Spielfläche (Wischen, Ziehen, Halten) – der Browser darf hier
+     weder scrollen, zoomen, „Pull to refresh“ auslösen noch Text markieren.
+     Bewusst NUR auf Spielflächen, nicht auf Menüs, Lotto, Overlays oder die App. */
   touch-action: none;
+  overscroll-behavior: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Knöpfe, die gehalten werden (Plinko „Kugel“, Lichtwirbel „Stopp“): eine kleine
+   Fingerbewegung darf kein Browser-Pan starten (sonst pointercancel mitten im Halten). */
+.touch-hold {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .arcade-hud {

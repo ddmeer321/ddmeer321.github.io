@@ -1,18 +1,38 @@
-// Neon Lotto – Ziehungs-Show (V1.2). Zeigt ein BEREITS FESTSTEHENDES Ergebnis
-// wie eine kurze Lotto-Sendung: Studio-Intro → Kugelmaschine → vier Zahlen
-// einzeln → Zusammenfassung → Auswertung der eigenen Scheine → Einfordern bzw.
+// Neon Lotto – Ziehungs-Show (V1.2.1). Zeigt ein BEREITS FESTSTEHENDES Ergebnis
+// wie eine kurze Lotto-Sendung: Studio-Intro → Kugelmaschine → Zahlen einzeln
+// (4 bzw. 6) → beim Großen Neon Lotto kurze Spannungspause und separat die
+// Neonzahl → Zusammenfassung → Auswertung der eigenen Scheine → Einfordern bzw.
 // „Leider kein Gewinn“. Überspringen, Neuladen oder Zurückgehen ändern nichts
 // am Ergebnis – die Show liest es nur aus dem gespeicherten Datensatz.
 
 import { h } from "../../ui/dom.js";
-import { DRAWS, formatDrawDate } from "../../core/lotto.js";
+import { DRAWS, formatDrawDate, rulesFor, rulesVersionOf, rulesLabel } from "../../core/lotto.js";
 
-const ORD = ["erste", "zweite", "dritte", "vierte"];
+const ORD = ["erste", "zweite", "dritte", "vierte", "fünfte", "sechste"];
+const NEON_COLOR = "#ff4fd8";
 const BALL_COLORS = ["#ff3d9a", "#ffc53d", "#2de2e6", "#8cff5a", "#b98cff", "#ff8a3d"];
 export const ballColor = (n) => BALL_COLORS[(n - 1) % BALL_COLORS.length];
 
 export function ballEl(n, { hit = false, small = false } = {}) {
   return h(`span.lt-ballchip${hit ? ".is-hit" : ""}${small ? ".is-small" : ""}`, { style: { "--ball": ballColor(n) }, "aria-label": hit ? `${n} (Treffer)` : String(n) }, String(n), hit ? h("i", { "aria-hidden": "true" }, "✓") : null);
+}
+
+/** Neonzahl als eigener, klar abgesetzter Chip (Ring statt Kugelfarbe). */
+export function neonEl(n, { hit = false, small = false } = {}) {
+  return h(
+    `span.lt-ballchip.is-neon${hit ? ".is-hit" : ""}${small ? ".is-small" : ""}`,
+    { style: { "--ball": NEON_COLOR }, "aria-label": hit ? `Neonzahl ${n} (Treffer)` : `Neonzahl ${n}` },
+    String(n),
+    hit ? h("i", { "aria-hidden": "true" }, "✓") : null
+  );
+}
+
+/** Text für das Ergebnis eines Scheins („3 Richtige + Neonzahl“, „1 Richtige“, „–“). */
+export function resultText(r) {
+  if (r.label) return r.label;
+  const base = r.k ? `${r.k} Richtige` : "";
+  if (r.neonHit) return base ? `${base} + Neonzahl` : "Neonzahl";
+  return base || "–";
 }
 
 /**
@@ -31,6 +51,9 @@ export function ballEl(n, { hit = false, small = false } = {}) {
 export function playShow(o) {
   const { container, draw, live, reduced, play, fmt } = o;
   const def = DRAWS[draw.type];
+  const rules = rulesFor(draw.type, rulesVersionOf(draw));
+  const pick = rules.pick;
+  const hasNeon = Boolean(rules.neon) && Number.isInteger(draw.neon);
   const grand = draw.type === "grand";
   const timers = [];
   let raf = 0;
@@ -40,7 +63,9 @@ export function playShow(o) {
   const setPhase = o.setPhase || (() => {});
 
   const caption = h("div.lt-caption", { "aria-live": "polite" });
-  const rack = h("div.lt-rack", { "aria-label": "Gezogene Zahlen" }, [0, 1, 2, 3].map(() => h("span.lt-slot")));
+  const slots = Array.from({ length: pick }, () => h("span.lt-slot"));
+  const neonSlot = hasNeon ? h("span.lt-slot.is-neon", { title: "Neonzahl" }) : null;
+  const rack = h(`div.lt-rack${pick > 4 ? ".is-wide" : ""}`, { "aria-label": "Gezogene Zahlen" }, slots, hasNeon ? h("span.lt-rack-plus", { "aria-hidden": "true" }, "+") : null, neonSlot);
   const big = h("div.lt-big", { "aria-hidden": "true" });
   const drum = h("canvas.lt-drum", { "aria-hidden": "true", width: 280, height: 280 });
   const skipBtn = h("button.btn.btn-ghost.btn-sm.lt-skip", { type: "button" }, "Überspringen");
@@ -54,7 +79,7 @@ export function playShow(o) {
       {},
       h("span.lt-onair", {}, live ? h("i.lt-rec", { "aria-hidden": "true" }) : null, live ? "LIVE" : "AUFZEICHNUNG"),
       h("strong", {}, def.name.toUpperCase()),
-      h("small", {}, `Ziehung vom ${formatDrawDate(draw.at)} · 4 aus ${def.pool}`)
+      h("small", {}, `Ziehung vom ${formatDrawDate(draw.at)} · ${rulesLabel(rules)}`)
     ),
     stage,
     caption,
@@ -68,19 +93,26 @@ export function playShow(o) {
   // ---------- Kugelmaschine (nur Darstellung) ----------
   const g = drum.getContext("2d");
   const R = 120;
-  const balls = Array.from({ length: def.pool }, (_, i) => {
+  const BR = rules.pool > 30 ? 10 : 11; // Kugelradius in der Trommel
+  const makeBall = (n, neon = false) => {
     const a = Math.random() * Math.PI * 2;
     const r = Math.random() * (R - 20);
-    return { n: i + 1, x: 140 + Math.cos(a) * r, y: 140 + Math.sin(a) * r, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, gone: false };
-  });
+    return { n, neon, x: 140 + Math.cos(a) * r, y: 140 + Math.sin(a) * r, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, gone: false };
+  };
+  let balls = Array.from({ length: rules.pool }, (_, i) => makeBall(i + 1));
+  /** Zweite Phase: Die Trommel wird geleert und mit den zehn Neonkugeln 0–9 gefüllt. */
+  function loadNeonBalls() {
+    balls = Array.from({ length: rules.neon }, (_, i) => makeBall(i, true));
+  }
   let mixing = reduced ? 0 : 1;
+  let neonPhase = false;
   function drawDrum() {
     g.clearRect(0, 0, 280, 280);
     g.fillStyle = "rgba(20,10,42,.9)";
     g.beginPath();
     g.arc(140, 140, R + 8, 0, Math.PI * 2);
     g.fill();
-    g.strokeStyle = grand ? "#ffc53d" : "#9bd8ff";
+    g.strokeStyle = neonPhase ? NEON_COLOR : grand ? "#ffc53d" : "#9bd8ff";
     g.lineWidth = 3;
     g.stroke();
     for (const b of balls) {
@@ -101,25 +133,26 @@ export function playShow(o) {
       const dx = b.x - 140;
       const dy = b.y - 140;
       const d = Math.hypot(dx, dy);
-      if (d > R - 11) {
+      const rad = b.neon ? 13 : BR;
+      if (d > R - rad) {
         const nx = dx / d;
         const ny = dy / d;
-        b.x = 140 + nx * (R - 11);
-        b.y = 140 + ny * (R - 11);
+        b.x = 140 + nx * (R - rad);
+        b.y = 140 + ny * (R - rad);
         const dot = b.vx * nx + b.vy * ny;
         b.vx -= 1.8 * dot * nx;
         b.vy -= 1.8 * dot * ny;
       }
-      g.fillStyle = ballColor(b.n);
+      g.fillStyle = b.neon ? NEON_COLOR : ballColor(b.n);
       g.beginPath();
-      g.arc(b.x, b.y, 11, 0, Math.PI * 2);
+      g.arc(b.x, b.y, rad, 0, Math.PI * 2);
       g.fill();
       g.fillStyle = "#fff";
       g.beginPath();
-      g.arc(b.x, b.y, 6.5, 0, Math.PI * 2);
+      g.arc(b.x, b.y, b.neon ? 8 : BR * 0.6, 0, Math.PI * 2);
       g.fill();
       g.fillStyle = "#14072a";
-      g.font = "800 8px system-ui, sans-serif";
+      g.font = `800 ${b.neon ? 10 : 8}px system-ui, sans-serif`;
       g.textAlign = "center";
       g.textBaseline = "middle";
       g.fillText(String(b.n), b.x, b.y + 0.5);
@@ -139,9 +172,26 @@ export function playShow(o) {
 
   // ---------- Ablauf ----------
   const T = reduced
-    ? { intro: 400, caption: 350, reveal: 0, hold: 450, sum: 500 }
-    : { intro: 2300, caption: 1100, reveal: 750, hold: 900, sum: 1300 };
-  const slots = [...rack.children];
+    ? { intro: 400, caption: 350, reveal: 0, hold: 450, sum: 500, suspense: 500 }
+    : pick > 4
+      ? { intro: 2300, caption: 950, reveal: 700, hold: 800, sum: 1300, suspense: 2200 }
+      : { intro: 2300, caption: 1100, reveal: 750, hold: 900, sum: 1300, suspense: 2200 };
+  const summary = () => `Die Gewinnzahlen: ${draw.nums.join(" · ")}${hasNeon ? ` · Neonzahl ${draw.neon}` : ""}`;
+
+  function fillNeonSlot() {
+    neonSlot.replaceChildren(neonEl(draw.neon, { small: true }));
+    neonSlot.classList.add("is-filled");
+  }
+  function revealNeon() {
+    const b = balls.find((x) => x.neon && x.n === draw.neon);
+    if (b) b.gone = true;
+    big.replaceChildren(neonEl(draw.neon));
+    big.classList.remove("is-in");
+    void big.offsetWidth;
+    big.classList.add("is-in");
+    fillNeonSlot();
+    play("lotto.reveal", { pitch: 1.5 });
+  }
 
   function revealNumber(i) {
     const n = draw.nums[i];
@@ -164,7 +214,7 @@ export function playShow(o) {
     caption.textContent = "Die Kugelmaschine läuft …";
   });
   t += reduced ? 200 : 900;
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < pick; i++) {
     at(t, () => {
       caption.textContent = `Die ${ORD[i]} Zahl lautet …`;
       if (!reduced) {
@@ -180,8 +230,35 @@ export function playShow(o) {
     });
     t += T.hold;
   }
+  if (hasNeon) {
+    // Spannungspause: Trommel wird geleert, die zehn Neonkugeln laufen ein
+    at(t, () => {
+      big.replaceChildren();
+      caption.textContent = "Und jetzt … die Neonzahl!";
+      neonPhase = true;
+      loadNeonBalls();
+      mixing = 1;
+      if (reduced) drawDrum();
+      setPhase("neon");
+    });
+    t += T.suspense;
+    at(t, () => {
+      caption.textContent = "Die Neonzahl lautet …";
+      if (!reduced) {
+        mixing = 0.4;
+        play("lotto.ball");
+      }
+    });
+    t += T.caption + T.reveal;
+    at(t, () => {
+      mixing = 1;
+      revealNeon();
+      caption.textContent = `Neonzahl ${draw.neon}`;
+    });
+    t += T.hold + (reduced ? 0 : 400);
+  }
   at(t, () => {
-    caption.textContent = `Die Gewinnzahlen: ${draw.nums.join(" · ")}`;
+    caption.textContent = summary();
     big.replaceChildren();
   });
   t += T.sum;
@@ -197,13 +274,14 @@ export function playShow(o) {
     skipped = true;
     timers.forEach(clearTimeout);
     timers.length = 0;
-    for (const b of balls) if (draw.nums.includes(b.n)) b.gone = true;
-    for (let i = 0; i < 4; i++) if (!slots[i].classList.contains("is-filled")) {
+    for (const b of balls) if (b.neon ? b.n === draw.neon : draw.nums.includes(b.n)) b.gone = true;
+    for (let i = 0; i < pick; i++) if (!slots[i].classList.contains("is-filled")) {
       slots[i].replaceChildren(ballEl(draw.nums[i], { small: true }));
       slots[i].classList.add("is-filled");
     }
+    if (hasNeon && !neonSlot.classList.contains("is-filled")) fillNeonSlot();
     big.replaceChildren();
-    caption.textContent = `Die Gewinnzahlen: ${draw.nums.join(" · ")}`;
+    caption.textContent = summary();
     evaluate();
   });
 
@@ -214,6 +292,7 @@ export function playShow(o) {
     skipBtn.remove();
     drawDrum();
     stage.classList.add("is-done");
+    show.classList.add("is-evaluated");
     setPhase("evaluate");
     const set = new Set(draw.nums);
     const list = h(
@@ -224,12 +303,12 @@ export function playShow(o) {
           `li.lt-ticket${r.prize ? ".is-win" : ""}`,
           { style: { "--d": `${i * (reduced ? 0 : 90)}ms` } },
           h("span.lt-ticket-no", {}, `Schein ${i + 1}`),
-          h("span.lt-ticket-nums", {}, r.nums.map((n) => ballEl(n, { hit: set.has(n), small: true }))),
-          h("span.lt-ticket-res", {}, r.k ? `${r.k} Richtige` : "–", r.prize ? h("b.num", {}, ` · ${fmt(r.prize)} C`) : null)
+          h("span.lt-ticket-nums", {}, r.nums.map((n) => ballEl(n, { hit: set.has(n), small: true })), hasNeon && Number.isInteger(r.neon) ? neonEl(r.neon, { hit: r.neonHit, small: true }) : null),
+          h("span.lt-ticket-res", {}, resultText(r), r.prize ? h("b.num", {}, ` · ${fmt(r.prize)} C`) : null)
         )
       )
     );
-    const hits = draw.results.reduce((s, r) => s + r.k, 0);
+    const hits = draw.results.reduce((s, r) => s + r.k + (r.neonHit ? 1 : 0), 0);
     if (!reduced) for (let i = 0; i < Math.min(hits, 12); i++) at(120 + i * 70, () => play("lotto.hit", { semi: i % 5 }));
     result.replaceChildren(list, finale());
     setPhase(draw.payout > 0 ? (draw.claimed ? "claimed" : "win") : "lose");

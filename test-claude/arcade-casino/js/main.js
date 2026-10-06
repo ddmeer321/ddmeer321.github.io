@@ -24,6 +24,7 @@ import { openInbox } from "./ui/inbox.js";
 import { setFeedbackSettings, haptic, fx as feedbackFx, uiTap } from "./audio/feedback.js";
 import { h, clear } from "./ui/dom.js";
 import { fmt, signed } from "./ui/format.js";
+import { isModuleLoadError } from "./core/loaderror.js";
 import { initToasts, toast } from "./ui/toast.js";
 import { initModal, openModal, closeModal, isModalOpen } from "./ui/modal.js";
 import { showBanner } from "./ui/banner.js";
@@ -454,7 +455,7 @@ function refreshLottoHub() {
   hub.setLotto({
     line1: liveNow ? "JETZT" : today ? "HEUTE" : "MORGEN",
     line2: liveNow ? "LIVE" : nd ? `${hhmm(nd.at)} UHR` : "–",
-    line3: grandSameDay ? "+ GROSSES LOTTO" : "4 AUS 20",
+    line3: grandSameDay ? "+ GROSSES LOTTO" : "4 AUS 40",
     live: liveNow,
     attention: waiting > 0 || unseen > 0,
     blurb: waiting ? `${waiting} ${waiting === 1 ? "Gewinn wartet" : "Gewinne warten"}` : unseen ? "Auswertung wartet" : nd ? `Ziehung ${formatDrawTime(nd.at)}` : "Ziehung täglich 20 Uhr",
@@ -463,6 +464,11 @@ function refreshLottoHub() {
 
 bus.on("lotto:ticket", refreshLottoHub);
 bus.on("lotto:claimed", refreshLottoHub);
+// V1.2.1: offene Scheine nach den alten Regeln wurden einmalig erstattet
+bus.on("lotto:refund", ({ amount }) => {
+  toast(`Neue Lotto-Regeln – offene Scheine erstattet: +${fmt(amount)} C`, { icon: "🎟️", tone: "gold", ms: 8000 });
+  current?.instance?.refresh?.();
+});
 
 // ---------- Spielkontrolle ----------
 
@@ -831,9 +837,11 @@ async function openGame(g) {
   if (inGameMusicMode() === "off" && music.playing) musicStop(true);
   applyMusicDuck();
 
+  let step = "load";
   try {
     const [mod] = await Promise.all([g.load(), g.css ? ensureCss(g.css) : null]);
     if (token !== openToken || !current || current.token !== token) return;
+    step = "mount";
     loading.remove();
     const ctx = makeContext(g, root, (fn) => (help = fn));
     current.instance = mod.default.mount(root, ctx);
@@ -841,7 +849,23 @@ async function openGame(g) {
   } catch (err) {
     console.error(`[app] Spiel "${g.id}" konnte nicht gestartet werden`, err);
     if (token !== openToken) return;
-    toast("Dieser Automat ist gerade außer Betrieb.", { icon: "🔧", tone: "red" });
+    if (step === "load" && isModuleLoadError(err)) {
+      // Datei kam nicht an (z. B. Server kurz 503): kein Defekt. Erneut versuchen lädt
+      // die Seite einmal neu – Browser merken sich fehlgeschlagene Modul-Importe.
+      toast("Automat konnte gerade nicht geladen werden. Bitte erneut versuchen.", {
+        icon: "📶",
+        tone: "red",
+        ms: 12000,
+        action: {
+          label: "Erneut versuchen",
+          onClick: () => {
+            saveNow();
+            history.replaceState(null, "", `#/play/${g.id}`);
+            location.reload();
+          },
+        },
+      });
+    } else toast("Dieser Automat ist gerade außer Betrieb.", { icon: "🔧", tone: "red" });
     current = null;
     location.hash = "#/";
   }

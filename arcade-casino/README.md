@@ -1,4 +1,4 @@
-# Neonpalast – Arcade-Casino im Browser (V1.2)
+# Neonpalast – Arcade-Casino im Browser (V1.2.1)
 
 Eine antippbare Arcade-Casino-Halle mit Casino-, Physik- und Skill-Automaten.
 **Ausschließlich virtuelles Spielgeld** – keine Käufe, keine Auszahlungen, keine Verbindung
@@ -14,7 +14,7 @@ Musik-Herkunft: [`docs/MUSIC.md`](docs/MUSIC.md). Audit und Recherche V1.2: [`do
 | Bereich | Spiel | Kurzbeschreibung |
 |---|---|---|
 | Palast-Lounge | **Jukebox** *(V1.2)* | dauerhafter Kauf (5.000 C), steht leuchtend in der Halle, 10 Eigenkompositionen, Songs alle zum selben Preis |
-| | **Neon Lotto** *(V1.2)* | täglich 4 aus 20 (Schein 50 C) und alle 3 Tage das Große Neon Lotto 4 aus 24 (100 C), Ziehungs-Show live oder als Aufzeichnung |
+| | **Neon Lotto** *(V1.2.1)* | täglich 4 aus 40 (Schein 50 C) und alle 3 Tage das Große Neon Lotto 6 aus 49 + Neonzahl (100 C, Höchstgewinn 1 : 139.838.160), Ziehungs-Show live oder als Aufzeichnung |
 | Slot-Allee | **Fruchtfiesta** | 3×3, 5 Linien, Kirschen ab 2 – RTP exakt 94,2 % · Einsatz 5–250 |
 | | **Goldene Sieben** | klassisch, 1 Linie, Mischgewinne – RTP exakt 94,7 % · Einsatz 5–50 |
 | | **Kosmo 5** | 5×3, 10 Linien, Nova-Wild (Walze 2–4), Komet-Freispiele ×2 – RTP ≈ 93 % · 10–200 |
@@ -26,11 +26,28 @@ Musik-Herkunft: [`docs/MUSIC.md`](docs/MUSIC.md). Audit und Recherche V1.2: [`do
 | | **Münzkaskade 2.0** | Coin Pusher mit Trägheit, Kettenreaktionen, Stapeln, Kipp-Zustand an der Kante |
 | | **Neon Hoops** | Basketball per Swipe, deterministische Wurfphysik, 45 s, Serien – neu balanciert |
 | | **Turmbau** | Stacker, oben deutlich schneller, Zwischenpreis oder Risiko – neu balanciert |
-| | **Lichtwirbel** | 5 Stufen, Zonen Blau/Pink/Jackpot – V1.2: Blau für normale Spieler erreichbar |
+| | **Lichtwirbel** | 5 Stufen, Zonen Blau/Pink/Jackpot – V1.2: Blau erreichbar, V1.2.1: steilere Preiskurve |
 
 Dazu: Guthaben mit Hochzähl-Animation, Tagesbonus, Nachschub mit Wartezeit, XP/Level,
 25 Erfolge, **3 Tages-Challenges**, Statistik (inkl. Boni und Ausgaben), Bestwerte, Hallen-Themes,
 Einstellungen und Spielregeln je Automat.
+
+### V1.2.1 – Touch-, Lotto- und Balance-Hotfix
+
+* **Touch:** Direkte Spielflächen (Neon Hoops, Münzgreifer, Münzkaskade, Neon-Plinko, Turmbau,
+  Lichtwirbel) und die Halteknöpfe („Kugel“, Lichtwirbel-Stopp) lassen keine Browser-Gesten mehr
+  zu (`touch-action: none`, kein Markieren/Kontextmenü). Lotto, Halle, Menüs und Overlays scrollen
+  normal. Vorher konnte ein leichtes Verrutschen beim Halten die Geste abbrechen.
+* **Neon Lotto:** täglich 4 aus 40 (Hauptgewinn 1 : 91.390 statt 1 : 4.845), Großes Neon Lotto
+  6 aus 49 + Neonzahl 0–9 mit neun Gewinnklassen (6 + Neonzahl 1 : 139.838.160). Die Show zieht
+  erst sechs Kugeln, dann nach einer Spannungspause separat die Neonzahl. Gewinnplan und
+  Wahrscheinlichkeiten in `docs/ECONOMY.md`, Abschnitt 7.
+* **Lichtwirbel:** nur die Preistabelle – 17 Punkte = Break-even, 19/21/23 Punkte = 24/30/50
+  Credits, perfekt 160. Schwierigkeit unverändert.
+* **Ladefehler:** Kommt eine Spieldatei nicht an (z. B. Server kurz 503), heißt es „Automat konnte
+  gerade nicht geladen werden“ mit „Erneut versuchen“; echte Spielfehler bleiben „außer Betrieb“.
+* **Spielstände:** V1.2-Lottoziehungen bleiben unverändert (alte Regeln, gleiche Zahlen,
+  Einforder-Status); offene alte Scheine werden einmal vollständig erstattet.
 
 ### Neu in V1.2 – „Alles hat Gewicht“
 
@@ -129,11 +146,11 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 
 ```bash
 cd arcade-casino
-npm test            # 108 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
+npm test            # 117 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
                     # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
                     # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
                     # Turmbau- und Hoops-Balance, Jukebox + Musik-Engine, Lotto, Posteingang
-npm run test:e2e    # 95 Browser-Checks (Playwright/Chromium, eigener Server, ~7 Min.)
+npm run test:e2e    # 113 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
 ```
 
 Die E2E-Tests warten auf Spielzustände (`data-phase` am Spielcontainer) statt auf feste Zeiten.
@@ -142,14 +159,15 @@ Auszahlungen + Boni − Ausgaben), Navigation inkl. Browser-Zurück, Neuladen, P
 simulierter Uhr), die neutrale Erinnerung, die Migration eines V1.0-Spielstands, Jukebox (Kauf,
 Songs, leiser in Spielen, Neuladen), Lotto (Scheine, 20er-Limit, Live-Ziehung mit simulierter Uhr,
 verpasste Ziehung über den Posteingang, Neuladen während der Show, Einfordern genau einmal,
-Verlust), Layouts auf mehreren Bildschirmgrößen, reduzierte Bewegung, fehlende
+Verlust, 6 aus 49 + Neonzahl, Erstattung alter Scheine), Touch-Gesten auf Spielflächen bei
+320/375/390 px (echte Touch-Wischer über das DevTools-Protokoll), Ladefehler vs. Defekt, Layouts auf mehreren Bildschirmgrößen, reduzierte Bewegung, fehlende
 Browserfunktionen und die Tab-Sperre – jeweils ohne Konsolenfehler.
 
 ## Bekannte Grenzen
 
 * Physik ist bewusst vereinfacht (2D bzw. 2,5D, kein allgemeiner Rigid-Body-Solver) – aber
   das Ergebnis folgt immer aus der sichtbaren Simulation.
-* Skillgames können für extrem präzise Spieler positiv sein (Elite σ 10 ms ≈ 1,3–1,57×,
+* Skillgames können für extrem präzise Spieler positiv sein (Elite σ 10 ms ≈ 1,3–1,76×,
   siehe `docs/ECONOMY.md`); der absolute Ertrag ist durch feste Startgebühren klein.
 * Ton startet (browserbedingt) erst nach der ersten Berührung. iOS Safari unterstützt keine
   Vibration – dort übernimmt die Klang-Haptik.

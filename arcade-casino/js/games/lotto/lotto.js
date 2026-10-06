@@ -1,10 +1,10 @@
-// Neon Lotto – Studio in der Palast-Lounge (V1.2).
-// Scheine ausfüllen (4 Zahlen), kommende Ziehungen, Ergebnisse/Archiv und die
-// Ziehungs-Show. Regeln und Mathematik: core/lotto.js, docs/ECONOMY.md.
+// Neon Lotto – Studio in der Palast-Lounge (V1.2.1).
+// Scheine ausfüllen (täglich 4 aus 40, groß 6 aus 49 + Neonzahl), kommende
+// Ziehungen, Ergebnisse/Archiv und die Ziehungs-Show. Regeln und Mathematik: core/lotto.js, docs/ECONOMY.md.
 
 import { h, clear } from "../../ui/dom.js";
-import { DRAWS, DRAW_TYPES, MAX_TICKETS, PICK, pMatches, rtpOf, formatDrawTime, formatDrawDate, quickPick } from "../../core/lotto.js";
-import { playShow, ballEl } from "./show.js";
+import { DRAWS, DRAW_TYPES, MAX_TICKETS, combinations, pClass, pAnyWin, rtpOf, topPrize, rulesLabel, rulesFor, rulesVersionOf, formatDrawTime, formatDrawDate, quickPick } from "../../core/lotto.js";
+import { playShow, ballEl, neonEl, resultText } from "./show.js";
 
 function countdown(ms) {
   if (ms <= 0) return "jetzt";
@@ -14,6 +14,8 @@ function countdown(ms) {
   if (hh < 48) return `in ${hh} Std. ${m % 60} Min.`;
   return `in ${Math.round(hh / 24)} Tagen`;
 }
+
+const pct = (x) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
 
 function oneIn(p) {
   return p > 0 ? `1 : ${Math.round(1 / p).toLocaleString("de-DE")}` : "–";
@@ -25,6 +27,7 @@ export default {
     const data = ctx.data;
     let type = DRAW_TYPES.includes(data.type) ? data.type : "daily";
     let picked = new Set();
+    let neon = null; // gewählte Neonzahl (nur Großes Neon Lotto)
     let show = null;
     let dead = false;
 
@@ -35,6 +38,8 @@ export default {
     const tabs = h("div.segmented.lt-tabs", { role: "group", "aria-label": "Ziehung wählen" });
     const head = h("section.lt-draw-card");
     const grid = h("div.lt-grid", { role: "group", "aria-label": "Zahlen wählen" });
+    const neonGrid = h("div.lt-neongrid", { role: "group", "aria-label": "Neonzahl wählen" });
+    const neonPick = h("div.lt-neonpick", {}, h("span", {}, "Neonzahl 0–9"), neonGrid);
     const pickInfo = h("div.lt-pickinfo");
     const buyBtn = h("button.btn.btn-gold.btn-lg.lt-buy", { type: "button" });
     const quickBtn = h("button.btn.btn-ghost", { type: "button" }, "🎲 Zufallszahlen");
@@ -47,6 +52,7 @@ export default {
       {},
       h("h3", {}, "Neuer Schein"),
       grid,
+      neonPick,
       pickInfo,
       h("div.lt-builder-actions", {}, quickBtn, clearBtn, buyBtn)
     );
@@ -59,6 +65,7 @@ export default {
         type = id;
         data.type = id;
         picked = new Set();
+        neon = null;
         play("ui.toggle");
         render();
       });
@@ -66,27 +73,35 @@ export default {
     }
 
     quickBtn.addEventListener("click", () => {
-      picked = new Set(quickPick(type));
+      const q = quickPick(type);
+      picked = new Set(q.nums);
+      neon = q.neon;
       play("chip.stack");
       haptic("tap");
       render();
     });
     clearBtn.addEventListener("click", () => {
       picked = new Set();
+      neon = null;
       play("ui.toggle");
       render();
     });
     buyBtn.addEventListener("click", buy);
 
+    const complete = () => {
+      const def = DRAWS[type];
+      return picked.size === def.pick && (!def.neon || neon !== null);
+    };
+
     function buy() {
-      if (picked.size !== PICK) return;
+      if (!complete()) return;
       const blocked = ctx.blockReason();
       if (blocked) {
         play("ui.error");
         ctx.toast(`${blocked} – keine Scheine.`, { icon: "⏸️" });
         return;
       }
-      const r = lotto.buy(type, [...picked]);
+      const r = lotto.buy(type, [...picked], neon ?? undefined);
       if (!r.ok) {
         play("ui.error");
         haptic("impulse");
@@ -98,6 +113,7 @@ export default {
       haptic("impulse");
       ctx.report("lotto:ticket", { type });
       picked = new Set();
+      neon = null;
       render();
       const last = mine.querySelector(".lt-myticket:last-child");
       last?.classList.add("is-new");
@@ -114,7 +130,7 @@ export default {
       clear(head);
       head.classList.toggle("is-grand", type === "grand");
       head.append(
-        h("div.lt-draw-title", {}, h("strong", {}, def.name), h("small", {}, `${def.short} · ${String(def.hour).padStart(2, "0")}:00 Uhr · 4 aus ${def.pool}`)),
+        h("div.lt-draw-title", {}, h("strong", {}, def.name), h("small", {}, `${def.short} · ${String(def.hour).padStart(2, "0")}:00 Uhr · ${rulesLabel(def)}`)),
         next
           ? h(
               "div.lt-draw-next",
@@ -124,18 +140,18 @@ export default {
               h("small", {}, `${countdown(next.at - Date.now())} · Annahmeschluss 1 Min. vorher`)
             )
           : null,
-        h("div.lt-draw-prize", {}, h("span", {}, "Höchstgewinn"), h("b.num", {}, `${fmt(def.prizes[4])} C`), h("small", {}, `Schein ${fmt(def.price)} C`))
+        h("div.lt-draw-prize", {}, h("span", {}, "Höchstgewinn"), h("b.num", {}, `${fmt(topPrize(def))} C`), h("small", {}, `Schein ${fmt(def.price)} C · 1 : ${Math.round(1 / Math.min(...def.classes.map((c) => pClass(def, c)))).toLocaleString("de-DE")}`))
       );
 
       // Zahlenfeld
       clear(grid);
-      grid.style.setProperty("--cols", def.pool === 20 ? 5 : 6);
+      grid.style.setProperty("--cols", 7);
       for (let n = 1; n <= def.pool; n++) {
         const on = picked.has(n);
         const b = h(`button.lt-num${on ? ".is-on" : ""}`, { type: "button", "aria-pressed": String(on), "aria-label": `Zahl ${n}` }, String(n));
         b.addEventListener("click", () => {
           if (picked.has(n)) picked.delete(n);
-          else if (picked.size < PICK) picked.add(n);
+          else if (picked.size < def.pick) picked.add(n);
           else {
             play("ui.error");
             return;
@@ -146,13 +162,36 @@ export default {
         });
         grid.append(b);
       }
+      // Neonzahl (nur wenn das Regelwerk eine kennt)
+      clear(neonGrid);
+      neonPick.hidden = !def.neon;
+      for (let n = 0; n < (def.neon || 0); n++) {
+        const on = neon === n;
+        const b = h(`button.lt-neon${on ? ".is-on" : ""}`, { type: "button", "aria-pressed": String(on), "aria-label": `Neonzahl ${n}` }, String(n));
+        b.addEventListener("click", () => {
+          neon = neon === n ? null : n;
+          play("ui.tap", { pitch: 1.3 + n / 30 });
+          haptic("tick");
+          render();
+        });
+        neonGrid.append(b);
+      }
       const full = list.length >= MAX_TICKETS;
+      const missing = [];
+      if (picked.size < def.pick) missing.push(`noch ${def.pick - picked.size} ${def.pick - picked.size === 1 ? "Zahl" : "Zahlen"}`);
+      if (def.neon && neon === null) missing.push("Neonzahl");
       pickInfo.replaceChildren(
-        h("span.lt-picked", {}, [...picked].sort((a, b) => a - b).map((n) => ballEl(n, { small: true })), picked.size < PICK ? h("small", {}, `noch ${PICK - picked.size} wählen`) : null),
+        h(
+          "span.lt-picked",
+          {},
+          [...picked].sort((a, b) => a - b).map((n) => ballEl(n, { small: true })),
+          def.neon && neon !== null ? neonEl(neon, { small: true }) : null,
+          missing.length ? h("small", {}, `${missing.join(" + ")} wählen`) : null
+        ),
         h("small.lt-count.num", {}, `${list.length}/${MAX_TICKETS} Scheine für diese Ziehung`)
       );
       const blocked = ctx.blockReason();
-      buyBtn.disabled = picked.size !== PICK || full || !next || Boolean(blocked);
+      buyBtn.disabled = !complete() || full || !next || Boolean(blocked);
       buyBtn.textContent = blocked ? "Während der Pause gesperrt" : full ? `Limit erreicht (${MAX_TICKETS})` : `Schein kaufen · ${fmt(def.price)} C`;
 
       // eigene Scheine
@@ -160,7 +199,7 @@ export default {
       if (list.length) {
         mine.append(
           h("h3", {}, `Deine Scheine · ${formatDrawTime(next.at)}`),
-          h("ul.lt-mylist", {}, list.map((t, i) => h("li.lt-myticket", {}, h("span.lt-ticket-no", {}, `#${i + 1}`), h("span.lt-ticket-nums", {}, t.nums.map((n) => ballEl(n, { small: true }))))))
+          h("ul.lt-mylist", {}, list.map((t, i) => h("li.lt-myticket", {}, h("span.lt-ticket-no", {}, `#${i + 1}`), h("span.lt-ticket-nums", {}, t.nums.map((n) => ballEl(n, { small: true })), Number.isInteger(t.neon) ? neonEl(t.neon, { small: true }) : null))))
         );
       }
 
@@ -198,6 +237,8 @@ export default {
             past.slice(0, 20).map((d) => {
               const set = new Set(d.nums);
               const best = Math.max(0, ...d.results.map((r) => r.k));
+              const rules = rulesFor(d.type, rulesVersionOf(d));
+              const neonOf = (n, hit) => (rules.neon && Number.isInteger(n) ? neonEl(n, { small: true, hit }) : null);
               return h(
                 "li.lt-arch",
                 {},
@@ -208,15 +249,15 @@ export default {
                     "summary",
                     {},
                     h("span.lt-arch-date", {}, `${formatDrawDate(d.at)} · ${DRAWS[d.type].short}`),
-                    h("span.lt-arch-nums", {}, d.nums.map((n) => ballEl(n, { small: true }))),
+                    h("span.lt-arch-nums", {}, d.nums.map((n) => ballEl(n, { small: true })), neonOf(d.neon, false)),
                     h(`span.lt-arch-res${d.payout ? ".is-win" : ""}`, {}, d.payout ? `+${fmt(d.payout)} C${d.claimed ? " · eingefordert" : ""}` : "kein Gewinn")
                   ),
                   h(
                     "ul.lt-arch-tickets",
                     {},
-                    d.results.map((r) => h("li", {}, r.nums.map((n) => ballEl(n, { small: true, hit: set.has(n) })), h("small", {}, r.prize ? `${r.k} Richtige · ${fmt(r.prize)} C` : `${r.k} Richtige`)))
+                    d.results.map((r) => h("li", {}, r.nums.map((n) => ballEl(n, { small: true, hit: set.has(n) })), neonOf(r.neon, r.neonHit), h("small", {}, r.prize ? `${resultText(r)} · ${fmt(r.prize)} C` : r.k ? `${r.k} Richtige${r.neonHit ? " + Neonzahl" : ""}` : resultText(r))))
                   ),
-                  h("small.lt-muted", {}, `Einsatz ${fmt(d.stake)} C · bester Schein ${best} Richtige`)
+                  h("small.lt-muted", {}, `${rulesLabel(rules)} · Einsatz ${fmt(d.stake)} C · bester Schein ${best} Richtige`)
                 )
               );
             })
@@ -228,7 +269,10 @@ export default {
     function rulesBox() {
       const rows = (id) => {
         const d = DRAWS[id];
-        return [4, 3, 2].map((k) => h("tr", {}, h("td", {}, `${k} Richtige`), h("td.num", {}, `${fmt(d.prizes[k])} C`), h("td.num", {}, oneIn(pMatches(d.pool, k)))));
+        return [
+          ...d.classes.map((c) => h("tr", {}, h("td", {}, c.label), h("td.num", {}, `${fmt(c.prize)} C`), h("td.num", {}, oneIn(pClass(d, c))))),
+          h("tr.lt-total", {}, h("td", {}, "irgendein Gewinn"), h("td.num", {}, ""), h("td.num", {}, oneIn(pAnyWin(d)))),
+        ];
       };
       return h(
         "details.lt-rules",
@@ -238,9 +282,9 @@ export default {
           h(
             "div",
             {},
-            h("h4", {}, `${DRAWS[id].name} · 4 aus ${DRAWS[id].pool} · Schein ${fmt(DRAWS[id].price)} C`),
+            h("h4", {}, `${DRAWS[id].name} · ${rulesLabel(DRAWS[id])} · Schein ${fmt(DRAWS[id].price)} C`),
             h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Treffer"), h("th", {}, "Gewinn"), h("th", {}, "Chance je Schein"))), h("tbody", {}, rows(id))),
-            h("small.lt-muted", {}, `Auszahlungsquote ${(rtpOf(id) * 100).toFixed(1).replace(".", ",")} % – ein Lotto ist ein Ausgabeposten, kein Verdienst.`)
+            h("small.lt-muted", {}, `Auszahlungsquote ${pct(rtpOf(id))} – ein Lotto ist ein Ausgabeposten, kein Verdienst.`)
           )
         ),
         h("p.lt-muted", {}, `Höchstens ${MAX_TICKETS} Scheine pro Ziehung. Das Ergebnis jeder Ziehung wird einmal zum Ziehungszeitpunkt ausgelost und gespeichert; die Show zeigt es nur. Live dabei sein ist ein Bonus – wer nicht da ist, verpasst nichts: Die Auswertung wartet im Posteingang.`)
@@ -294,10 +338,11 @@ export default {
         body: h(
           "div.help-text",
           {},
-          h("p", {}, `Kreuze ${PICK} verschiedene Zahlen an und kaufe einen Schein für die nächste Ziehung. Pro Ziehung sind höchstens ${MAX_TICKETS} Scheine möglich.`),
-          h("p", {}, "Neon Lotto: täglich um 20 Uhr, 4 aus 20, Schein 50 Credits. Großes Neon Lotto: alle drei Tage um 21 Uhr, 4 aus 24, Schein 100 Credits, Höchstgewinn 120.000."),
+          h("p", {}, `Kreuze deine Zahlen an und kaufe einen Schein für die nächste Ziehung. Pro Ziehung sind höchstens ${MAX_TICKETS} Scheine möglich.`),
+          h("p", {}, `Neon Lotto: täglich um 20 Uhr, 4 aus 40, Schein ${fmt(DRAWS.daily.price)} Credits, Höchstgewinn ${fmt(topPrize(DRAWS.daily))} (1 : ${fmt(combinations(DRAWS.daily))}).`),
+          h("p", {}, `Großes Neon Lotto: alle drei Tage um 21 Uhr, 6 aus 49 und zusätzlich eine Neonzahl von 0 bis 9, Schein ${fmt(DRAWS.grand.price)} Credits. Erst werden die sechs Zahlen gezogen, danach separat die Neonzahl. Höchstgewinn ${fmt(topPrize(DRAWS.grand))} für 6 Richtige + Neonzahl (1 : ${fmt(combinations(DRAWS.grand))}).`),
           h("p", {}, "Das Ergebnis wird zum Ziehungszeitpunkt einmal ausgelost und gespeichert. Bist du gerade im Palast, läuft die Ziehung live; sonst wartet die Aufzeichnung im Posteingang. Gewinne forderst du selbst ein."),
-          h("p", {}, "Lotto ist ein Ausgabeposten: Im Mittel kommt etwa 58–60 % des Einsatzes zurück.")
+          h("p", {}, `Lotto ist ein Ausgabeposten: Im Mittel kommen ${pct(rtpOf("daily"))} (täglich) bzw. ${pct(rtpOf("grand"))} (groß) des Einsatzes zurück. Alle Gewinnklassen stehen unter „Gewinnplan & Wahrscheinlichkeiten“.`)
         ),
         actions: [{ label: "Verstanden", cls: "btn-primary" }],
       })

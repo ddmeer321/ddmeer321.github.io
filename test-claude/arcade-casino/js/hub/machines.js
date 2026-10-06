@@ -487,7 +487,7 @@ export function lottoArt(id) {
   <rect x="62" y="122" width="12" height="12" fill="#9bd8ff" opacity=".5"/>
   <text class="lt-next" x="150" y="70" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="9" fill="#9bd8ff">NÄCHSTE</text>
   <text class="lt-time" x="150" y="86" text-anchor="middle" font-family="system-ui" font-weight="900" font-size="13" fill="#fff">ZIEHUNG</text>
-  <text class="lt-sub" x="150" y="102" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="8" fill="#ffc53d">4 AUS 20</text>
+  <text class="lt-sub" x="150" y="102" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="8" fill="#ffc53d">4 AUS 40</text>
   <path d="M14 146 H186 L178 204 H22 Z" fill="url(#${id}-desk)" stroke="#b98cff" stroke-width="1.5"/>
   <rect x="40" y="160" width="120" height="12" rx="3" fill="#0b0614" opacity=".7"/>
   <text x="100" y="169" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7.5" fill="#e2d1ff">TÄGLICH 20 UHR · GROSS ALLE 3 TAGE</text>

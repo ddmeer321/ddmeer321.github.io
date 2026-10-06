@@ -1,10 +1,18 @@
-// Neon Lotto (V1.2) – Regeln, Ziehungstermine, Auswertung und Verwaltung.
+// Neon Lotto (V1.2.1) – Regeln, Ziehungstermine, Auswertung und Verwaltung.
 //
-// Zwei Ziehungen mit derselben Technik:
-//   * Neon Lotto        – täglich 20:00 Uhr, 4 aus 20, Schein 50 Credits
-//   * Großes Neon Lotto – alle 3 Tage 21:00 Uhr, 4 aus 24, Schein 100 Credits
+// Zwei Ziehungen:
+//   * Neon Lotto        – täglich 20:00 Uhr, 4 aus 40, Schein 50 Credits
+//   * Großes Neon Lotto – alle 3 Tage 21:00 Uhr, 6 aus 49 + Neonzahl (0–9),
+//                         Schein 100 Credits, Höchstgewinn 1 : 139.838.160
 // Höchstens 20 Scheine pro Ziehung. Gewinnplan und Wahrscheinlichkeiten:
 // docs/ECONOMY.md (Abschnitt Lotto) und tests/lotto.test.mjs.
+//
+// REGELWERKE: Jeder Schein und jede ausgeloste Ziehung trägt die Version des
+// Regelwerks, unter dem sie entstanden ist (`r`). V1.2-Daten haben kein `r`
+// und gelten als Regelwerk 1 (4 aus 20 bzw. 4 aus 24). Gespeicherte Ziehungen
+// werden immer nach IHREM Regelwerk ausgewertet – ein Update ändert weder
+// Zahlen noch Gewinne. Noch nicht ausgeloste Scheine nach Regelwerk 1 werden
+// einmalig erstattet (refundLegacy), statt sie unter neuen Quoten zu ziehen.
 //
 // EHRLICHKEIT: Jede Ziehung hat eine stabile id („daily-2026-10-06“). Ihr
 // Ergebnis wird beim ersten Erreichen des Termins EINMAL mit crypto-Zufall
@@ -19,38 +27,72 @@
 import { random } from "./rng.js";
 
 export const MAX_TICKETS = 20;
-export const PICK = 4;
 /** Annahmeschluss: so viele ms vor der Ziehung werden keine Scheine mehr für sie verkauft. */
 export const SALES_CLOSE_MS = 60_000;
 /** So lange nach dem Termin gilt eine Ziehung noch als „live“. */
 export const LIVE_WINDOW_MS = 10 * 60_000;
 export const KEEP_DRAWS = 40;
+/** Aktuelles Regelwerk für neue Scheine. */
+export const RULES_VERSION = 2;
 
-export const DRAWS = {
+/**
+ * Gewinnklassen: k = richtige Zahlen, n = Neonzahl richtig (true/false) bzw.
+ * undefined, wenn das Regelwerk keine Neonzahl kennt.
+ */
+const cls = (k, prize, n) => ({ id: n === undefined ? String(k) : `${k}${n ? "+N" : ""}`, k, n, prize, label: `${k} Richtige${n ? " + Neonzahl" : ""}` });
+
+export const RULES = {
   daily: {
-    id: "daily",
-    name: "Neon Lotto",
-    short: "Täglich",
-    pool: 20,
-    price: 50,
-    hour: 20,
-    minute: 0,
-    everyDays: 1,
-    prizes: { 4: 10000, 3: 1000, 2: 100 },
+    1: { pick: 4, pool: 20, neon: 0, price: 50, classes: [cls(4, 10000), cls(3, 1000), cls(2, 100)] },
+    2: { pick: 4, pool: 40, neon: 0, price: 50, classes: [cls(4, 150000), cls(3, 7500), cls(2, 350)] },
   },
   grand: {
-    id: "grand",
-    name: "Großes Neon Lotto",
-    short: "Alle 3 Tage",
-    pool: 24,
-    price: 100,
-    hour: 21,
-    minute: 0,
-    everyDays: 3,
-    prizes: { 4: 120000, 3: 4000, 2: 150 },
+    1: { pick: 4, pool: 24, neon: 0, price: 100, classes: [cls(4, 120000), cls(3, 4000), cls(2, 150)] },
+    2: {
+      pick: 6,
+      pool: 49,
+      neon: 10, // Neonzahl 0–9
+      price: 100,
+      classes: [
+        cls(6, 10_000_000, true),
+        cls(6, 1_000_000, false),
+        cls(5, 300_000, true),
+        cls(5, 75_000, false),
+        cls(4, 20_000, true),
+        cls(4, 5_000, false),
+        cls(3, 4_000, true),
+        cls(3, 1_250, false), // 1 : 63
+        cls(2, 1_250, true), //  1 : 75,5 – seltener als „3 Richtige“, daher nicht weniger wert
+      ],
+    },
   },
 };
+
+const SCHEDULE = {
+  daily: { id: "daily", name: "Neon Lotto", short: "Täglich", hour: 20, minute: 0, everyDays: 1 },
+  grand: { id: "grand", name: "Großes Neon Lotto", short: "Alle 3 Tage", hour: 21, minute: 0, everyDays: 3 },
+};
+
+/** Ziehungen mit Termin und aktuellem Regelwerk (pick, pool, neon, price, classes). */
+export const DRAWS = Object.fromEntries(Object.entries(SCHEDULE).map(([id, s]) => [id, { ...s, ...RULES[id][RULES_VERSION], r: RULES_VERSION }]));
 export const DRAW_TYPES = Object.keys(DRAWS);
+
+/** Regelwerk eines Typs in einer Version (Standard: aktuell). */
+export function rulesFor(type, r = RULES_VERSION) {
+  return RULES[type]?.[r] || null;
+}
+/** Version aus gespeicherten Daten: fehlt sie (V1.2), gilt Regelwerk 1. */
+export function rulesVersionOf(x) {
+  return x && Number.isInteger(x.r) && RULES.daily[x.r] ? x.r : 1;
+}
+/** Kurzbeschreibung, z. B. „4 aus 40“ oder „6 aus 49 + Neonzahl“. */
+export function rulesLabel(rules) {
+  return `${rules.pick} aus ${rules.pool}${rules.neon ? " + Neonzahl" : ""}`;
+}
+/** Höchste Gewinnklasse eines Regelwerks. */
+export function topPrize(rules) {
+  return Math.max(...rules.classes.map((c) => c.prize));
+}
 
 // ---------- Kombinatorik ----------
 
@@ -61,21 +103,37 @@ export function choose(n, k) {
   return Math.round(r);
 }
 
-/** Wahrscheinlichkeit für genau k Richtige bei „4 aus pool“. */
-export function pMatches(pool, k, pick = PICK) {
+/** Wahrscheinlichkeit für genau k Richtige bei „pick aus pool“. */
+export function pMatches(pool, k, pick = 4) {
   return (choose(pick, k) * choose(pool - pick, pick - k)) / choose(pool, pick);
 }
 
-/** Erwartete Rückzahlung je eingesetztem Credit (RTP). */
-export function rtpOf(type) {
-  const d = DRAWS[type];
-  let ev = 0;
-  for (const [k, prize] of Object.entries(d.prizes)) ev += pMatches(d.pool, Number(k)) * prize;
-  return ev / d.price;
+/** Wahrscheinlichkeit einer Gewinnklasse je Schein. */
+export function pClass(rules, c) {
+  const p = pMatches(rules.pool, c.k, rules.pick);
+  if (!rules.neon || c.n === undefined) return p;
+  return p * (c.n ? 1 / rules.neon : (rules.neon - 1) / rules.neon);
 }
 
-export function prizeFor(type, k) {
-  return DRAWS[type]?.prizes[k] || 0;
+/** Anzahl gleich wahrscheinlicher Scheine (Kombinationen) eines Regelwerks. */
+export function combinations(rules) {
+  return choose(rules.pool, rules.pick) * (rules.neon || 1);
+}
+
+/** Wahrscheinlichkeit, mit einem Schein irgendeine Gewinnklasse zu treffen. */
+export function pAnyWin(rules) {
+  return rules.classes.reduce((s, c) => s + pClass(rules, c), 0);
+}
+
+/** Erwartete Rückzahlung je eingesetztem Credit (RTP). Typ-String oder Regelwerk. */
+export function rtpOf(typeOrRules) {
+  const rules = typeof typeOrRules === "string" ? rulesFor(typeOrRules) : typeOrRules;
+  return rules.classes.reduce((s, c) => s + pClass(rules, c) * c.prize, 0) / rules.price;
+}
+
+/** Gewinnklasse für k Richtige und Neonzahl-Treffer (oder null). */
+export function classFor(rules, k, neonHit) {
+  return rules.classes.find((c) => c.k === k && (c.n === undefined || c.n === Boolean(neonHit))) || null;
 }
 
 // ---------- Termine (lokale Zeitzone) ----------
@@ -135,23 +193,38 @@ export function formatDrawTime(at, now = Date.now()) {
 
 // ---------- Scheine & Auswertung ----------
 
-/** Prüft eine Zahlenauswahl. Rückgabe: sortierte Zahlen oder null. */
-export function validNumbers(type, nums) {
-  const d = DRAWS[type];
-  if (!d || !Array.isArray(nums) || nums.length !== PICK) return null;
+/** Prüft eine Zahlenauswahl nach einem Regelwerk. Rückgabe: sortierte Zahlen oder null. */
+export function validPick(rules, nums) {
+  if (!rules || !Array.isArray(nums) || nums.length !== rules.pick) return null;
   const set = new Set();
   for (const n of nums) {
-    if (!Number.isInteger(n) || n < 1 || n > d.pool || set.has(n)) return null;
+    if (!Number.isInteger(n) || n < 1 || n > rules.pool || set.has(n)) return null;
     set.add(n);
   }
   return [...set].sort((a, b) => a - b);
 }
+/** Prüft eine Neonzahl (0 … neon−1). Ohne Neonzahl im Regelwerk: immer null. */
+export function validNeon(rules, neon) {
+  return rules?.neon && Number.isInteger(neon) && neon >= 0 && neon < rules.neon ? neon : null;
+}
+/** Zahlen nach dem aktuellen Regelwerk eines Typs. */
+export function validNumbers(type, nums) {
+  return validPick(rulesFor(type), nums);
+}
+/** Ganzer Schein: { nums, neon } oder null. */
+export function validTicket(rules, nums, neon) {
+  const clean = validPick(rules, nums);
+  if (!clean) return null;
+  if (!rules.neon) return { nums: clean, neon: null };
+  const nz = validNeon(rules, neon);
+  return nz === null ? null : { nums: clean, neon: nz };
+}
 
-/** Zieht PICK verschiedene Zahlen aus 1..pool (in Ziehungsreihenfolge). */
-export function drawNumbers(pool, rnd = random) {
+/** Zieht `pick` verschiedene Zahlen aus 1..pool (in Ziehungsreihenfolge, Fisher–Yates). */
+export function drawNumbers(pool, rnd = random, pick = 4) {
   const all = Array.from({ length: pool }, (_, i) => i + 1);
   const out = [];
-  for (let i = 0; i < PICK; i++) {
+  for (let i = 0; i < pick; i++) {
     const j = i + Math.floor(rnd() * (pool - i));
     [all[i], all[j]] = [all[j], all[i]];
     out.push(all[i]);
@@ -159,18 +232,37 @@ export function drawNumbers(pool, rnd = random) {
   return out;
 }
 
-export function quickPick(type, rnd = random) {
-  return drawNumbers(DRAWS[type].pool, rnd).sort((a, b) => a - b);
+/** Komplette Ziehung nach einem Regelwerk: Zahlen und ggf. separat die Neonzahl. */
+export function drawFor(rules, rnd = random) {
+  const nums = drawNumbers(rules.pool, rnd, rules.pick);
+  const neon = rules.neon ? Math.floor(rnd() * rules.neon) : null;
+  return { nums, neon };
 }
 
-export function evaluate(type, drawn, tickets) {
+export function quickPick(type, rnd = random) {
+  const rules = rulesFor(type);
+  const t = drawFor(rules, rnd);
+  return { nums: t.nums.sort((a, b) => a - b), neon: t.neon };
+}
+
+/**
+ * Wertet Scheine gegen eine Ziehung aus.
+ * @param {string|object} typeOrRules  Typ (aktuelles Regelwerk) oder Regelwerk
+ * @param {number[]} drawn             gezogene Zahlen
+ * @param {{id:string, nums:number[], neon?:number|null}[]} tickets
+ * @param {number|null} [neon]         gezogene Neonzahl
+ */
+export function evaluate(typeOrRules, drawn, tickets, neon = null) {
+  const rules = typeof typeOrRules === "string" ? rulesFor(typeOrRules) : typeOrRules;
   const set = new Set(drawn);
   let payout = 0;
   const results = tickets.map((t) => {
     const hits = t.nums.filter((n) => set.has(n));
-    const prize = prizeFor(type, hits.length);
+    const neonHit = Boolean(rules.neon) && t.neon !== null && t.neon !== undefined && t.neon === neon;
+    const c = classFor(rules, hits.length, neonHit);
+    const prize = c ? c.prize : 0;
     payout += prize;
-    return { id: t.id, nums: t.nums.slice(), hits, k: hits.length, prize };
+    return { id: t.id, nums: t.nums.slice(), neon: rules.neon ? t.neon : null, hits, k: hits.length, neonHit, cls: c ? c.id : null, label: c ? c.label : null, prize };
   });
   return { results, payout };
 }
@@ -191,9 +283,14 @@ export function sanitizeLotto(raw) {
     if (!info || !Array.isArray(list)) continue;
     const clean = [];
     for (const t of list) {
-      const nums = validNumbers(info.type, t?.nums);
-      if (!nums || clean.length >= MAX_TICKETS) continue;
-      clean.push({ id: String(t.id || `t${clean.length}`).slice(0, 24), nums, at: Number.isFinite(t.at) ? t.at : 0, price: DRAWS[info.type].price });
+      if (clean.length >= MAX_TICKETS) break;
+      const r = rulesVersionOf(t);
+      const rules = rulesFor(info.type, r);
+      const ok = validTicket(rules, t?.nums, t?.neon);
+      if (!ok) continue;
+      const ticket = { id: String(t.id || `t${clean.length}`).slice(0, 24), nums: ok.nums, at: Number.isFinite(t.at) ? t.at : 0, price: rules.price, r };
+      if (rules.neon) ticket.neon = ok.neon;
+      clean.push(ticket);
     }
     if (clean.length) out.tickets[id] = clean;
   }
@@ -201,18 +298,29 @@ export function sanitizeLotto(raw) {
   for (const [id, dr] of Object.entries(draws)) {
     const info = parseDrawId(id);
     if (!info || !dr || typeof dr !== "object") continue;
-    const nums = Array.isArray(dr.nums) && dr.nums.length === PICK && validNumbers(info.type, dr.nums) ? dr.nums.slice() : null;
-    if (!nums) continue; // beschädigt: lieber verwerfen als ein falsches Ergebnis zeigen
-    const tickets = Array.isArray(dr.tickets) ? dr.tickets.map((t) => ({ id: String(t?.id || "").slice(0, 24), nums: validNumbers(info.type, t?.nums) })).filter((t) => t.nums).slice(0, MAX_TICKETS) : [];
-    const ev = evaluate(info.type, nums, tickets);
+    const r = rulesVersionOf(dr);
+    const rules = rulesFor(info.type, r);
+    const nums = Array.isArray(dr.nums) && validPick(rules, dr.nums) ? dr.nums.slice() : null;
+    const neon = rules.neon ? validNeon(rules, dr.neon) : null;
+    if (!nums || (rules.neon && neon === null)) continue; // beschädigt: lieber verwerfen als ein falsches Ergebnis zeigen
+    const tickets = (Array.isArray(dr.tickets) ? dr.tickets : [])
+      .map((t) => {
+        const ok = validTicket(rules, t?.nums, t?.neon);
+        return ok && { id: String(t?.id || "").slice(0, 24), nums: ok.nums, ...(rules.neon ? { neon: ok.neon } : {}) };
+      })
+      .filter(Boolean)
+      .slice(0, MAX_TICKETS);
+    const ev = evaluate(rules, nums, tickets, neon);
     out.draws[id] = {
       id,
       type: info.type,
+      r,
       at: info.at,
       nums,
+      neon,
       tickets,
       results: ev.results,
-      stake: tickets.length * DRAWS[info.type].price,
+      stake: tickets.length * rules.price,
       payout: ev.payout, // immer neu berechnet – manipulierte Beträge zählen nicht
       createdAt: Number.isFinite(dr.createdAt) ? dr.createdAt : info.at,
       live: dr.live === true,
@@ -232,7 +340,7 @@ export function sanitizeLotto(raw) {
 /**
  * @param {object} o
  * @param {() => object} o.getState
- * @param {object} o.economy        debit/credit aus core/economy.js
+ * @param {object} o.economy        debit/credit/refund aus core/economy.js
  * @param {() => void} o.saveNow    schreibt sofort (Ergebnis/Claim dürfen nicht verloren gehen)
  * @param {object} [o.inbox]        Posteingang (core/inbox.js)
  * @param {(ev:string, d?:any) => void} [o.emit]
@@ -270,28 +378,68 @@ export function createLotto({ getState, economy, saveNow, inbox = null, emit = (
     /**
      * Kauft einen Schein für die nächste Ziehung dieses Typs.
      * Atomar: erst vollständig prüfen, dann genau einmal abbuchen, dann speichern.
+     * @param {string} type
+     * @param {number[]} nums
+     * @param {number} [neon]  Neonzahl 0–9 (nur Großes Neon Lotto)
      */
-    buy(type, nums) {
+    buy(type, nums, neon) {
       const def = DRAWS[type];
       if (!def) return { ok: false, reason: "Unbekannte Ziehung" };
-      const clean = validNumbers(type, nums);
-      if (!clean) return { ok: false, reason: `Wähle genau ${PICK} verschiedene Zahlen von 1 bis ${def.pool}` };
+      const clean = validPick(def, nums);
+      if (!clean) return { ok: false, reason: `Wähle genau ${def.pick} verschiedene Zahlen von 1 bis ${def.pool}` };
+      const nz = def.neon ? validNeon(def, neon) : null;
+      if (def.neon && nz === null) return { ok: false, reason: `Wähle eine Neonzahl von 0 bis ${def.neon - 1}` };
       const draw = nextDraw(type, now());
       if (!draw) return { ok: false, reason: "Gerade keine Ziehung im Verkauf" };
       const list = ticketsFor(draw.id);
       if (list.length >= MAX_TICKETS) return { ok: false, reason: `Höchstens ${MAX_TICKETS} Scheine pro Ziehung` };
-      if (list.some((t) => t.nums.join(",") === clean.join(","))) return { ok: false, reason: "Diesen Schein hast du für diese Ziehung schon" };
+      const key = (t) => `${t.nums.join(",")}|${t.neon ?? ""}`;
+      if (list.some((t) => key(t) === key({ nums: clean, neon: nz }))) return { ok: false, reason: "Diesen Schein hast du für diese Ziehung schon" };
       if (!economy.debit("lotto", def.price, "lotto")) return { ok: false, reason: economy.balance < def.price ? "Nicht genug Credits" : "Gerade nicht möglich" };
       const lotto = L();
       lotto.seq++;
-      const ticket = { id: `t${lotto.seq}`, nums: clean, at: now(), price: def.price };
+      const ticket = { id: `t${lotto.seq}`, nums: clean, at: now(), price: def.price, r: RULES_VERSION };
+      if (def.neon) ticket.neon = nz;
       (lotto.tickets[draw.id] ||= []).push(ticket);
       saveNow();
       emit("lotto:ticket", { drawId: draw.id, type });
       return { ok: true, ticket, draw };
     },
+    /**
+     * Erstattet noch nicht ausgeloste Scheine eines älteren Regelwerks (V1.2:
+     * 4 aus 20 / 4 aus 24) genau einmal: Der Schein verschwindet, der Einsatz
+     * wird zurückgebucht (zählt nicht als Gewinn). Rückgabe: erstattete Credits.
+     */
+    refundLegacy() {
+      const lotto = L();
+      let count = 0;
+      let amount = 0;
+      for (const [id, list] of Object.entries(lotto.tickets)) {
+        const keep = list.filter((t) => rulesVersionOf(t) === RULES_VERSION);
+        for (const t of list) {
+          if (rulesVersionOf(t) === RULES_VERSION) continue;
+          count++;
+          amount += t.price;
+        }
+        if (keep.length) lotto.tickets[id] = keep;
+        else delete lotto.tickets[id];
+      }
+      if (!count) return 0;
+      economy.refund("lotto", amount, "lotto:refund");
+      saveNow();
+      inbox?.add({
+        id: `lotto:refund-v${RULES_VERSION}`,
+        type: "lotto",
+        ts: now(),
+        title: "Neon Lotto – neue Regeln",
+        body: `Das Lotto spielt jetzt täglich 4 aus 40 und im Großen Neon Lotto 6 aus 49 + Neonzahl. ${count === 1 ? "Dein offener Schein" : `Deine ${count} offenen Scheine`} nach den alten Regeln ${count === 1 ? "wurde" : "wurden"} vollständig erstattet: ${amount.toLocaleString("de-DE")} Credits.`,
+      });
+      emit("lotto:refund", { count, amount });
+      return amount;
+    },
     /** Lost alle fälligen Ziehungen mit eigenen Scheinen aus (genau einmal). Rückgabe: neu ausgeloste Ziehungen. */
     realizeDue() {
+      api.refundLegacy();
       const lotto = L();
       const t = now();
       const fresh = [];
@@ -300,17 +448,20 @@ export function createLotto({ getState, economy, saveNow, inbox = null, emit = (
         .filter((i) => i && i.at <= t && !lotto.draws[i.id])
         .sort((a, b) => a.at - b.at);
       for (const info of due) {
-        const tickets = lotto.tickets[info.id].map((x) => ({ id: x.id, nums: x.nums.slice() }));
-        const nums = drawNumbers(DRAWS[info.type].pool, rnd);
-        const ev = evaluate(info.type, nums, tickets);
+        const rules = rulesFor(info.type);
+        const tickets = lotto.tickets[info.id].map((x) => ({ id: x.id, nums: x.nums.slice(), ...(rules.neon ? { neon: x.neon } : {}) }));
+        const { nums, neon } = drawFor(rules, rnd);
+        const ev = evaluate(rules, nums, tickets, neon);
         const d = {
           id: info.id,
           type: info.type,
+          r: RULES_VERSION,
           at: info.at,
           nums,
+          neon,
           tickets,
           results: ev.results,
-          stake: tickets.length * DRAWS[info.type].price,
+          stake: tickets.length * rules.price,
           payout: ev.payout,
           createdAt: t,
           live: t - info.at <= LIVE_WINDOW_MS,

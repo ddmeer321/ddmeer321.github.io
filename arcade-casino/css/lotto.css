@@ -1,4 +1,4 @@
-/* Neon Lotto (V1.2): Studio-Ansicht und Ziehungs-Show */
+/* Neon Lotto (V1.2.1): Studio-Ansicht und Ziehungs-Show */
 
 .lotto-stage {
   display: grid;
@@ -68,6 +68,15 @@
 .lt-builder-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .lt-buy { margin-left: auto; }
 @media (max-width: 480px) { .lt-buy { margin-left: 0; width: 100%; } }
+@media (max-width: 420px) {
+  .lotto-stage { padding-left: 8px; padding-right: 8px; }
+  .lt-builder { padding: var(--s3) 8px; }
+  .lt-grid { gap: 6px; }
+}
+/* sehr schmal (320 px): 6 statt 7 Spalten, damit jedes Feld fingerbreit bleibt */
+@media (max-width: 340px) {
+  .lt-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
 
 /* Kugel-Chips */
 .lt-ballchip {
@@ -88,6 +97,35 @@
 .lt-ballchip.is-hit { box-shadow: 0 0 0 3px var(--gold), 0 0 14px rgba(255, 197, 61, 0.8); }
 .lt-ballchip i { position: absolute; right: -4px; top: -4px; width: 15px; height: 15px; border-radius: 50%; background: var(--gold); color: #14072a; font-size: 10px; font-style: normal; display: grid; place-items: center; }
 .lt-ballchip:not(.is-hit) { opacity: 1; }
+/* Neonzahl: dunkler Kern mit Neonring – klar von den Zahlenkugeln unterscheidbar */
+.lt-ballchip.is-neon {
+  background: radial-gradient(circle at 50% 50%, #1c0730 0 54%, var(--ball) 56% 68%, #ffc2f2 70% 73%, var(--ball) 75%);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 79, 216, 0.7), 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+.lt-ballchip.is-neon.is-hit { box-shadow: 0 0 0 3px var(--gold), 0 0 14px rgba(255, 197, 61, 0.8); }
+
+/* Neonzahl-Auswahl (Großes Neon Lotto) */
+.lt-neonpick { margin-top: 12px; }
+.lt-neonpick > span { display: block; font-size: 12.5px; font-weight: 800; color: var(--ink-dim); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.lt-neongrid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 520px) { .lt-neongrid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.lt-neon {
+  min-height: 44px;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  max-width: 52px;
+  justify-self: center;
+  width: 100%;
+  border: 2px solid rgba(255, 79, 216, 0.55);
+  background: var(--bg-1);
+  color: var(--ink);
+  font: 900 17px/1 var(--font, system-ui);
+  cursor: pointer;
+}
+.lt-neon.is-on { background: #ff4fd8; color: #1c0730; border-color: transparent; box-shadow: 0 0 14px rgba(255, 79, 216, 0.75); }
+.lt-neon:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.lt-rules .lt-total td { font-weight: 800; border-bottom: 0; }
 
 .lt-mylist, .lt-openlist, .lt-archlist, .lt-arch-tickets { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .lt-myticket { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 10px; background: var(--bg-1); }
@@ -142,7 +180,9 @@
 .lt-rec { width: 8px; height: 8px; border-radius: 50%; background: #ff3d3d; animation: blink 1s steps(2, start) infinite; }
 .lt-stage { position: relative; display: grid; place-items: center; width: min(280px, 70vw, 42vh); aspect-ratio: 1; }
 .lt-drum { width: 100%; height: 100%; }
-.lt-stage.is-done .lt-drum { opacity: 0.35; transition: opacity 400ms; }
+/* Auswertung: Trommel hat ihren Dienst getan – Platz für Zahlen und Scheine (auch auf 320 px) */
+.lt-stage.is-done { display: none; }
+.lt-show.is-evaluated { grid-template-rows: none; align-content: start; }
 .lt-big { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .lt-big .lt-ballchip { width: 96px; height: 96px; font-size: 40px; }
 .lt-big.is-in .lt-ballchip { animation: lt-pop 520ms cubic-bezier(.2, 1.4, .4, 1) both; }
@@ -152,6 +192,11 @@
 .lt-slot { width: 46px; height: 46px; border-radius: 50%; border: 2px dashed rgba(255, 255, 255, 0.2); display: grid; place-items: center; }
 .lt-slot.is-filled { border: 0; }
 .lt-slot .lt-ballchip.is-small { width: 46px; height: 46px; font-size: 17px; }
+.lt-slot.is-neon { border-color: rgba(255, 79, 216, 0.6); }
+.lt-rack-plus { align-self: center; font-weight: 900; color: #ff4fd8; }
+.lt-rack.is-wide { gap: 6px; }
+.lt-rack.is-wide .lt-slot,
+.lt-rack.is-wide .lt-slot .lt-ballchip.is-small { width: clamp(32px, 10.5vw, 46px); height: clamp(32px, 10.5vw, 46px); font-size: 15px; }
 .lt-skip { min-height: 44px; }
 .lt-result { width: min(560px, 100%); display: grid; gap: 12px; }
 .lt-result:empty { display: none; }

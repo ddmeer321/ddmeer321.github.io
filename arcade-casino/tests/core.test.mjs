@@ -129,3 +129,19 @@ test("Tagesbonus und Nachschub", () => {
   s.balance = 5;
   assert.equal(refillAvailable(s), true);
 });
+
+test("V1.2.1 Loader: Netzwerk-/Modul-Ladefehler werden von echten Spielfehlern unterschieden", async () => {
+  const { isModuleLoadError } = await import("../js/core/loaderror.js");
+  const te = (m) => Object.assign(new TypeError(m));
+  // Ladefehler der großen Browser
+  assert.equal(isModuleLoadError(te("Failed to fetch dynamically imported module: https://x/js/games/slots/slots.js"), true), true);
+  assert.equal(isModuleLoadError(te("error loading dynamically imported module: https://x/a.js"), true), true);
+  assert.equal(isModuleLoadError(te("Importing a module script failed."), true), true);
+  // offline: immer Ladefehler
+  assert.equal(isModuleLoadError(new Error("irgendwas"), false), true);
+  // echte Defekte bleiben „außer Betrieb“
+  assert.equal(isModuleLoadError(new SyntaxError("Unexpected token"), true), false);
+  assert.equal(isModuleLoadError(new ReferenceError("foo is not defined"), true), false);
+  assert.equal(isModuleLoadError(te("Cannot read properties of undefined (reading 'mount')"), true), false);
+  assert.equal(isModuleLoadError(null, true), false);
+});

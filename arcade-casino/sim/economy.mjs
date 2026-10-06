@@ -1,10 +1,10 @@
-// Neonpalast V1.2 – Wirtschafts-Gesamtsimulation über 60 Tage je Spielertyp.
+// Neonpalast V1.2.1 – Wirtschafts-Gesamtsimulation über 60 Tage je Spielertyp.
 //
 // Erwartungswert-Modell pro Tag (Varianz der einzelnen Spiele wird bewusst
 // weggelassen; sie ist in den Einzel-Simulationen dokumentiert):
 //   Quellen: Tagesbonus, Tages-Challenges, Level-Bonus, Gratis-Nachschub
 //   Spiele:  Umsatz × (RTP − 1) je Spiel bzw. Startgebühr × (RTP − 1) bei Skillgames
-//   Senken:  Lotto (RTP ≈ 58–60 %), Jukebox (einmalig), Songs (Einheitspreis)
+//   Senken:  Lotto (RTP ≈ 52–56 %), Jukebox (einmalig), Songs (Einheitspreis)
 // Lotto wird zusätzlich exakt per Monte-Carlo gezogen (Jackpots sind selten,
 // aber möglich – der Median zeigt den typischen Verlauf).
 //
@@ -13,7 +13,7 @@
 import { xpForLevel, levelReward, xpForRound } from "../js/core/progression.js";
 import { dailyAmount, REFILL_AMOUNT } from "../js/core/bonus.js";
 import { CHALLENGE_REWARD, ALL_DONE_BONUS } from "../js/core/challenges.js";
-import { DRAWS, rtpOf, drawNumbers, evaluate } from "../js/core/lotto.js";
+import { DRAWS, rtpOf, drawFor, evaluate } from "../js/core/lotto.js";
 import { JUKEBOX_PRICE, SONG_PRICE } from "../js/core/jukebox.js";
 import { TRACKS } from "../js/audio/tracks.js";
 import { seeded } from "../js/core/rng.js";
@@ -96,8 +96,12 @@ function runPlayer(p, days, seed) {
       const def = DRAWS[type];
       const n = Math.min(count, Math.floor(bal / def.price / 4));
       if (n <= 0) continue;
-      const tickets = Array.from({ length: n }, (_, i) => ({ id: `t${i}`, nums: drawNumbers(def.pool, rnd).sort((a, b) => a - b) }));
-      const ev = evaluate(type, drawNumbers(def.pool, rnd), tickets);
+      const tickets = Array.from({ length: n }, (_, i) => {
+        const q = drawFor(def, rnd);
+        return { id: `t${i}`, nums: q.nums.sort((a, b) => a - b), neon: q.neon };
+      });
+      const dr = drawFor(def, rnd);
+      const ev = evaluate(def, dr.nums, tickets, dr.neon);
       bal += ev.payout - n * def.price;
       lottoSpent += n * def.price;
       lottoWon += ev.payout;

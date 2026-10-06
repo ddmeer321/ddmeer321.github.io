@@ -341,13 +341,32 @@ test("Lichtwirbel: Preistabelle monoton, perfekte Runde ist der Jackpot", () => 
   assert.equal(CY.prizeFor(0, 20), 0);
 });
 
-test("Lichtwirbel-Balance: kein Spieler mit realistischer Präzision druckt Credits", () => {
+test("Lichtwirbel-Balance V1.2.1: Skill zahlt sich spürbar aus, aber keine Gelddruckmaschine", () => {
   const r = (o) => simulateCyclone({ ...o, rounds: 20000, seed: 3 }).rtp;
-  assert.ok(r({ random: true }) < 0.1, "Zufall");
-  assert.ok(r({ sigma: 40 }) < 0.75, "Durchschnitt");
-  assert.ok(r({ sigma: 25 }) < 1.0, "gut");
-  assert.ok(r({ sigma: 15 }) < 1.25, "sehr gut");
-  assert.ok(r({ sigma: 10 }) < 1.65, "Elite");
+  const rows = [r({ random: true }), r({ sigma: 80 }), r({ sigma: 50 }), r({ sigma: 40 }), r({ sigma: 25 }), r({ sigma: 15 }), r({ sigma: 10 }), r({ sigma: 6 })];
+  for (let i = 1; i < rows.length; i++) assert.ok(rows[i] > rows[i - 1], `nicht monoton: ${rows.map((x) => x.toFixed(2))}`);
+  const [rnd, beginner, normal, practiced, good, veryGood, elite, machine] = rows;
+  assert.ok(rnd < 0.05, `Zufall ${rnd}`);
+  assert.ok(beginner < 0.3, `Anfänger ${beginner}`);
+  assert.ok(normal > 0.4 && normal < 0.6, `normal ${normal}`);
+  assert.ok(practiced < 0.75, `geübt ${practiced}`);
+  assert.ok(good > 0.85 && good < 1.05, `gut ≈ Break-even: ${good}`);
+  assert.ok(veryGood > 1.15 && veryGood < 1.4, `sehr gut ${veryGood}`);
+  // Deckel gegen Farmen (V1.0: 10–25× bei normalem Timing)
+  assert.ok(elite < 1.85, `Elite ${elite}`);
+  assert.ok(machine < 3.6, `Maschine ${machine}`);
+});
+
+test("Lichtwirbel V1.2.1: Belohnungskurve je Rundenergebnis", () => {
+  const p = (pts) => CY.prizeFor(pts, 20);
+  assert.ok(p(9) < 5 && p(11) <= 10, "schwaches Spiel = klarer Verlust");
+  assert.ok(p(15) < 20 && p(15) >= 15, "mittelmäßig = kleiner Verlust");
+  assert.equal(p(17), 20, "17 Punkte = Break-even");
+  assert.ok(p(19) - 20 >= 4, "gut = merkbarer Gewinn");
+  assert.ok(p(21) - 20 >= 10, "sehr gut = starker Gewinn");
+  assert.ok(p(23) - 20 >= 30, "nahezu perfekt = großer Gewinn");
+  assert.equal(p(25), 160, "perfekt = Jackpot");
+  assert.ok(p(25) <= 160, "Höchstgewinn bleibt gedeckelt");
 });
 
 test("Lichtwirbel V1.2: blaue Zone für normale Spieler erreichbar, pink spürbar schwerer, Jackpot selten", () => {

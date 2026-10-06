@@ -104,12 +104,21 @@ async function openGame(page, id) {
   await page.waitForFunction((sel) => document.querySelector(sel)?.dataset.phase, root(id), { timeout: 8000 }).catch(() => {});
   await page.waitForSelector(root(id), { timeout: 8000 });
 }
+/** Spult die installierte Playwright-Uhr in kleinen Schritten vor, bis die Bedingung gilt (keine feste Wartezeit). */
+async function runClockUntil(page, fn, arg, { step = 250, max = 60000 } = {}) {
+  for (let t = 0; t <= max; t += step) {
+    if (await page.evaluate(fn, arg)) return t;
+    await page.clock.runFor(step);
+  }
+  throw new Error("Bedingung trat nicht ein");
+}
+const phaseIs = ([sel, list]) => list.includes(document.querySelector(sel)?.dataset.phase);
 const noHorizontalScroll = (page) => page.evaluate(() => document.scrollingElement.scrollWidth <= window.innerWidth + 1);
 
 const MACHINES = ["slots-fruit", "slots-seven", "slots-cosmo", "blackjack", "roulette", "horses", "plinko", "grabber", "coinpusher", "hoops", "stacker", "cyclone"];
 const GAMES = [...MACHINES, "lotto"];
 
-console.log("Neonpalast E2E (V1.2)");
+console.log("Neonpalast E2E (V1.2.1)");
 
 // ---------- Hub & Navigation ----------
 {
@@ -744,8 +753,10 @@ console.log("Neonpalast E2E (V1.2)");
   await page.clock.install({ time: evening });
   await page.goto(BASE + "#/play/lotto");
   await phase(page, "lotto", "idle");
-  await check("Lotto: Schein mit 4 Zahlen kaufen, zweiter per Zufall, Abbuchung je Schein", async () => {
-    for (const n of [3, 7, 12, 19]) await page.locator(`.lt-num[aria-label="Zahl ${n}"]`).tap();
+  await check("Lotto: Schein mit 4 aus 40 kaufen, zweiter per Zufall, Abbuchung je Schein", async () => {
+    assert((await page.locator(".lt-num").count()) === 40, "Tagesziehung: 40 Zahlen");
+    assert(!(await page.locator(".lt-neonpick").isVisible()), "Tageslotto hat keine Neonzahl");
+    for (const n of [3, 7, 12, 39]) await page.locator(`.lt-num[aria-label="Zahl ${n}"]`).tap();
     assert(await page.locator('.lt-num[aria-label="Zahl 5"]').getAttribute("aria-pressed") === "false");
     await page.locator('.lt-num[aria-label="Zahl 5"]').tap(); // fünfte Zahl wird abgewiesen
     assert((await page.locator(".lt-num.is-on").count()) === 4, "mehr als 4 Zahlen gewählt");
@@ -780,7 +791,7 @@ console.log("Neonpalast E2E (V1.2)");
     await page.locator(".toast-action").tap();
     await page.waitForSelector(".lt-show");
     assert((await page.locator(".lt-onair").textContent()).includes("LIVE"));
-    await page.clock.runFor(25000);
+    await runClockUntil(page, phaseIs, [root("lotto"), ["win", "lose", "claimed"]]);
     await page.waitForSelector(".lt-finale");
     const shown = (await page.locator(".lt-rack .lt-ballchip").allTextContents()).map((x) => Number(x.replace(/\D/g, "")));
     assert(shown.join() === draw.nums.join(), `gezeigt ${shown} ≠ gespeichert ${draw.nums}`);
@@ -823,7 +834,7 @@ console.log("Neonpalast E2E (V1.2)");
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
   await page.goto(BASE);
   await page.waitForSelector(".machine");
-  await check("Posteingang: Badge zeigt die verpasste Ziehung, Nachricht verrät nichts", async () => {
+  await check("V1.2-Spielstand: verpasste Ziehung bleibt erhalten, Badge zeigt sie, Nachricht verrät nichts", async () => {
     assert((await page.locator("#hud-inbox-badge").textContent()) === "1", "Badge fehlt");
     await page.locator("#hud-inbox").tap();
     await page.waitForSelector(".inbox-item.is-unread");
@@ -892,6 +903,223 @@ console.log("Neonpalast E2E (V1.2)");
     assert(await noHorizontalScroll(page), "Querscrollen");
   });
   await check("Keine Konsolenfehler (Lotto Verlust)", async () => assert(!errors.length, errors.join(" | ")));
+  await ctx.close();
+}
+
+// ---------- Großes Neon Lotto: 6 aus 49 + Neonzahl ----------
+{
+  const evening = new Date();
+  evening.setHours(12, 0, 0, 0);
+  const ctx = await browser.newContext(VIEWPORTS.small);
+  ctx.setDefaultTimeout(10000);
+  const page = await ctx.newPage();
+  shotPage = page;
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  await page.clock.install({ time: evening });
+  await page.goto(BASE + "#/play/lotto");
+  await phase(page, "lotto", "idle");
+  await check("Großes Lotto: genau 6 Zahlen aus 49 + Neonzahl 0–9, erst dann kaufbar", async () => {
+    await page.locator('.lt-tabs button[data-type="grand"]').tap();
+    assert((await page.locator(".lt-num").count()) === 49, "49 Zahlen");
+    assert((await page.locator(".lt-neon").count()) === 10, "Neonzahlen 0–9");
+    for (const n of [3, 11, 19, 27, 35, 43]) await page.locator(`.lt-num[aria-label="Zahl ${n}"]`).tap();
+    await page.locator('.lt-num[aria-label="Zahl 49"]').tap(); // siebte Zahl wird abgewiesen
+    assert((await page.locator(".lt-num.is-on").count()) === 6, "mehr als 6 Zahlen gewählt");
+    assert(await page.locator(".lt-buy").isDisabled(), "ohne Neonzahl kaufbar");
+    await page.locator('.lt-neon[aria-label="Neonzahl 7"]').tap();
+    assert(!(await page.locator(".lt-buy").isDisabled()), "Kaufknopf bleibt gesperrt");
+    await page.locator(".lt-buy").tap();
+    const s = await assertLedger(page);
+    const [id] = Object.keys(s.lotto.tickets);
+    const t = s.lotto.tickets[id][0];
+    assert(id.startsWith("grand-") && t.nums.join() === "3,11,19,27,35,43" && t.neon === 7 && t.r === 2, JSON.stringify(t));
+    assert(s.balance === 900, `Guthaben ${s.balance}`);
+    assert(await noHorizontalScroll(page), "Querscrollen");
+  });
+  await check("Große Ziehung: Ergebnis vor der Show gespeichert, 6 Kugeln, Pause, dann separat die Neonzahl", async () => {
+    const wait = await page.evaluate(() => window.__neonpalast.lotto.nextDraw("grand").at - Date.now());
+    await page.clock.fastForward(wait + 2000);
+    await page.evaluate(() => window.__neonpalast.lottoTick());
+    const d = await page.evaluate(() => window.__neonpalast.lotto.archive()[0]);
+    assert(d.type === "grand" && d.nums.length === 6 && Number.isInteger(d.neon), "Ergebnis nicht vollständig gespeichert");
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("neonpalast.save.v1")).lotto.draws);
+    assert(saved[d.id] && saved[d.id].nums.join() === d.nums.join() && saved[d.id].neon === d.neon, "nicht vor der Show gespeichert");
+    await page.waitForSelector(".lt-show");
+    // Während die Hauptzahlen laufen, ist der Neon-Platz leer
+    await runClockUntil(page, () => document.querySelectorAll(".lt-rack .lt-slot.is-filled:not(.is-neon)").length === 6, null);
+    assert(!(await page.locator(".lt-slot.is-neon.is-filled").count()), "Neonzahl zu früh gezeigt");
+    await runClockUntil(page, phaseIs, [root("lotto"), ["neon"]]);
+    assert(!(await page.locator(".lt-slot.is-neon.is-filled").count()), "keine Spannungspause vor der Neonzahl");
+    await runClockUntil(page, () => document.querySelector(".lt-slot.is-neon.is-filled"), null);
+    await runClockUntil(page, phaseIs, [root("lotto"), ["win", "lose"]]);
+    const shown = (await page.locator(".lt-rack .lt-slot:not(.is-neon) .lt-ballchip").allTextContents()).map((x) => Number(x.replace(/\D/g, "")));
+    const neon = Number((await page.locator(".lt-rack .lt-slot.is-neon .lt-ballchip").textContent()).replace(/\D/g, ""));
+    assert(shown.join() === d.nums.join() && neon === d.neon, `gezeigt ${shown}+${neon} ≠ gespeichert ${d.nums}+${d.neon}`);
+    assert(await noHorizontalScroll(page), "Querscrollen");
+  });
+  await check("Große Ziehung: Neuladen und erneutes Ansehen zeigen dasselbe Ergebnis", async () => {
+    const d = await page.evaluate(() => window.__neonpalast.lotto.archive()[0]);
+    await page.reload();
+    await page.waitForSelector(".lt-grid");
+    await page.evaluate(() => window.__neonpalast.lottoTick());
+    const again = await page.evaluate(() => window.__neonpalast.lotto.archive()[0]);
+    assert(again.nums.join() === d.nums.join() && again.neon === d.neon && again.payout === d.payout, "Ergebnis verändert");
+    await page.locator(".lt-open button").first().tap();
+    await page.locator(".lt-skip").tap();
+    await phase(page, "lotto", ["win", "lose"]);
+    const neon = Number((await page.locator(".lt-rack .lt-slot.is-neon .lt-ballchip").textContent()).replace(/\D/g, ""));
+    assert(neon === d.neon, "Überspringen zeigt andere Neonzahl");
+    if (d.payout > 0) {
+      await page.locator(".lt-claim").tap();
+      await page.locator(".lt-continue").tap();
+    } else await page.locator(".lt-back").tap();
+    await page.waitForFunction(() => !document.querySelector(".lt-show"));
+    await assertLedger(page);
+  });
+  await check("Keine Konsolenfehler (Großes Lotto)", async () => assert(!errors.length, errors.join(" | ")));
+  await ctx.close();
+}
+
+// ---------- Migration: offene V1.2-Lottoscheine ----------
+{
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const key = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const save = {
+    v: 3,
+    balance: 850,
+    stats: { wagered: 150, won: 0, bonus: 0 },
+    lotto: { seq: 2, tickets: { [`daily-${key(tomorrow)}`]: [{ id: "t1", nums: [1, 2, 3, 4], at: 1, price: 50 }], "grand-2026-10-07": [{ id: "t2", nums: [21, 22, 23, 24], at: 2, price: 100 }] }, draws: {} },
+    jukebox: { owned: true },
+  };
+  const ctx = await browser.newContext(VIEWPORTS.phone);
+  ctx.setDefaultTimeout(10000);
+  await ctx.addInitScript((s) => {
+    if (!sessionStorage.getItem("seeded")) {
+      localStorage.setItem("neonpalast.save.v1", s);
+      sessionStorage.setItem("seeded", "1");
+    }
+  }, JSON.stringify(save));
+  const page = await ctx.newPage();
+  shotPage = page;
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto(BASE);
+  await page.waitForSelector(".machine");
+  await check("Migration: offene V1.2-Scheine (4 aus 20/24) werden einmal erstattet, nicht neu gezogen", async () => {
+    await page.waitForSelector(".toast:has-text('erstattet')");
+    let s = await assertLedger(page);
+    assert(s.balance === 1000 && Object.keys(s.lotto.tickets).length === 0 && Object.keys(s.lotto.draws).length === 0, JSON.stringify({ b: s.balance, l: s.lotto }));
+    assert(s.inbox.items.some((m) => m.id === "lotto:refund-v2"), "Hinweis im Posteingang fehlt");
+    assert(s.jukebox.owned, "Jukebox-Besitz verloren");
+    await page.reload();
+    await page.waitForSelector(".machine");
+    await page.evaluate(() => window.__neonpalast.lottoTick());
+    s = await state(page);
+    assert(s.balance === 1000, "doppelt erstattet");
+  });
+  await check("Keine Konsolenfehler (Migration)", async () => assert(!errors.length, errors.join(" | ")));
+  await ctx.close();
+}
+
+// ---------- Touch: Spielflächen blockieren Browser-Gesten, Seiten bleiben scrollbar ----------
+for (const width of [320, 375, 390]) {
+  const ctx = await browser.newContext({ viewport: { width, height: 700 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
+  ctx.setDefaultTimeout(10000);
+  const page = await ctx.newPage();
+  shotPage = page;
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  const cdp = await ctx.newCDPSession(page);
+  const swipe = async (x, y, dx, dy) => {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+    for (let i = 1; i <= 8; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x + (dx * i) / 8, y: y + (dy * i) / 8 }] });
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  };
+  await page.goto(BASE);
+  await page.waitForSelector(".machine");
+  await check(`Touch ${width} px: Wischen/Halten auf Spielflächen wird nicht vom Browser übernommen`, async () => {
+    for (const id of ["hoops", "grabber", "coinpusher", "plinko", "stacker", "cyclone"]) {
+      await openGame(page, id);
+      const targets = await page.evaluate((sel) => {
+        const rootEl = document.querySelector(sel);
+        rootEl.querySelectorAll(".arcade-overlay").forEach((o) => (o.style.display = "none")); // Start-/Ergebnistafeln dürfen scrollen
+        const stage = rootEl.querySelector(".arcade-stage");
+        const holds = [...rootEl.querySelectorAll(".touch-hold")];
+        window.__tc = { cancel: 0, move: 0 };
+        for (const el of [stage, ...holds]) {
+          el.addEventListener("pointercancel", () => window.__tc.cancel++);
+          el.addEventListener("pointermove", () => window.__tc.move++);
+        }
+        const c = (el) => {
+          const r = el.getBoundingClientRect();
+          return [r.x + r.width / 2, r.y + r.height / 2];
+        };
+        return [c(stage), ...holds.map(c)];
+      }, root(id));
+      for (const [x, y] of targets) {
+        await swipe(x, y, 0, -40); // kleines Verrutschen beim Halten
+        await swipe(x, y, 0, 120); // Wischen nach unten („Pull to refresh“)
+      }
+      const r = await page.evaluate(() => ({ ...window.__tc, scroll: document.scrollingElement.scrollTop, scale: visualViewport.scale }));
+      assert(r.cancel === 0, `${id}: Browser hat ${r.cancel}× die Geste übernommen (pointercancel)`);
+      assert(r.move > 0, `${id}: keine Pointer-Bewegung angekommen`);
+      assert(r.scroll === 0 && r.scale === 1, `${id}: Seite gescrollt/gezoomt`);
+    }
+  });
+  await check(`Touch ${width} px: Lotto, Halle und Einstellungen bleiben normal scrollbar`, async () => {
+    await openGame(page, "lotto");
+    for (const type of ["daily", "grand"]) {
+      await page.locator(`.lt-tabs button[data-type="${type}"]`).tap();
+      const ok = await page.evaluate(() => [...document.querySelectorAll(".lt-num, .lt-neon")].every((n) => n.getBoundingClientRect().width >= 40 && n.getBoundingClientRect().height >= 40));
+      assert(ok, `${type}: Zahlenfelder < 40 px`);
+      assert(await noHorizontalScroll(page), `${type}: Querscrollen`);
+    }
+    await swipe(width / 2, 520, 0, -300);
+    await page.waitForFunction(() => document.querySelector(".lotto-stage").scrollTop > 50);
+    const ta = await page.evaluate(() => ["html", "body", ".lotto-stage", ".lt-num"].map((q) => getComputedStyle(document.querySelector(q)).touchAction));
+    assert(!ta.includes("none"), `touch-action none außerhalb der Spielflächen: ${ta}`);
+    await page.goto(BASE + "#/");
+    await page.waitForSelector(".machine");
+    assert((await page.evaluate(() => getComputedStyle(document.querySelector("#view-hub")).touchAction)) !== "none", "Halle gesperrt");
+    await openGame(page, "plinko");
+    await page.locator("#hud-settings").tap();
+    await page.waitForSelector(".modal");
+    const modalTa = await page.evaluate(() => [...document.querySelectorAll(".modal, .modal *")].some((e) => getComputedStyle(e).touchAction === "none"));
+    assert(!modalTa, "Einstellungen blockieren Scrollen");
+  });
+  await check(`Keine Konsolenfehler (Touch ${width})`, async () => assert(!errors.length, errors.join(" | ")));
+  await ctx.close();
+}
+
+// ---------- Automat lädt nicht (Netzwerk) vs. Automat defekt ----------
+{
+  const { page, ctx, errors } = await newPage({ mobile: false });
+  await check("Loader: 503 auf einem Spielmodul → „konnte gerade nicht geladen werden“, Erneut versuchen lädt den Automaten", async () => {
+    await page.route("**/js/games/slots/machines.js*", (r) => r.fulfill({ status: 503, body: "Service Unavailable" }));
+    await page.goto(BASE + "#/play/slots-fruit");
+    await page.waitForSelector(".toast:has-text('konnte gerade nicht geladen werden')");
+    assert(!(await page.locator(".toast:has-text('außer Betrieb')").count()), "als Defekt gemeldet");
+    await page.waitForSelector("#view-hub.is-active");
+    await page.unroute("**/js/games/slots/machines.js*");
+    await page.locator(".toast-action:has-text('Erneut versuchen')").click();
+    await phase(page, "slots-fruit", "idle");
+  });
+  await check("Loader: Fehler im Spielcode bleibt „außer Betrieb“", async () => {
+    await page.route("**/js/games/stacker/stacker.js*", (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: "export default { mount() { throw new Error('kaputt'); } };" }));
+    await page.goto(BASE + "#/");
+    await page.waitForSelector(".machine");
+    await page.goto(BASE + "#/play/stacker");
+    await page.waitForSelector(".toast:has-text('außer Betrieb')");
+    await page.waitForSelector("#view-hub.is-active");
+  });
+  // erwartete Fehlermeldungen dieses Abschnitts (503, absichtlicher Defekt) herausfiltern
+  await check("Keine unerwarteten Konsolenfehler (Loader)", async () => {
+    const rest = errors.filter((e) => !/503|Failed to fetch dynamically|kaputt|konnte nicht gestartet|Failed to load resource/i.test(e));
+    assert(!rest.length, rest.join(" | "));
+  });
   await ctx.close();
 }
 

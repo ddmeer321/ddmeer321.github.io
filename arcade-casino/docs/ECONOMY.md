@@ -1,4 +1,4 @@
-# Neonpalast – Wirtschaft, Auszahlungsquoten und Simulationen (V1.2)
+# Neonpalast – Wirtschaft, Auszahlungsquoten und Simulationen (V1.2.1)
 
 Alle Zahlen stammen aus den Skripten in `sim/` (fester Seed, reproduzierbar) bzw. sind exakt
 berechnet. Die Unit-Tests (`tests/*.test.mjs`) prüfen die wichtigsten Grenzen bei jedem Lauf,
@@ -55,6 +55,7 @@ vollständig erklärt: Bei ~10× erwarteter Rückzahlung je Runde wächst das Gu
 | Neon Hoops | 40 Startgebühr | – | – | 120 (3×) |
 | Turmbau | 20 Startgebühr | – | – | 60 (3×) |
 | Lichtwirbel | 20 Startgebühr | – | – | 160 (8×, nur perfekte Runde; V1.1: 500) |
+| Neon Lotto | 50 / 100 je Schein | 20 Scheine je Ziehung | – | 150.000 bzw. 10.000.000 (Ausnahme, siehe Abschnitt 7) |
 
 Ein Spieler mit 100.000 Credits kann so überall sinnvoll mit Einsätzen spielen, die sich
 „groß“ anfühlen, aber kein einzelner Klick verdoppelt sein Vermögen.
@@ -190,6 +191,48 @@ Lernkurve: Blau ist für normale Spieler fast sicher, Pink ist eine echte Aufgab
 bleibt selten. Rückzahlung steigt gleichmäßig mit der Präzision; die V1.0-Gelddruckmaschine
 (10–25×) bleibt ausgeschlossen.
 
+#### V1.2.1: steilere Belohnungskurve (Schwierigkeit unverändert)
+
+**Befund:** Gute Runden fühlten sich flach an – 19 Punkte brachten 22 Credits (+2), 21 Punkte 27
+(+7). **Änderung:** nur die Preistabelle; Zonen, Tempo, Serien-Beschleunigung, Startlampe und
+Wertung bleiben exakt gleich (kein Steering, keine Korrektur nach dem Stopp, kein Zufall nach dem
+sichtbaren Stopp, keine Anpassung an Guthaben oder Verlauf).
+
+| Punkte | V1.2 | **V1.2.1** | Gefühl |
+|---|---|---|---|
+| 25 (perfekt) | 160 | **160** (8×) | Jackpot |
+| 23–24 | 40 | **50** (+30) | großer Gewinn |
+| 21–22 | 27 | **30** (+10) | starker Gewinn |
+| 19–20 | 22 | **24** (+4) | merkbarer Gewinn |
+| 17–18 | 18 | **20** | Break-even |
+| 15–16 | 16 | **17** | kleiner Verlust |
+| 13–14 | 13 | **13** | Verlust |
+| 11–12 | 10 | **8** | klarer Verlust |
+| 9–10 | 6 | **3** | klarer Verlust |
+| 7–8 | 4 | **0** | – |
+
+Simulation (`node sim/cyclone.mjs`, 100.000 Runden je Typ):
+
+| Spieler | RTP V1.2 | **RTP V1.2.1** | perfekte Runde |
+|---|---|---|---|
+| Zufall | 0,02 | 0,01 | 0 % |
+| σ 80 ms (Anfänger) | 0,27 | 0,18 | 0 % |
+| σ 60 ms (Gelegenheit) | 0,42 | 0,34 | 0 % |
+| σ 50 ms (normal) | 0,52 | 0,47 | 0,002 % |
+| σ 40 ms (geübt) | 0,65 | 0,63 | 0,005 % |
+| σ 25 ms (gut) | 0,89 | 0,95 | 0,06 % |
+| σ 15 ms (sehr gut) | 1,16 | 1,29 | 0,57 % |
+| σ 10 ms (Elite) | 1,57 | 1,76 | 3,3 % |
+| σ 6 ms (Maschine) | 3,07 | 3,35 | 21,7 % |
+
+Die Kurve ist steiler: Unpräzises Spiel verliert klarer, gutes Spiel kommt etwa auf Break-even,
+sehr gutes gewinnt spürbar. Der Preis dafür ist ein etwas höherer Elite-Wert (+0,19). Bewusst
+**nicht** weiter erhöht: Jede zusätzliche Anhebung der 19-/21-/23-Punkte-Preise wirkt fast
+vollständig auf Elite-Spieler (deren Runden liegen zu 85 % genau dort) – mit dem „gefühlten“
+Ziel (19 → +5, 21 → +15, 23 → +40) läge Elite bei ≈ 2,0 und Maschinen-Timing bei ≈ 3,6. Eine
+Elite-Runde bringt jetzt im Mittel ≈ +15 Credits statt +11 – bei fester Startgebühr, also ohne
+Wachstum mit dem Guthaben (V1.0: +200 … +500 pro Runde).
+
 ### Turmbau (`sim/stacker.mjs`)
 
 Schrittzeit 125 ms (unten) → 24 ms (oberste zwei Reihen, ≈ 1,5 Bilder bei 60 Hz); ab Reihe 5
@@ -223,10 +266,10 @@ pendelt der Korb (−25 % Trefferquote im Modell). Preise 8 … 120 (max. 3×).
 ### Was heißt das für „Farmen“?
 
 Selbst ein Elite-Spieler, der stundenlang fehlerfrei auf σ 10 ms spielt, gewinnt bei Turmbau
-≈ +6 Credits pro Runde (≈ 10 s) und bei Lichtwirbel ≈ +11 pro Runde – bei hoher Varianz.
+≈ +6 Credits pro Runde (≈ 10 s) und bei Lichtwirbel ≈ +15 pro Runde (V1.2: +11) – bei hoher Varianz.
 In der Gesamtsimulation (Abschnitt 9) ist das der bewusst extreme „Elite-Worst-Case“
 (450 Skill-Runden täglich auf σ 10 ms): rund +5.000 Credits pro Tag. Realistisch gute Spieler
-(σ 15–25 ms) liegen bei Rückzahlung 0,9–1,16 und damit nahe null.
+(σ 15–25 ms) liegen bei Rückzahlung 0,95–1,29 und damit nahe null bis leicht positiv.
 Das ist ein spürbarer Lohn für echtes Können, aber um Größenordnungen kleiner als in V1.0
 (dort: +200 … +500 pro Runde) und wächst nicht mit dem Guthaben, weil die Startgebühr fest ist.
 
@@ -249,38 +292,85 @@ Gelddruckmaschine (V1.0: 100 × Level und XP proportional zum Einsatz).
 Boni werden in der Statistik getrennt gezählt („Boni erhalten“), sodass jederzeit gilt:
 Guthaben = Startguthaben − Einsätze + Auszahlungen + Boni (die E2E-Tests prüfen das).
 
-## 7. Neon Lotto (V1.2, `js/core/lotto.js`)
+## 7. Neon Lotto (V1.2.1, `js/core/lotto.js`)
 
-Zwei Ziehungen mit derselben Technik. Pro Ziehung höchstens **20 Scheine**; jeder Schein hat
-genau 4 verschiedene Zahlen. Feste Gewinne (kein Pool, da es nur einen Spieler gibt).
+V1.2 hatte zu wahrscheinliche Hauptgewinne (4 aus 20: 1 : 4.845, 4 aus 24: 1 : 10.626).
+V1.2.1 trennt die beiden Ziehungen klar: das tägliche Lotto bleibt die zugängliche
+Arcade-Variante, das Große Neon Lotto ist ein echtes, extrem seltenes Lotto-Ereignis.
+Pro Ziehung höchstens **20 Scheine**. Feste Gewinne (kein Pool, da es nur einen Spieler gibt);
+keine Quote hängt von Guthaben, Verlauf oder Level ab.
 
-| | Neon Lotto | Großes Neon Lotto |
+| | Neon Lotto (täglich) | Großes Neon Lotto |
 |---|---|---|
 | Termin | täglich 20:00 Uhr | alle 3 Tage 21:00 Uhr |
-| Zahlen | 4 aus 20 (4.845 Kombinationen) | 4 aus 24 (10.626 Kombinationen) |
+| Spielschein | 4 aus 40 | 6 aus 49 **+ Neonzahl 0–9** |
+| Kombinationen | C(40,4) = 91.390 | C(49,6) · 10 = 139.838.160 |
 | Schein | 50 C | 100 C |
-| 4 Richtige | 10.000 C · 1 : 4.845 | 120.000 C · 1 : 10.626 |
-| 3 Richtige | 1.000 C · 1 : 75,7 (64/4.845) | 4.000 C · 1 : 132,8 (80/10.626) |
-| 2 Richtige | 100 C · 1 : 6,7 (720/4.845) | 150 C · 1 : 9,3 (1.140/10.626) |
-| 1 / 0 Richtige | 46,2 % / 37,6 % | 42,9 % / 45,6 % |
-| Erwartete Auszahlung je Schein | 30,13 C | 57,51 C |
-| **RTP** | **60,3 %** | **57,5 %** |
+| Erwartete Auszahlung je Schein | 27,94 C | 51,69 C |
+| **RTP** | **55,9 %** | **51,7 %** |
+| irgendein Gewinn je Schein | 1 : 23,3 | 1 : 31,4 |
 
-Formel: P(k Richtige) = C(4,k) · C(N−4, 4−k) / C(N,4). Ein Test vergleicht die exakte Rechnung
-mit 200.000 Monte-Carlo-Ziehungen.
+**Neon Lotto – 4 aus 40.** P(k Richtige) = C(4,k) · C(36, 4−k) / C(40,4).
+
+| Klasse | Gewinn | günstige Fälle | Chance je Schein | Anteil am RTP |
+|---|---|---|---|---|
+| 4 Richtige | 150.000 C | 1 | 1 : 91.390 | 3,28 % |
+| 3 Richtige | 7.500 C | 144 | 1 : 634,7 | 23,63 % |
+| 2 Richtige | 350 C | 3.780 | 1 : 24,2 | 28,95 % |
+
+Der Hauptgewinn ist 19× seltener als in V1.2; kleine Treffer (2 Richtige = 7× Einsatz) kommen
+etwa bei jedem 24. Schein.
+
+**Großes Neon Lotto – 6 aus 49 + Neonzahl.** Erst werden sechs Zahlen aus 1–49 gezogen, danach
+separat die Neonzahl (0–9, unabhängig). P(k Richtige) = C(6,k) · C(43, 6−k) / C(49,6); Neonzahl
+richtig mit 1/10. Gewinnklassen wie beim echten Lotto, gezählt von 139.838.160 gleich
+wahrscheinlichen Scheinen:
+
+| Klasse | Gewinn | günstige Fälle | Chance je Schein | Anteil am RTP |
+|---|---|---|---|---|
+| 6 Richtige + Neonzahl | 10.000.000 C | 1 | **1 : 139.838.160** | 0,07 % |
+| 6 Richtige | 1.000.000 C | 9 | 1 : 15.537.573 | 0,06 % |
+| 5 Richtige + Neonzahl | 300.000 C | 258 | 1 : 542.008 | 0,55 % |
+| 5 Richtige | 75.000 C | 2.322 | 1 : 60.223 | 1,25 % |
+| 4 Richtige + Neonzahl | 20.000 C | 13.545 | 1 : 10.324 | 1,94 % |
+| 4 Richtige | 5.000 C | 121.905 | 1 : 1.147 | 4,36 % |
+| 3 Richtige + Neonzahl | 4.000 C | 246.820 | 1 : 566,6 | 7,06 % |
+| 3 Richtige | 1.250 C | 2.221.380 | 1 : 63,0 | 19,86 % |
+| 2 Richtige + Neonzahl | 1.250 C | 1.851.150 | 1 : 75,5 | 16,55 % |
+
+„2 Richtige + Neonzahl“ ist etwas *seltener* als „3 Richtige“ und zahlt deshalb nicht weniger
+(ein Test prüft: seltenere Klasse ⇒ nie kleinerer Gewinn). Die UI liest Gewinne, Chancen und
+RTP direkt aus denselben Regeln (`RULES`, `pClass`, `rtpOf`) – es gibt keine zweite Tabelle.
+Tests: exakte Fallzahlen jeder Klasse, Summe der Wahrscheinlichkeiten = 1, RTP aus Fallzahlen,
+Monte-Carlo (300.000 Ziehungen je Lotto) gegen die Klassenhäufigkeiten, Neonzahl gleichverteilt.
+
+**Wie spektakulär darf der Hauptgewinn sein?** 10 Millionen Credits sind ≈ 700-mal alles, was
+es zu kaufen gibt (Jukebox + alle Songs = 14.000 C) – ein echtes Lebensereignis im Palast. Für
+die Wirtschaft ist er trotzdem bedeutungslos: Er trägt 0,07 C je Schein zum Erwartungswert bei,
+und selbst mit 20 Scheinen bei jeder Ziehung (alle 3 Tage) liegt die erwartete Wartezeit bei
+≈ 57.000 Jahren. Es gibt nichts Handelbares und keine Rangliste nach Guthaben, die ein
+Gewinner verzerren könnte; `MAX_BALANCE` (999.999.999) fasst ihn. Die Wahrscheinlichkeit wird
+nicht „verbessert“, um ihn erreichbarer wirken zu lassen.
 
 **Effekt von 1–20 Scheinen** (verschiedene Scheine): Die Gewinnchance wächst etwa linear, der
-Erwartungswert bleibt pro Schein gleich negativ. Mit 20 Scheinen: mindestens 3 Richtige in
-≈ 24 % (täglich) bzw. ≈ 14 % (groß) der Ziehungen; Höchstgewinn 1 : 242 bzw. 1 : 531 Ziehungen.
-Erwarteter Verlust bei 20 Scheinen: ≈ 397 C (täglich) bzw. ≈ 850 C (groß) pro Ziehung.
+Erwartungswert bleibt pro Schein gleich negativ. Mit 20 Scheinen: irgendein Gewinn in ≈ 58 %
+(täglich) bzw. ≈ 48 % (groß) der Ziehungen; Hauptgewinn 1 : 4.570 Ziehungen (≈ 12½ Jahre
+täglich) bzw. 1 : 6,99 Mio. Ziehungen. Erwarteter Verlust bei 20 Scheinen: ≈ 441 C (täglich)
+bzw. ≈ 966 C (groß) pro Ziehung.
 
-**Coin-Sink:** Lotto ist bewusst ein Ausgabeposten mit Unterhaltungswert (RTP ≈ 58–60 %).
-Maximal fließen so ≈ 400 + 283 = ≈ 680 C pro Tag ab (alle Scheine ausgereizt).
+**Coin-Sink:** Lotto ist bewusst ein Ausgabeposten mit Unterhaltungswert (RTP ≈ 52–56 %).
+Maximal fließen so ≈ 441 + 966/3 = ≈ 760 C pro Tag ab (alle Scheine ausgereizt).
 
-**Ausnahme vom Einzelgewinn-Deckel:** Der Höchstgewinn des Großen Lottos (120.000 C) liegt über
-`MAX_SINGLE_WIN` (60.000). Das ist bewusst die eine Stelle für einen „lebensverändernden“ Treffer:
-höchstens 20 Scheine alle 3 Tage, 1 : 10.626 je Schein – selbst mit Maximaleinsatz statistisch
-etwa einmal in vier Jahren.
+**Ausnahme vom Einzelgewinn-Deckel:** Die oberen Klassen (ab 75.000 C, täglich 150.000 C)
+liegen über `MAX_SINGLE_WIN` (60.000). Das ist bewusst die eine Stelle für einen
+„lebensverändernden“ Treffer – möglich, aber so selten wie bei einem echten Lotto.
+
+**Regelwerke und alte Spielstände (V1.2 → V1.2.1):** Jeder Schein und jede ausgeloste Ziehung
+trägt die Version ihres Regelwerks (`r`). V1.2-Daten haben keine und gelten als Regelwerk 1
+(4 aus 20 / 4 aus 24, alter Gewinnplan). Bereits ausgeloste Ziehungen bleiben unverändert –
+gleiche Zahlen, gleicher Gewinn, gleicher Einforder-Status. Noch nicht ausgeloste alte Scheine
+werden **einmal vollständig erstattet** (Einsatz zurückgebucht, nicht als Gewinn gezählt,
+Hinweis im Posteingang), statt sie unter neuen Quoten zu ziehen oder neu zu würfeln.
 
 **Ehrlichkeit:** Jede Ziehung hat eine stabile id (`daily-2026-10-06`). Das Ergebnis wird beim
 ersten Erreichen des Termins einmal mit crypto-Zufall erzeugt und sofort gespeichert; die
@@ -311,15 +401,20 @@ Nachschub) und Senken (Hausvorteil, Skill-Startgebühren, Lotto exakt ausgelost,
 
 | Spielertyp | Guthaben (Median) | P10 – P90 | Level | Jukebox ab Tag | Songs (von 6) |
 |---|---|---|---|---|---|
-| Gelegenheitsspieler (kauft nichts) | 9.582 | 7.787 – 10.965 | 7 | – | – |
-| Normaler Spieler | 2.872 | 1.921 – 5.268 | 15 | 37 | 2 |
-| Guter Skill-Spieler | 21.205 | – | 14 | 12 | 6 (Tag 31) |
-| Elite-Skill (Worst Case, σ 10 ms) | 315.100 | – | 20 | – | – |
-| High Roller | 2.505 | 1.956 – 5.821 | 9 | 55 | 0 |
-| Challenge-Farmer | 38.002 | – | 10 | – | – |
-| Lotto-Spieler (20 + 20 Scheine) | 2.490 | 1.715 – 9.815 | 7 | – | – |
-| Sammler (Jukebox) | 16.810 | 14.082 – 18.195 | 12 | 13 | 6 (Tag 29) |
-| Gemischter Spieler | 4.643 | 2.436 – 5.888 | 13 | – | – |
+| Gelegenheitsspieler (kauft nichts) | 8.891 | 7.118 – 10.255 | 6 | – | – |
+| Normaler Spieler | 2.926 | 2.066 – 4.319 | 15 | 45 | 2 |
+| Guter Skill-Spieler | 25.992 | – | 14 | 11 | 6 (Tag 28) |
+| Elite-Skill (Worst Case, σ 10 ms) | 383.417 | – | 20 | – | – |
+| High Roller | 1.941 | 1.440 – 2.461 | 8 | 19 | 1 |
+| Challenge-Farmer | 37.707 | – | 10 | – | – |
+| Lotto-Spieler (20 + 20 Scheine) | 2.140 | 1.390 – 7.440 | 7 | – | – |
+| Sammler (Jukebox) | 15.853 | 14.305 – 20.907 | 12 | 11 | 6 (Tag 28) |
+| Gemischter Spieler | 2.948 | 2.217 – 5.023 | 12 | – | – |
+
+V1.2.1 gegenüber V1.2: Lotto zahlt im Mittel etwas weniger zurück (52–56 % statt 57–60 %), die
+Lichtwirbel-Kurve ist steiler. Gute Skill-Spieler und Sammler kommen dadurch ein bis zwei Tage
+früher zu Jukebox und Bibliothek; der bewusst extreme Elite-Worst-Case (300 Lichtwirbel-Runden
+täglich auf σ 10 ms) steigt von ≈ 315.000 auf ≈ 383.000.
 
 Lesart:
 * Wer viel und hoch zockt, pendelt um ein Niveau – die Boni gleichen den Hausvorteil grob aus.
@@ -329,7 +424,7 @@ Lesart:
   Zeitbelohnung, kein Exploit. Er würde die Jukebox nach ≈ 10 Tagen erreichen.
 * Elite-Timing bleibt der einzige stark positive Pfad; er setzt dauerhaft maschinennahe
   Präzision voraus und ist als Grenze dokumentiert (siehe Abschnitt 5).
-* Lotto-Dauerspieler verlieren planmäßig ≈ 40 % ihres Lotto-Einsatzes.
+* Lotto-Dauerspieler verlieren planmäßig ≈ 45 % ihres Lotto-Einsatzes.
 
 ## 10. Gewinnstufen (`js/core/wintier.js`)
 
