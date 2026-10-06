@@ -532,3 +532,20 @@
 .reduce-motion .ticker-track {
   animation: none !important;
 }
+
+.plinko-ball {
+  animation: plinko-ball 2.4s cubic-bezier(0.4, 0, 0.8, 1) infinite;
+}
+
+@keyframes plinko-ball {
+  0% { transform: translate(0, 0); opacity: 0; }
+  5% { opacity: 1; }
+  20% { transform: translate(-6px, 22px); }
+  35% { transform: translate(0, 44px); }
+  50% { transform: translate(6px, 66px); }
+  65% { transform: translate(0, 82px); }
+  85% { transform: translate(-6px, 98px); opacity: 1; }
+  100% { transform: translate(-6px, 100px); opacity: 0; }
+}
+
+.reduce-motion .plinko-ball { animation: none !important; }

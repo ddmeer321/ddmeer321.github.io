@@ -130,3 +130,40 @@
   .prize-table { grid-template-columns: repeat(4, auto); font-size: 12px; }
   .arcade-hint { bottom: 6px; }
 }
+
+/* ---------- Plinko ---------- */
+
+.plinko-history {
+  position: absolute;
+  z-index: 4;
+  top: 70px;
+  right: calc(8px + var(--safe-right));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.ph-chip {
+  min-width: 46px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-dim);
+  animation: pop-in 240ms var(--ease-spring) both;
+}
+
+.ph-chip.tier-small { color: var(--cyan); border-color: rgba(45, 226, 230, 0.5); }
+.ph-chip.tier-good { color: var(--gold); border-color: rgba(255, 197, 61, 0.6); }
+.ph-chip.tier-big,
+.ph-chip.tier-mega { color: #2b1700; background: var(--gold); border-color: #fff3c4; }
+.ph-chip.tier-jackpot { color: #fff; background: var(--pink); border-color: #fff; box-shadow: 0 0 14px var(--pink); }
+
+.plinko-stage .arcade-hud {
+  left: calc(10px + var(--safe-left));
+  transform: none;
+}

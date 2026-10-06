@@ -13,7 +13,7 @@ export const LIMITS = {
   "slots-fruit": { min: 5, max: 250, steps: [5, 10, 25, 50, 100, 250] },
   "slots-seven": { min: 5, max: 50, steps: [5, 10, 20, 30, 50] },
   "slots-cosmo": { min: 10, max: 200, steps: [10, 20, 50, 100, 200] },
-  plinko: { min: 1, max: 100, steps: [1, 2, 5, 10, 20, 50, 100] },
+  plinko: { min: 5, max: 100, steps: [5, 10, 20, 50, 100] },
   horses: { min: 10, max: 500, steps: [10, 20, 50, 100, 200, 500] },
   grabber: { min: 20, max: 100, steps: [20, 50, 100] },
   coinpusher: { coin: 10 },

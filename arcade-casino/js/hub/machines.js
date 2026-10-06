@@ -367,7 +367,36 @@ export function cycloneArt(id) {
 </svg>`;
 }
 
+export function plinkoArt(id) {
+  const pins = [];
+  for (let r = 0; r < 7; r++) {
+    for (let i = 0; i < r + 3; i++) {
+      const x = 65 + (i - (r + 2) / 2) * 12;
+      const y = 50 + r * 12;
+      pins.push(`<circle cx="${x}" cy="${y}" r="1.8" fill="#e2d1ff"/>`);
+    }
+  }
+  const slots = ["#ff3d9a", "#ff8a3d", "#ffc53d", "#2de2e6", "#5b4a8a", "#2de2e6", "#ffc53d", "#ff8a3d", "#ff3d9a"]
+    .map((c, i) => `<rect x="${65 - 54 + i * 12}" y="136" width="10.5" height="12" rx="2" fill="${c}"/>`)
+    .join("");
+  return `<svg viewBox="0 0 130 210" aria-hidden="true">
+  <defs><linearGradient id="${id}-body" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5b0b3a"/><stop offset=".5" stop-color="#ff3d9a"/><stop offset="1" stop-color="#5b0b3a"/></linearGradient>
+  <linearGradient id="${id}-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14072a"/><stop offset="1" stop-color="#2a0f3a"/></linearGradient></defs>
+  <rect x="10" y="2" width="110" height="26" rx="8" fill="#0b0614" stroke="#ff3d9a" stroke-width="2"/>
+  <text x="65" y="20" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="12" fill="#fff" style="filter:drop-shadow(0 0 3px #ff3d9a)">PLINKO</text>
+  <rect x="6" y="32" width="118" height="174" rx="10" fill="url(#${id}-body)" stroke="#ffd1ea" stroke-width="2"/>
+  <rect x="12" y="38" width="106" height="114" rx="6" fill="url(#${id}-glass)"/>
+  ${pins.join("")}
+  ${slots}
+  <g class="plinko-ball"><circle cx="65" cy="40" r="4" fill="#fff" style="filter:drop-shadow(0 0 3px #ff3d9a)"/></g>
+  <rect x="30" y="162" width="70" height="14" rx="3" fill="#0b0614" opacity=".6"/>
+  <text x="65" y="172" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7.5" fill="#ffd1ea" class="blink">BIS ×200</text>
+  <circle cx="65" cy="191" r="10" fill="#ff3d9a" stroke="#fff" stroke-width="2"/>
+</svg>`;
+}
+
 export const ART = {
+  plinko: plinkoArt,
   slotFruit: slotFruitArt,
   slotSeven: slotSevenArt,
   slotCosmo: slotCosmoArt,
