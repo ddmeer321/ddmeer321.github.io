@@ -63,7 +63,7 @@ export default {
         ctx.save();
       },
     });
-    const dropBtn = h("button.btn.btn-primary.btn-lg", { type: "button", "aria-keyshortcuts": "Space" }, "Kugel");
+    const dropBtn = h("button.btn.btn-primary.btn-lg.touch-hold", { type: "button", "aria-keyshortcuts": "Space" }, "Kugel");
     const multiBtn = h("button.btn.btn-gold", { type: "button" }, `×${MULTI_COUNT}`);
     controls.append(h("div.ctrl-group", {}, riskSeg), h("div.ctrl-group", {}, betCtl.el, dropBtn, multiBtn));
     root.append(stage, controls);

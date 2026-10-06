@@ -27,18 +27,22 @@ export const ZONES = [
 export const POINTS = ZONES.map((z) => z[1]); // [5, 3, 1]
 export const MAX_POINTS = STAGES * POINTS[0];
 
-/** Preistabelle: [Mindestpunkte, Vielfaches der Startgebühr]. Höchster Treffer zuerst. */
+/**
+ * Preistabelle: [Mindestpunkte, Vielfaches der Startgebühr]. Höchster Treffer zuerst.
+ * V1.2.1: steilere Kurve bei unveränderter Schwierigkeit – schwaches Spiel verliert
+ * klar, 17 Punkte sind Break-even, ab 19 gibt es spürbare Gewinne, 23 ist groß,
+ * 25 (perfekt) der Jackpot. Simulation je Timing-Genauigkeit: sim/cyclone.mjs.
+ */
 export const PRIZES = [
   [25, 8],
-  [23, 2],
-  [21, 1.35],
-  [19, 1.1],
-  [17, 0.9],
-  [15, 0.8],
+  [23, 2.5],
+  [21, 1.5],
+  [19, 1.2],
+  [17, 1],
+  [15, 0.85],
   [13, 0.65],
-  [11, 0.5],
-  [9, 0.3],
-  [7, 0.2],
+  [11, 0.4],
+  [9, 0.15],
 ];
 
 export function lapFor(stage, streak = 0) {
