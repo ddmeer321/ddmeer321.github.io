@@ -5,11 +5,19 @@
 export const COLS = 7;
 export const ROWS = 12;
 export const MINOR_ROW = 8; // nach dieser Reihe: Zwischenpreis oder weiterspielen
-export const MAX_WIDTH = [3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1];
+// V1.1: ab Reihe 8 nur noch ein Block (V1.0: ab Reihe 10)
+export const MAX_WIDTH = [3, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1];
+
+// V1.1: Preise gesenkt und Tempo oben erhöht (V1.0: 50 / 300 bei 20 Einsatz →
+// gute Spieler 6–15× RTP). Durchrechnung je Timing-Genauigkeit: sim/stacker.mjs.
+export const ENTRY = 20;
+export const MINOR = 24; // 1,2× – Zwischenpreis nach Reihe MINOR_ROW
+export const MAJOR = 60; // 3× – Jackpot in Reihe ROWS
+export const TOP_STEP_MS = 24; // letzte beiden Reihen (≈ 1,5 Bilder bei 60 Hz – sichtbar, aber knapp)
 
 /** Millisekunden pro Zellschritt in Reihe r (0 = unten). */
 export function stepMs(r) {
-  return Math.max(55, 190 - r * 12);
+  return r >= ROWS - 2 ? TOP_STEP_MS : Math.max(26, 125 - r * 10);
 }
 
 export function createGame() {

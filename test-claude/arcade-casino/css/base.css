@@ -103,6 +103,22 @@ button {
   flex: 1 1 auto;
 }
 
+/* Die Knoepfe in der Kopfzeile geben NIE Platz ab. Ohne das hier schrumpft der
+   Zurueck-Knopf auf seine min-width (36 px), waehrend seine Schrift nowrap
+   bleibt und aus dem Kasten herausragt: man sieht "‹ HALLE", aber nur die
+   mittleren 36 px sind der Knopf -- genau deshalb liess er sich am Telefon nur
+   auf dem Pfeil treffen. Schrumpfen darf allein der Titel, der hat dafuer sein
+   text-overflow: ellipsis. */
+.hud-left > .btn {
+  flex: 0 0 auto;
+}
+
+/* 44 px ist das Mindestmass fuer einen Finger (iOS). .btn-sm setzt 36 px; in
+   der Kopfzeile ist das zu wenig, hier sitzt der einzige Weg zurueck. */
+.hud-left > .btn-sm {
+  min-height: 44px;
+}
+
 .hud-right {
   display: flex;
   align-items: center;
@@ -236,4 +252,31 @@ button {
 
 @media (max-width: 420px) {
   .brand-text { display: none; }
+}
+
+@media (max-width: 420px) {
+  .hud-title { display: none; }
+}
+
+/* V1.1: mit dem Spielkontroll-Knopf sind es vier Knoepfe in der Kopfzeile.
+   Auf Telefonen reicht der Platz dann nicht mehr fuer das Wort "Halle" -- und
+   da der Knopf hier nichts mehr abgibt (siehe .hud-left > .btn), wuerde die
+   Zeile sonst ueberlaufen. Also nur der Pfeil, aber volle 44x44. */
+@media (max-width: 599px) {
+  .hud-back-label { display: none; }
+  .hud-back { min-width: 44px; width: 44px; padding: 0; font-size: 20px; }
+}
+
+/* Ganz schmale Geraete (320 px): sechs Elemente passen nicht in die Zeile.
+   Schmalere Raender, und die Level-Pille weicht -- sie zeigt nur an, die
+   Zahl steht auch in der Statistik. Alles, was etwas tut, bleibt. */
+@media (max-width: 374px) {
+  .hud {
+    padding-left: calc(var(--s2) + var(--safe-left));
+    padding-right: calc(var(--s2) + var(--safe-right));
+  }
+
+  #hud-level {
+    display: none;
+  }
 }

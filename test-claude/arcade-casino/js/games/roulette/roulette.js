@@ -3,7 +3,8 @@
 import { h, clear } from "../../ui/dom.js";
 import { createStage, createLoop } from "../../render/stage.js";
 import { WHEEL_ORDER, colorOf } from "./wheel.js";
-import { payoutFor, totalBet, spinNumber, LABELS, betType } from "./logic.js";
+import { payoutFor, totalBet, spinNumber, LABELS, betType, isValidKey } from "./logic.js";
+import { LIMITS } from "../../core/limits.js";
 
 const CHIPS = [
   { v: 5, c: "#8a7bb0" },
@@ -12,14 +13,30 @@ const CHIPS = [
   { v: 100, c: "#ff3d9a" },
   { v: 500, c: "#ffc53d" },
 ];
-const MIN_TOTAL = 5;
-const MAX_TOTAL = 2000;
+const MIN_TOTAL = LIMITS.roulette.min;
+const MAX_TOTAL = LIMITS.roulette.max;
+const MAX_STRAIGHT = LIMITS.roulette.maxStraight; // Höchsteinsatz je Einzelzahl (35 : 1)
 const STEP = (Math.PI * 2) / 37;
 
 function chipColor(amount) {
   let c = CHIPS[0].c;
   for (const ch of CHIPS) if (amount >= ch.v) c = ch.c;
   return c;
+}
+
+/** Gespeicherte „Wie zuvor“-Wetten prüfen (V1.0-Stände kennen das Einzelzahl-Limit noch nicht). */
+function sanitizeBets(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const out = {};
+  let total = 0;
+  for (const [key, v] of Object.entries(raw)) {
+    if (!isValidKey(key) || !Number.isSafeInteger(v) || v <= 0) continue;
+    const amount = betType(key) === "n" ? Math.min(v, MAX_STRAIGHT) : v;
+    if (total + amount > MAX_TOTAL) break;
+    out[key] = amount;
+    total += amount;
+  }
+  return Object.keys(out).length ? out : null;
 }
 
 function shortAmount(n) {
@@ -33,9 +50,10 @@ export default {
     let dead = false;
     let bets = {};
     let undo = [];
-    let lastBets = data.lastBets && typeof data.lastBets === "object" ? data.lastBets : null;
+    let lastBets = sanitizeBets(data.lastBets);
     let chip = CHIPS.some((c) => c.v === data.chip) ? data.chip : 10;
     let phase = "bet"; // bet | spin | result
+    ctx.setPhase(phase);
     let ticket = null;
     let result = null;
     let history = Array.isArray(data.history) ? data.history.filter((n) => Number.isInteger(n) && n >= 0 && n <= 36).slice(0, 12) : [];
@@ -166,6 +184,7 @@ export default {
     function startNewRoundIfResult() {
       if (phase === "result") {
         phase = "bet";
+        ctx.setPhase(phase);
         bets = {};
         undo = [];
         cells.forEach((el) => el.classList.remove("is-win"));
@@ -186,6 +205,11 @@ export default {
         play("ui.error");
         haptic("impulse");
         ctx.toast("Nicht genug Credits für diesen Chip", { icon: "⚠️", tone: "red" });
+        return;
+      }
+      if (betType(key) === "n" && (bets[key] || 0) + chip > MAX_STRAIGHT) {
+        play("ui.error");
+        ctx.toast(`Limit: höchstens ${MAX_STRAIGHT} je Einzelzahl`, { icon: "⚠️", tone: "red" });
         return;
       }
       bets[key] = (bets[key] || 0) + chip;
@@ -490,6 +514,7 @@ export default {
       data.lastBets = lastBets;
       ctx.save();
       phase = "spin";
+      ctx.setPhase(phase);
       renderBets();
       spinBtn.textContent = "Rien ne va plus";
       play("roulette.launch");
@@ -524,6 +549,7 @@ export default {
       economy.settle(ticket, total);
       ticket = null;
       phase = "result";
+      ctx.setPhase(phase);
       history.unshift(n);
       history = history.slice(0, 12);
       data.history = history;
@@ -545,26 +571,29 @@ export default {
       const net = total - stake;
       const r = wheelBox.getBoundingClientRect();
       if (winners.some((w) => betType(w.key) === "n")) ctx.progression.award("roulette-straight");
-      if (net > 0) {
-        const big = net >= stake * 5;
-        play(big ? "win.big" : "win.medium");
-        haptic(big ? "big" : "success");
-        particles.coinsToBalance(r.left + r.width / 2, r.top + r.height / 2, Math.min(18, 4 + Math.round(net / 25)));
-        if (big) particles.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: "confetti", count: 60, spread: 2 });
-        ctx.banner({ title: `${n} ${colorName(n)}`, sub: ctx.signed(net) });
-      } else if (total > 0) {
-        play("push");
-        ctx.banner({ title: `${n} ${colorName(n)}`, sub: `zurück: ${ctx.fmt(total)}`, tone: "push" });
-      } else {
-        play("lose");
-        haptic("tap");
-        ctx.banner({ title: `${n} ${colorName(n)}`, sub: ctx.signed(net), tone: "lose", ms: 1400 });
-      }
+      if (net > 0) ctx.report("roulette:win", { number: n, types: [...new Set(winners.map((w) => betType(w.key)))] });
+      ctx.celebrate({
+        stake,
+        payout: total,
+        x: r.left + r.width / 2,
+        y: r.top + r.height / 2,
+        title: `${n} ${colorName(n)}`,
+        detail: net > 0 && winners.length === 1 ? `${LABEL_FOR(winners[0].key)}` : undefined,
+      });
       // Gewonnene Einsätze bleiben sichtbar; ab dem nächsten Chip beginnt eine neue Runde
       for (const k of Object.keys(bets)) if (!winKeys.has(k)) delete bets[k];
       undo = [];
       renderBets();
       for (const k of winKeys) cells.get(k)?.classList.add("is-win");
+    }
+
+    function LABEL_FOR(key) {
+      const t = betType(key);
+      const v = key.split(":")[1];
+      if (t === "n") return `Zahl ${v} · 35 : 1`;
+      if (t === "dozen") return `${v}. Dutzend · 2 : 1`;
+      if (t === "col") return `${v}. Kolonne · 2 : 1`;
+      return `${LABELS[t] || t} · 1 : 1`;
     }
 
     function colorName(n) {
@@ -598,7 +627,7 @@ export default {
               ["1–18 / 19–36", "1 : 1"],
             ].map(([a, b]) => h("tr", {}, h("td", {}, a), h("td", {}, b))))
           ),
-          h("p", {}, `Europäisches Rad mit 37 Feldern (eine Null). Fällt die 0, verlieren alle Außenwetten. Jede Zahl hat dieselbe Wahrscheinlichkeit von 1/37. Einsatz pro Runde ${MIN_TOTAL}–${ctx.fmt(MAX_TOTAL)} Credits.`)
+          h("p", {}, `Europäisches Rad mit 37 Feldern (eine Null). Fällt die 0, verlieren alle Außenwetten. Jede Zahl hat dieselbe Wahrscheinlichkeit von 1/37. Einsatz pro Runde ${MIN_TOTAL}–${ctx.fmt(MAX_TOTAL)} Credits, höchstens ${MAX_STRAIGHT} je Einzelzahl.`)
         ),
         actions: [{ label: "Verstanden", cls: "btn-primary" }],
       })

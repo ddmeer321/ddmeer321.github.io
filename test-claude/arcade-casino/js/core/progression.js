@@ -22,6 +22,13 @@ export const ACHIEVEMENTS = [
   { id: "explorer", icon: "🗺️", title: "Entdecker", desc: "Spiele jedes Spiel der Halle mindestens einmal." },
   { id: "level-5", icon: "⭐", title: "Stammgast", desc: "Erreiche Level 5." },
   { id: "level-10", icon: "👑", title: "VIP", desc: "Erreiche Level 10." },
+  { id: "plinko-big", icon: "🔻", title: "Freier Fall", desc: "Triff in Plinko ein Fach mit ×10 oder mehr." },
+  { id: "plinko-jackpot", icon: "💥", title: "Ganz unten, ganz oben", desc: "Triff das höchste Plinko-Fach auf Risiko Hoch." },
+  { id: "grabber-5", icon: "🦾", title: "Volle Kralle", desc: "Hole mit einem Griff 5 Münzen aus dem Münzgreifer." },
+  { id: "horses-underdog", icon: "🐎", title: "Außenseiter-Riecher", desc: "Gewinne ein Pferderennen mit Quote 8,0 oder höher." },
+  { id: "pusher-chain", icon: "⛓️", title: "Kettenreaktion", desc: "Schiebe mit einem einzigen Schub 5 Münzen über die Kante." },
+  { id: "challenges-all", icon: "📅", title: "Tagwerk", desc: "Schließe alle drei Tages-Challenges ab." },
+  { id: "break-taken", icon: "☕", title: "Gesunde Pause", desc: "Lege freiwillig eine Spielpause ein." },
 ];
 
 export const THEME_UNLOCKS = [
@@ -49,13 +56,18 @@ export function levelInfo(totalXp) {
   return { level, into: rest, need, progress: Math.min(1, rest / need) };
 }
 
-/** XP für eine abgerechnete Runde (Grundwert + Anteil am Einsatz, gedeckelt). */
+/**
+ * XP für eine abgerechnete Runde. V1.1: nur schwach an die Einsatzhöhe
+ * gekoppelt (max. 10 XP), damit hohe Einsätze kein „Level-Rabatt-Farming“
+ * ermöglichen (siehe docs/ECONOMY.md).
+ */
 export function xpForRound(stake) {
-  return 4 + Math.min(60, Math.floor(stake / 10));
+  return 2 + Math.min(8, Math.floor(Math.max(0, stake) / 50));
 }
 
+/** Level-Bonus in Credits (V1.1: 50 × Level, höchstens 1.000). */
 export function levelReward(level) {
-  return 100 * level;
+  return Math.min(1000, 50 * level);
 }
 
 export function createProgression({ getState, save, emit }) {

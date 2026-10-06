@@ -4,9 +4,10 @@
 import { h, clear } from "../../ui/dom.js";
 import { createBetControl } from "../../ui/betControl.js";
 import { createShoe, createRound, handValue } from "./logic.js";
+import { LIMITS as ALL_LIMITS } from "../../core/limits.js";
 
-const BET_STEPS = [10, 20, 30, 50, 80, 100, 150, 200, 300, 400, 500];
-const LIMITS = { min: 10, max: 500 };
+const BET_STEPS = ALL_LIMITS.blackjack.steps;
+const LIMITS = { min: ALL_LIMITS.blackjack.min, max: ALL_LIMITS.blackjack.max };
 const RESULT_TEXT = { win: "Gewonnen", blackjack: "Blackjack!", push: "Push", lose: "Verloren", bust: "Bust" };
 const CHIP_COLORS = ["#ff3d9a", "#2de2e6", "#ffc53d", "#8cff5a", "#9b5cff"];
 
@@ -43,6 +44,7 @@ export default {
     let dead = false;
     let busy = false;
     let phase = "bet"; // bet | play | dealer | result
+    ctx.setPhase(phase);
     let shoe = createShoe(6);
     let game = null;
     let ticket = null;
@@ -261,6 +263,7 @@ export default {
       flipHole = null;
       clear(dealerCards);
       phase = "play";
+      ctx.setPhase(phase);
       rebuildHands();
       showActions();
       setStatus("Karten werden ausgeteilt …");
@@ -339,6 +342,7 @@ export default {
 
     async function dealerTurn() {
       phase = "dealer";
+      ctx.setPhase(phase);
       busy = true;
       showActions();
       setStatus("Dealer ist am Zug …");
@@ -361,6 +365,7 @@ export default {
       const settled = economy.settle(ticket, res.total);
       ticket = null;
       phase = "result";
+      ctx.setPhase(phase);
       busy = false;
       updateTotals();
 
@@ -375,28 +380,26 @@ export default {
       if (anyBJ) ctx.progression.award("bj-natural");
       if (game.round.split && res.hands.every((r) => r.result === "win" || r.result === "blackjack")) ctx.progression.award("bj-split-win");
       if (game.round.hands.some((hd, i) => hd.doubled && res.hands[i].result === "win")) ctx.progression.award("bj-double-win");
+      game.round.hands.forEach((hd, i) => {
+        ctx.report("blackjack:hand", { result: res.hands[i].result, total: handValue(hd.cards).total, doubled: Boolean(hd.doubled) });
+      });
 
       const center = handsEl.getBoundingClientRect();
       const cx = center.left + center.width / 2;
       const cy = center.top + center.height / 3;
-      if (net > 0) {
-        play(anyBJ ? "win.big" : net >= stake ? "win.medium" : "win.small");
-        haptic(anyBJ ? "big" : "success");
-        particles.coinsToBalance(cx, cy, Math.min(18, 4 + Math.round(net / 20)));
-        if (anyBJ) particles.burst(cx, cy, { kind: "confetti", count: 60, spread: 1.6 });
-        ctx.banner({ title: anyBJ ? "Blackjack!" : "Gewonnen", sub: ctx.signed(net) });
-        setStatus(`Gewinn: ${ctx.signed(net)} Credits`);
-      } else if (net === 0) {
-        play("push");
-        haptic("tap");
-        ctx.banner({ title: "Push", sub: "Einsatz zurück", tone: "push" });
-        setStatus("Unentschieden – Einsatz zurück");
-      } else {
-        play("lose");
-        haptic("impulse");
-        ctx.banner({ title: "Verloren", sub: ctx.signed(net), tone: "lose", ms: 1300 });
-        setStatus(`Verlust: ${ctx.signed(net)} Credits`);
-      }
+      // Einheitliches Gewinn-Feedback relativ zum Gesamteinsatz (inkl. Double/Split)
+      const tier = ctx.celebrate({
+        stake,
+        payout: res.total,
+        x: cx,
+        y: cy,
+        title: net > 0 ? (anyBJ ? "Blackjack!" : "Gewonnen") : net === 0 ? "Push" : "Verloren",
+        detail: anyBJ ? "3 : 2" : undefined,
+      }).tier;
+      if (anyBJ && tier !== "loss") particles.burst(cx, cy, { kind: "confetti", count: 50, spread: 1.6 });
+      if (net > 0) setStatus(`Gewinn: ${ctx.signed(net)} Credits`);
+      else if (net === 0) setStatus("Unentschieden – Einsatz zurück");
+      else setStatus(`Verlust: ${ctx.signed(net)} Credits`);
       showBetBar();
     }
 

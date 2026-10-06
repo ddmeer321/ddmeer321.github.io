@@ -532,3 +532,42 @@
 .reduce-motion .ticker-track {
   animation: none !important;
 }
+
+.plinko-ball {
+  animation: plinko-ball 2.4s cubic-bezier(0.4, 0, 0.8, 1) infinite;
+}
+
+@keyframes plinko-ball {
+  0% { transform: translate(0, 0); opacity: 0; }
+  5% { opacity: 1; }
+  20% { transform: translate(-6px, 22px); }
+  35% { transform: translate(0, 44px); }
+  50% { transform: translate(6px, 66px); }
+  65% { transform: translate(0, 82px); }
+  85% { transform: translate(-6px, 98px); opacity: 1; }
+  100% { transform: translate(-6px, 100px); opacity: 0; }
+}
+
+.reduce-motion .plinko-ball { animation: none !important; }
+
+.claw-swing {
+  animation: claw-swing 4s ease-in-out infinite;
+}
+
+@keyframes claw-swing {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-34px); }
+}
+
+.reduce-motion .claw-swing { animation: none !important; }
+
+.derby-horse {
+  animation: derby 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes derby {
+  from { transform: translateX(-10px); }
+  to { transform: translateX(14px); }
+}
+
+.reduce-motion .derby-horse { animation: none !important; }

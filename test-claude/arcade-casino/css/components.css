@@ -419,8 +419,11 @@
 .modal h2 {
   margin: 0 0 var(--s4);
   padding-right: 44px;
-  font-size: clamp(1.25rem, 6vw, 1.75rem);
-  overflow-wrap: anywhere;
+  font-size: clamp(1.1rem, 5.4vw, 1.75rem);
+  /* lange deutsche Komposita („Spielkontrolle“) sauber trennen statt mitten im Wort umbrechen */
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .modal-close {
@@ -717,4 +720,286 @@
 .help-text td:last-child,
 .help-text th:last-child {
   text-align: right;
+}
+
+/* ---------- Gewinn-Stufen (V1.1) ---------- */
+
+.result-banner .rb-detail {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--cyan);
+}
+
+.result-banner.is-big {
+  border-width: 3px;
+  padding: 16px 32px;
+}
+
+.result-banner.is-big .rb-title {
+  font-size: clamp(1.8rem, 7vw, 2.6rem);
+  text-shadow: 0 0 10px var(--gold), 0 0 28px var(--gold);
+}
+
+.result-banner.is-big .rb-sub {
+  font-size: clamp(1.4rem, 5vw, 2rem);
+}
+
+.win-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  pointer-events: none;
+  animation: win-flash 0.8s ease-out both;
+}
+
+.flash-gold {
+  background: radial-gradient(circle at 50% 45%, rgba(255, 222, 89, 0.45), transparent 65%);
+}
+
+@keyframes win-flash {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.is-shaking {
+  animation: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate(-1px, 1px); }
+  20%, 80% { transform: translate(3px, -2px); }
+  30%, 50%, 70% { transform: translate(-5px, 2px); }
+  40%, 60% { transform: translate(5px, -1px); }
+}
+
+.jackpot-show {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  overflow: hidden;
+  text-align: center;
+  background: radial-gradient(circle at 50% 45%, rgba(20, 11, 36, 0.55), rgba(5, 3, 12, 0.88));
+  animation: fade-in 0.2s linear both;
+  cursor: pointer;
+}
+
+.jackpot-show.is-leaving {
+  animation: fade-out 0.3s linear both;
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+.jp-wave {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  border: 6px solid var(--gold);
+  box-shadow: 0 0 40px var(--gold), inset 0 0 40px var(--gold);
+  animation: jp-wave 1.3s cubic-bezier(0.1, 0.7, 0.3, 1) 2 both;
+}
+
+.is-mega .jp-wave {
+  border-color: var(--pink);
+  box-shadow: 0 0 40px var(--pink), inset 0 0 40px var(--pink);
+  animation-iteration-count: 1;
+}
+
+@keyframes jp-wave {
+  from { transform: scale(0.2); opacity: 1; }
+  to { transform: scale(40); opacity: 0; }
+}
+
+.jp-title {
+  position: relative;
+  font-size: clamp(2.6rem, 13vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 6px #fff, 0 0 20px var(--gold), 0 0 50px var(--gold), 0 0 90px var(--orange);
+  animation: jp-pop 0.6s var(--ease-spring) both, jp-pulse 0.9s ease-in-out 0.6s infinite alternate;
+}
+
+.is-mega .jp-title {
+  font-size: clamp(2rem, 10vw, 4rem);
+  text-shadow: 0 0 6px #fff, 0 0 20px var(--pink), 0 0 50px var(--pink);
+}
+
+.jp-mult {
+  position: relative;
+  font-size: clamp(1.6rem, 8vw, 3rem);
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 16px var(--cyan);
+  animation: jp-pop 0.5s var(--ease-spring) 0.15s both;
+}
+
+.jp-amount {
+  position: relative;
+  font-size: clamp(1.8rem, 9vw, 3.4rem);
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 18px rgba(255, 197, 61, 0.8);
+}
+
+.jp-skip {
+  position: relative;
+  margin-top: 10px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ink-mute);
+}
+
+@keyframes jp-pop {
+  from { transform: scale(0.3); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes jp-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+
+.jackpot-show.is-reduced .jp-wave { display: none; }
+.jackpot-show.is-reduced .jp-title,
+.jackpot-show.is-reduced .jp-mult { animation: none; }
+
+/* ---------- Spielkontrolle (V1.1) ---------- */
+
+.control-status {
+  padding: var(--s3);
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(45, 226, 230, 0.4);
+  background: rgba(45, 226, 230, 0.08);
+  font-weight: 700;
+}
+
+.control-status.is-blocked {
+  border-color: rgba(255, 197, 61, 0.6);
+  background: rgba(255, 197, 61, 0.1);
+}
+
+.control-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin: var(--s2) 0 var(--s3);
+}
+
+.help-links {
+  margin: var(--s2) 0 0;
+  padding-left: 1.2em;
+}
+
+.help-links li {
+  margin: 4px 0;
+}
+
+.help-links a {
+  color: var(--cyan);
+}
+
+.lock-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  max-width: 720px;
+  margin: 0 auto var(--s4);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-md);
+  background: rgba(255, 197, 61, 0.1);
+  border: 1px solid rgba(255, 197, 61, 0.55);
+  font-weight: 700;
+}
+
+.hall.is-locked .machine {
+  filter: grayscale(0.85) brightness(0.6);
+}
+
+.challenge-list {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challenge {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r-sm);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--line);
+}
+
+.challenge.is-done {
+  border-color: rgba(140, 255, 90, 0.55);
+  background: rgba(140, 255, 90, 0.07);
+}
+
+.challenge .ch-ico {
+  font-size: 22px;
+}
+
+.challenge .ch-title {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+}
+
+.challenge .ch-bar {
+  height: 5px;
+  margin-top: 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.challenge .ch-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--lime));
+}
+
+.challenge .ch-state {
+  font-size: var(--fs-xs);
+  font-weight: 900;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+.challenge.is-done .ch-state {
+  color: var(--lime);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-shaking { animation: none; }
+}
+
+.reduce-motion .is-shaking { animation: none; }
+
+.result-banner {
+  max-width: calc(100% - 24px);
+  white-space: normal;
+}
+
+.result-banner.is-big .rb-title {
+  font-size: clamp(1.4rem, 6.5vw, 2.6rem);
+  line-height: 1.05;
 }

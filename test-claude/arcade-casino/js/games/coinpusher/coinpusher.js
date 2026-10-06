@@ -14,6 +14,7 @@ export default {
     const { economy, play, haptic, particles } = ctx;
     const data = ctx.data;
     let dead = false;
+    ctx.setPhase("play"); // Endlosautomat: immer bespielbar (für Tests/Zustandsanzeige)
 
     // ---------- Zustand ----------
     let world = P.deserialize(data.world, random);
@@ -171,8 +172,15 @@ export default {
         haptic("tick", 0.5);
       } else if (ev.kind === "shelfDrop") {
         play("coin.clink", { pan, vol: 0.5 });
+      } else if (ev.kind === "climb") {
+        play("coin.clink", { pan, vol: 0.25, pitch: 1.3 });
+      } else if (ev.kind === "topple") {
+        play("coin.land", { pan, vol: 0.45, pitch: 1.1 });
+        haptic("tick", 0.4);
       } else if (ev.kind === "win") {
         const val = P.COIN_TYPES[c.type].value * COIN_PRICE;
+        cycleWins++;
+        cycleValue += val;
         pendingCredit += val;
         session.out += val;
         outVal.textContent = ctx.fmt(session.out);
@@ -189,6 +197,10 @@ export default {
           play("win.small");
           haptic("success");
           particles.burst(r.left + p.x, r.top + p.y, { kind: "coins", count: 14 });
+        }
+        if (c.type === "mega") {
+          ctx.celebrate({ stake: COIN_PRICE, payout: val, x: r.left + p.x, y: r.top + p.y, detail: "Mega-Münze", banner: true });
+          shake = 0.3;
         }
         if (c.type === "star") {
           freeDrops += P.COIN_TYPES.star.bonus;
@@ -215,6 +227,30 @@ export default {
       }
     }
 
+    // Kettenreaktionen: Münzen, die innerhalb eines Schieber-Zyklus fallen
+    let cycleWins = 0;
+    let cycleValue = 0;
+    let rising = false;
+    let lastPy = world.py;
+    function checkCycle() {
+      const nowRising = world.py > lastPy;
+      if (nowRising && !rising) {
+        if (cycleWins >= 3) {
+          const el = h("div.combo-flash", {}, `Kettenreaktion ×${cycleWins}`);
+          stage.append(el);
+          setTimeout(() => el.remove(), 900);
+          play(cycleWins >= 6 ? "win.medium" : "win.small", { vol: 0.8 });
+          haptic(cycleWins >= 6 ? "success" : "impulse");
+        }
+        if (cycleWins > 0) ctx.report("coinpusher:push", { coins: cycleWins, credits: cycleValue });
+        if (cycleWins >= 5) ctx.progression.award("pusher-chain");
+        cycleWins = 0;
+        cycleValue = 0;
+      }
+      rising = nowRising;
+      lastPy = world.py;
+    }
+
     let idleTime = 0;
     const loop = createLoop((dt) => {
       acc += dt;
@@ -224,6 +260,7 @@ export default {
         acc -= FIXED_DT;
         steps++;
         for (const ev of P.step(world, FIXED_DT)) handle(ev);
+        checkCycle();
       }
       if (steps === 6) acc = 0;
       hum.set({ gain: 0.006 + Math.min(0.02, Math.abs(world.py - pyBefore) * 0.02) });
@@ -274,12 +311,12 @@ export default {
     }
 
     // ---------- Zeichnen ----------
-    function coinShape(x, y, s, rx, type, alpha = 1, flip = 1) {
-      const ry = rx * 0.46 * flip;
+    function coinShape(x, y, s, rx, type, alpha = 1, flip = 1, rot = 0, tilt = 0) {
+      const ry = rx * 0.46 * flip * (1 - tilt * 0.45);
       g.globalAlpha = alpha;
-      const edge = type === "gold" ? "#a86b00" : type === "star" ? "#7a1e6b" : "#9a6a00";
-      const face = type === "gold" ? "#ffe066" : type === "star" ? "#ff7ad0" : "#f2b632";
-      const rim = type === "gold" ? "#fff6c8" : type === "star" ? "#ffd1f0" : "#ffe39a";
+      const edge = type === "gold" ? "#a86b00" : type === "star" ? "#7a1e6b" : type === "mega" ? "#3b1d80" : "#9a6a00";
+      const face = type === "gold" ? "#ffe066" : type === "star" ? "#ff7ad0" : type === "mega" ? "#9b5cff" : "#f2b632";
+      const rim = type === "gold" ? "#fff6c8" : type === "star" ? "#ffd1f0" : type === "mega" ? "#ffd84d" : "#ffe39a";
       g.fillStyle = edge;
       g.beginPath();
       g.ellipse(x, y + rx * 0.16, rx, Math.abs(ry), 0, 0, Math.PI * 2);
@@ -293,6 +330,22 @@ export default {
       g.beginPath();
       g.ellipse(x, y, rx * 0.66, Math.abs(ry) * 0.66, 0, 0, Math.PI * 2);
       g.stroke();
+      // Prägung dreht sich mit der Münze (sichtbare Bewegung/Rotation)
+      if (type === "normal" && rx > 4) {
+        g.strokeStyle = "rgba(154,106,0,.55)";
+        g.lineWidth = Math.max(1, rx * 0.09);
+        g.beginPath();
+        g.moveTo(x + Math.cos(rot) * rx * 0.42, y + Math.sin(rot) * Math.abs(ry) * 0.42);
+        g.lineTo(x - Math.cos(rot) * rx * 0.42, y - Math.sin(rot) * Math.abs(ry) * 0.42);
+        g.stroke();
+      }
+      if (type === "mega") {
+        g.fillStyle = "#ffd84d";
+        g.font = `900 ${rx * 0.6}px system-ui`;
+        g.textAlign = "center";
+        g.textBaseline = "middle";
+        g.fillText(String(P.COIN_TYPES.mega.value), x, y + 1);
+      }
       if (type === "star") {
         g.fillStyle = "#fff";
         g.font = `900 ${rx * 0.8}px system-ui`;
@@ -381,14 +434,35 @@ export default {
         g.lineTo(b.x, b.y - 22 * b.s);
         g.stroke();
         const c = proj(side * hw, P.LEN);
-        g.fillStyle = "rgba(0,0,0,.55)";
+        // Seitenrinne: dunkler Spalt mit Warnstreifen – hier fallen Münzen ins Leere
+        g.fillStyle = "rgba(0,0,0,.75)";
         g.beginPath();
         g.moveTo(b.x, b.y);
         g.lineTo(c.x, c.y);
-        g.lineTo(c.x + side * 14, c.y);
-        g.lineTo(b.x + side * 10, b.y);
+        g.lineTo(c.x + side * 16, c.y);
+        g.lineTo(b.x + side * 12, b.y);
         g.closePath();
         g.fill();
+        g.save();
+        g.clip();
+        g.strokeStyle = "rgba(255,90,90,.55)";
+        g.lineWidth = 3;
+        for (let k = -4; k < 14; k++) {
+          const yy = b.y + k * 8;
+          g.beginPath();
+          g.moveTo(b.x - 20, yy);
+          g.lineTo(b.x + 20, yy + side * 10);
+          g.stroke();
+        }
+        g.restore();
+        g.fillStyle = "rgba(255,90,90,.85)";
+        g.font = `900 ${Math.max(8, 9 * b.s)}px ui-rounded, system-ui, sans-serif`;
+        g.textAlign = "center";
+        g.save();
+        g.translate((b.x + c.x) / 2 + side * 3, (b.y + c.y) / 2);
+        g.rotate(side * Math.PI / 2);
+        g.fillText("RINNE", 0, 0);
+        g.restore();
       }
 
       // Schieber
@@ -419,13 +493,33 @@ export default {
       // Münzen: Regal, dann Feld (von hinten nach vorn)
       const shelf = world.coins.filter((c) => c.layer === 0).sort((a, b) => a.y - b.y);
       const field = world.coins.filter((c) => c.layer === 1).sort((a, b) => a.y - b.y);
+      const stackedCoins = world.coins.filter((c) => c.layer === 2).sort((a, b) => a.y - b.y);
       for (const c of shelf) {
         const p = proj(c.x, c.y, ph + c.z);
-        coinShape(p.x, p.y, p.s, P.R * L.ppu * p.s, c.type);
+        coinShape(p.x, p.y, p.s, c.r * L.ppu * p.s, c.type, 1, 1, c.rot);
       }
+      const now = performance.now() / 1000;
       for (const c of field) {
-        const p = proj(c.x, c.y, c.z);
-        coinShape(p.x, p.y, p.s, P.R * L.ppu * p.s, c.type);
+        const tt = P.teeter(c);
+        const wob = tt > 0 ? Math.sin(now * 18 + c.id) * tt * 1.5 : 0;
+        const p = proj(c.x, c.y, c.z - tt * 1.2);
+        if (tt > 0.3) {
+          g.fillStyle = `rgba(255,61,154,${tt * 0.35})`;
+          g.beginPath();
+          g.ellipse(p.x, p.y, c.r * L.ppu * p.s * 1.25, c.r * L.ppu * p.s * 0.6, 0, 0, Math.PI * 2);
+          g.fill();
+        }
+        coinShape(p.x + wob, p.y, p.s, c.r * L.ppu * p.s, c.type, 1, 1, c.rot, tt);
+      }
+      // Stapel: liegen erhöht auf anderen Münzen
+      for (const c of stackedCoins) {
+        const tt = P.teeter(c);
+        const p = proj(c.x, c.y, 2.4 - tt);
+        g.fillStyle = "rgba(0,0,0,.28)";
+        g.beginPath();
+        g.ellipse(p.x + 2, p.y + c.r * L.ppu * p.s * 0.55, c.r * L.ppu * p.s, c.r * L.ppu * p.s * 0.4, 0, 0, Math.PI * 2);
+        g.fill();
+        coinShape(p.x, p.y, p.s, c.r * L.ppu * p.s, c.type, 1, 1, c.rot, tt);
       }
 
       // Vorderkante
@@ -447,7 +541,7 @@ export default {
           x = sp.x + c.fall.side * t * 60;
           y = sp.y + 0.5 * 1200 * t * t;
         }
-        const rx = P.R * L.ppu * base.s;
+        const rx = c.r * L.ppu * base.s;
         coinShape(x, y, base.s, rx, c.type, Math.max(0, 1 - t / 0.9), Math.cos(t * 14));
       }
 
@@ -499,8 +593,10 @@ export default {
           h("p", {}, `Jede Münze kostet ${COIN_PRICE} Credits. Tippe auf die Position, an der die Münze einfallen soll – oder halte gedrückt, um mehrere Münzen nacheinander einzuwerfen. Am Computer: Pfeiltasten und Leertaste.`),
           h("p", {}, "Die Münze landet auf dem Schieber. Er fährt regelmäßig vor und zurück und schiebt die Münzen übers Feld. Was über die vordere Kante fällt, gehört dir. Vorne an den Seiten gibt es Rinnen – dort fallen Münzen ins Leere."),
           h("h3", {}, "Besondere Münzen"),
-          h("p", {}, `Goldmünze: zählt ${P.COIN_TYPES.gold.value}× (${P.COIN_TYPES.gold.value * COIN_PRICE} Credits). Sternmünze: löst einen Münzregen mit ${P.COIN_TYPES.star.bonus} Gratis-Münzen aus. Beim Einwurf ist etwa jede ${Math.round(1 / P.DROP_ODDS.gold)}. Münze aus Gold und jede ${Math.round(1 / P.DROP_ODDS.star)}. ein Stern.`),
-          h("p", {}, "Es gibt keine versteckte Steuerung: Was fällt, entscheidet allein die (vereinfachte) Physik. Langfristig fällt etwas weniger heraus, als hineinkommt – vor allem durch die Seitenrinnen. Das Feld wird gespeichert und bleibt beim nächsten Besuch so liegen.")
+          h("p", {}, `Goldmünze: zählt ${P.COIN_TYPES.gold.value}× (${P.COIN_TYPES.gold.value * COIN_PRICE} Credits). Sternmünze: löst einen Münzregen mit ${P.COIN_TYPES.star.bonus} Gratis-Münzen aus. Mega-Münze (groß, lila): zählt ${P.COIN_TYPES.mega.value}× und ist schwer – sie lässt sich weniger leicht verschieben. Beim Einwurf ist etwa jede ${Math.round(1 / P.DROP_ODDS.gold)}. Münze aus Gold, jede ${Math.round(1 / P.DROP_ODDS.star)}. ein Stern und jede ${Math.round(1 / P.DROP_ODDS.mega)}. eine Mega-Münze.`),
+          h("h3", {}, "Physik"),
+          h("p", {}, "Geschobene Münzen gleiten ein Stück nach und stoßen andere an – so entstehen Kettenreaktionen. Wird es eng, rutschen Münzen auf ihre Nachbarn und bilden kleine Stapel; verschwindet die Unterlage, fallen sie mit. Eine Münze fällt erst, wenn ihr Mittelpunkt die Kante überschreitet – bis dahin kann sie gefährlich weit überstehen (sie wackelt und leuchtet rosa)."),
+          h("p", {}, "Es gibt keine versteckte Steuerung: Was fällt, entscheidet allein die (vereinfachte) Physik. Langfristig fällt etwas weniger heraus, als hineinkommt – vor allem durch die rot markierten Seitenrinnen (Simulation: mittig eingeworfen ≈ 97 %, wahllos ≈ 92 %, an den Rand ≈ 80 %). Das Feld wird gespeichert und bleibt beim nächsten Besuch so liegen.")
         ),
         actions: [{ label: "Verstanden", cls: "btn-primary" }],
       })

@@ -367,7 +367,87 @@ export function cycloneArt(id) {
 </svg>`;
 }
 
+export function plinkoArt(id) {
+  const pins = [];
+  for (let r = 0; r < 7; r++) {
+    for (let i = 0; i < r + 3; i++) {
+      const x = 65 + (i - (r + 2) / 2) * 12;
+      const y = 50 + r * 12;
+      pins.push(`<circle cx="${x}" cy="${y}" r="1.8" fill="#e2d1ff"/>`);
+    }
+  }
+  const slots = ["#ff3d9a", "#ff8a3d", "#ffc53d", "#2de2e6", "#5b4a8a", "#2de2e6", "#ffc53d", "#ff8a3d", "#ff3d9a"]
+    .map((c, i) => `<rect x="${65 - 54 + i * 12}" y="136" width="10.5" height="12" rx="2" fill="${c}"/>`)
+    .join("");
+  return `<svg viewBox="0 0 130 210" aria-hidden="true">
+  <defs><linearGradient id="${id}-body" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5b0b3a"/><stop offset=".5" stop-color="#ff3d9a"/><stop offset="1" stop-color="#5b0b3a"/></linearGradient>
+  <linearGradient id="${id}-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14072a"/><stop offset="1" stop-color="#2a0f3a"/></linearGradient></defs>
+  <rect x="10" y="2" width="110" height="26" rx="8" fill="#0b0614" stroke="#ff3d9a" stroke-width="2"/>
+  <text x="65" y="20" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="12" fill="#fff" style="filter:drop-shadow(0 0 3px #ff3d9a)">PLINKO</text>
+  <rect x="6" y="32" width="118" height="174" rx="10" fill="url(#${id}-body)" stroke="#ffd1ea" stroke-width="2"/>
+  <rect x="12" y="38" width="106" height="114" rx="6" fill="url(#${id}-glass)"/>
+  ${pins.join("")}
+  ${slots}
+  <g class="plinko-ball"><circle cx="65" cy="40" r="4" fill="#fff" style="filter:drop-shadow(0 0 3px #ff3d9a)"/></g>
+  <rect x="30" y="162" width="70" height="14" rx="3" fill="#0b0614" opacity=".6"/>
+  <text x="65" y="172" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7.5" fill="#ffd1ea" class="blink">BIS ×200</text>
+  <circle cx="65" cy="191" r="10" fill="#ff3d9a" stroke="#fff" stroke-width="2"/>
+</svg>`;
+}
+
+export function grabberArt(id) {
+  const cols = ["#d9893b", "#cfd6e6", "#ffc53d", "#d9893b", "#9b5cff", "#d9893b", "#cfd6e6", "#2de2e6", "#d9893b"];
+  const pile = [];
+  for (let i = 0; i < 22; i++) {
+    const row = i < 9 ? 0 : i < 16 ? 1 : 2;
+    const k = i - (row === 0 ? 0 : row === 1 ? 9 : 16);
+    const x = 40 + k * 9.5 + row * 5;
+    const y = 138 - row * 8;
+    pile.push(`<circle cx="${x}" cy="${y}" r="4.6" fill="${cols[(i * 5) % cols.length]}" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>`);
+  }
+  return `<svg viewBox="0 0 130 210" aria-hidden="true">
+  <defs><linearGradient id="${id}-body" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b4b00"/><stop offset=".5" stop-color="#ffc53d"/><stop offset="1" stop-color="#6b4b00"/></linearGradient>
+  <linearGradient id="${id}-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#160c2e"/><stop offset="1" stop-color="#2a1550"/></linearGradient></defs>
+  <rect x="10" y="2" width="110" height="26" rx="8" fill="#0b0614" stroke="#ffc53d" stroke-width="2"/>
+  <text x="65" y="20" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="11" fill="#fff" style="filter:drop-shadow(0 0 3px #ffc53d)">MÜNZGREIFER</text>
+  <rect x="6" y="32" width="118" height="174" rx="10" fill="url(#${id}-body)" stroke="#fff3c4" stroke-width="2"/>
+  <rect x="12" y="38" width="106" height="110" rx="5" fill="url(#${id}-glass)"/>
+  <rect x="14" y="98" width="16" height="48" fill="rgba(255,197,61,.18)"/>
+  <rect x="30" y="94" width="3" height="52" fill="#5b4a8a"/>
+  ${pile.join("")}
+  <rect x="12" y="38" width="106" height="4" fill="#5b4a8a"/>
+  <g class="claw-swing"><path d="M75 40V78" stroke="#b7a8d6" stroke-width="1.4"/><rect x="69" y="76" width="12" height="6" rx="2" fill="#cfc2ee"/><path d="M70 82q-5 8 0 13M80 82q5 8 0 13" stroke="#e9e2ff" stroke-width="2.2" fill="none" stroke-linecap="round"/></g>
+  <rect x="28" y="160" width="74" height="14" rx="3" fill="#0b0614" opacity=".6"/>
+  <text x="65" y="170" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7.5" fill="#fff3c4" class="blink">DIAMANT = 30×</text>
+  <circle cx="65" cy="191" r="10" fill="#ffc53d" stroke="#fff" stroke-width="2"/>
+</svg>`;
+}
+
+export function horsesArt(id) {
+  const lanes = ["#ff3d9a", "#2de2e6", "#ffc53d", "#8cff5a", "#9b5cff", "#ff8a3d"];
+  const horses = lanes
+    .map((c, i) => {
+      const y = 62 + i * 13;
+      const x = 70 + ((i * 37) % 60);
+      return `<g class="derby-horse" style="animation-delay:${(i * 0.17).toFixed(2)}s"><ellipse cx="${x}" cy="${y}" rx="9" ry="3.6" fill="#5a3220"/><path d="M${x + 6} ${y - 2}l5-5 3 1-5 6z" fill="#5a3220"/><circle cx="${x - 1}" cy="${y - 5}" r="3" fill="${c}"/></g>`;
+    })
+    .join("");
+  return `<svg viewBox="0 0 240 160" aria-hidden="true">
+  <defs><linearGradient id="${id}-turf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d4a2e"/><stop offset="1" stop-color="#0b1f14"/></linearGradient></defs>
+  <rect x="6" y="8" width="228" height="26" rx="8" fill="#0b0614" stroke="#8cff5a" stroke-width="2"/>
+  <text x="120" y="26" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="13" fill="#fff" style="filter:drop-shadow(0 0 3px #8cff5a)">NEON DERBY</text>
+  <rect x="8" y="40" width="224" height="104" rx="10" fill="#2d1409"/>
+  <rect x="12" y="44" width="216" height="96" rx="8" fill="url(#${id}-turf)"/>
+  ${lanes.map((_, i) => `<line x1="12" x2="228" y1="${56 + i * 13}" y2="${56 + i * 13}" stroke="rgba(255,255,255,.08)"/>`).join("")}
+  <g>${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((k) => `<rect x="206" y="${44 + k * 8}" width="5" height="8" fill="${k % 2 ? "#fff" : "#111"}"/>`).join("")}</g>
+  ${horses}
+</svg>`;
+}
+
 export const ART = {
+  horses: horsesArt,
+  grabber: grabberArt,
+  plinko: plinkoArt,
   slotFruit: slotFruitArt,
   slotSeven: slotSevenArt,
   slotCosmo: slotCosmoArt,

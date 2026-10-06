@@ -329,6 +329,57 @@ const SOUNDS = {
     metal({ t: t + 0.14, f: 1975, ratios: [1, 2.0, 3.01], dur: 0.8, peak: 0.08 * o.vol });
   }],
 
+  // Jackpot / Mega (V1.1)
+  "jackpot.impact": [0.5, 6, (t, o) => {
+    tone({ t, f: 70, f2: 32, dur: 0.6, attack: 0.004, peak: 0.55 * o.vol });
+    tone({ t, type: "triangle", f: 140, f2: 60, dur: 0.35, peak: 0.25 * o.vol });
+    noise({ t, dur: 0.4, filter: "lowpass", f: 900, f2: 120, q: 0.8, peak: 0.35 * o.vol });
+    metal({ t: t + 0.02, f: 880, ratios: [1, 2.4, 3.9], dur: 1.2, peak: 0.07 * o.vol });
+  }],
+  "win.jackpot": [0.8, 24, (t, o) => {
+    arp({ t, notes: [60, 64, 67, 72, 76, 79, 84, 88], step: 0.06, dur: 0.22, peak: 0.11 * o.vol, type: "square" });
+    [72, 76, 79, 84].forEach((n) => tone({ t: t + 0.5, type: "triangle", f: NOTE(n), dur: 1.4, attack: 0.02, peak: 0.07 * o.vol }));
+    [60, 67].forEach((n) => tone({ t: t + 0.5, type: "sawtooth", f: NOTE(n - 12), dur: 1.2, attack: 0.03, peak: 0.025 * o.vol }));
+    arp({ t: t + 1.2, notes: [84, 88, 91, 96], step: 0.08, dur: 0.4, peak: 0.07 * o.vol });
+    for (let i = 0; i < 8; i++) metal({ t: t + 0.6 + i * 0.12, f: R(2600, 4400), ratios: [1, 2.01], dur: 0.3, peak: 0.03 * o.vol });
+  }],
+
+  // Plinko: kurzer Pin-Tick. Mindestabstand + Stimmenlimit verhindern Audio-Chaos
+  // bei vielen gleichzeitigen Kugeln (zu schnelle Ticks werden zusammengefasst).
+  "plinko.pin": [0.018, 1, (t, o) => tone({ t, type: "triangle", f: 1900 * o.pitch, dur: 0.018, peak: 0.05 * Math.min(1, o.vol), pan: o.pan })],
+  "plinko.slot": [0.04, 3, (t, o) => {
+    tone({ t, f: 300 * o.pitch, f2: 150, dur: 0.07, peak: 0.16 * o.vol, pan: o.pan });
+    noise({ t, dur: 0.02, f: 2500, q: 2, peak: 0.08 * o.vol, pan: o.pan });
+  }],
+  "plinko.drop": [0.05, 1, (t, o) => tone({ t, type: "sine", f: 700, f2: 980, dur: 0.06, peak: 0.06 * o.vol, pan: o.pan })],
+
+  // Münzgreifer
+  "grab.clamp": [0.1, 4, (t, o) => {
+    metal({ t, f: 420, ratios: [1, 2.7, 4.1], dur: 0.25, peak: 0.1 * o.vol });
+    noise({ t, dur: 0.04, filter: "lowpass", f: 1500, q: 1, peak: 0.18 * o.vol });
+  }],
+  "grab.stop": [0.1, 2, (t, o) => {
+    tone({ t, f: 120, f2: 70, dur: 0.08, peak: 0.25 * o.vol });
+    noise({ t, dur: 0.03, filter: "lowpass", f: 700, q: 1, peak: 0.15 * o.vol });
+  }],
+  "grab.chute": [0.15, 6, (t, o) => {
+    for (let i = 0; i < 4; i++) metal({ t: t + i * 0.06 + R(0, 0.03), f: R(1700, 2400), ratios: [1, 2.76], dur: 0.14, peak: 0.05 * o.vol });
+  }],
+
+  // Pferderennen
+  "race.bell": [0.5, 6, (t, o) => {
+    for (let i = 0; i < 6; i++) metal({ t: t + i * 0.09, f: 1250, ratios: [1, 2.3, 3.8], dur: 0.12, peak: 0.07 * o.vol });
+  }],
+  "race.gate": [0.3, 3, (t, o) => {
+    metal({ t, f: 300, ratios: [1, 2.2, 3.3], dur: 0.3, peak: 0.12 * o.vol });
+    noise({ t, dur: 0.08, filter: "lowpass", f: 900, q: 1, peak: 0.25 * o.vol });
+  }],
+  "race.hoof": [0.03, 1, (t, o) => tone({ t, f: 95 * o.pitch, f2: 55, dur: 0.045, peak: 0.13 * o.vol, pan: o.pan })],
+  "race.cheer": [0.6, 4, (t, o) => {
+    noise({ t, dur: 1.4, attack: 0.25, filter: "bandpass", f: 900, f2: 1400, q: 0.5, peak: 0.09 * o.vol });
+    noise({ t: t + 0.1, dur: 1.2, attack: 0.3, filter: "bandpass", f: 2200, q: 0.7, peak: 0.04 * o.vol });
+  }],
+
   // Fake-Haptik: sehr kurze, tieffrequente Impulse (Bus "haptic").
   "h.tick": [0.012, 1, (t, o) => tone({ t, f: 230, f2: 160, dur: 0.008, peak: 0.25 * o.vol, bus: "haptic" })],
   "h.tap": [0.02, 1, (t, o) => tone({ t, f: 170, f2: 110, dur: 0.016, peak: 0.35 * o.vol, bus: "haptic" })],

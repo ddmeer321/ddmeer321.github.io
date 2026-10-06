@@ -1,5 +1,35 @@
 // Canvas-Bühne mit korrekter Pixeldichte, automatischer Größenanpassung und einem
 // requestAnimationFrame-Loop, der pausiert, wenn der Tab unsichtbar ist.
+//
+// V1.1 – adaptive Auflösung: Ruckelt ein Spiel dauerhaft (Ø Bildzeit über 90
+// Bilder > 26 ms, also unter ~38 fps), wird die Pixeldichte aller Bühnen
+// schrittweise um 0,5 gesenkt (minimal 1). Auf schwachen Geräten wird das Bild
+// so etwas weicher, bleibt aber flüssig. Wieder angehoben wird nicht (kein Pendeln).
+
+const stages = new Set();
+let dprCap = 3;
+const perf = { n: 0, sum: 0 };
+const SLOW_FRAME_MS = 26;
+
+function noteFrame(ms) {
+  if (ms <= 0 || ms > 250) return; // Tab-Wechsel, Pausen
+  perf.n++;
+  perf.sum += ms;
+  if (perf.n < 90) return;
+  const avg = perf.sum / perf.n;
+  perf.n = 0;
+  perf.sum = 0;
+  if (avg <= SLOW_FRAME_MS || !stages.size) return;
+  const current = Math.max(1, ...[...stages].map((s) => s.dpr));
+  if (current <= 1) return;
+  dprCap = Math.max(1, current - 0.5);
+  stages.forEach((s) => s.resize());
+}
+
+/** Aktuelle Obergrenze der Pixeldichte (für Tests/Diagnose). */
+export function qualityInfo() {
+  return { dprCap };
+}
 
 export function createStage(container, { maxDpr = 2, className = "stage-canvas" } = {}) {
   const canvas = document.createElement("canvas");
@@ -12,7 +42,7 @@ export function createStage(container, { maxDpr = 2, className = "stage-canvas" 
     const r = container.getBoundingClientRect();
     const w = Math.max(1, Math.round(r.width));
     const hgt = Math.max(1, Math.round(r.height));
-    const dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
+    const dpr = Math.min(maxDpr, dprCap, window.devicePixelRatio || 1);
     if (w === stage.width && hgt === stage.height && dpr === stage.dpr) return;
     stage.width = w;
     stage.height = hgt;
@@ -32,6 +62,7 @@ export function createStage(container, { maxDpr = 2, className = "stage-canvas" 
     window.addEventListener("resize", resize);
   }
   resize();
+  stages.add(stage);
 
   stage.resize = resize;
   /** Setzt die Transformation auf CSS-Pixel. */
@@ -39,6 +70,7 @@ export function createStage(container, { maxDpr = 2, className = "stage-canvas" 
     ctx.setTransform(stage.dpr, 0, 0, stage.dpr, 0, 0);
   };
   stage.destroy = () => {
+    stages.delete(stage);
     ro?.disconnect();
     window.removeEventListener("resize", resize);
     canvas.remove();
@@ -62,6 +94,7 @@ export function createLoop(update) {
 
   function frame(now) {
     if (!running) return;
+    noteFrame(now - last);
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
     last = now;
     try {

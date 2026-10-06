@@ -4,13 +4,11 @@ import { h } from "../../ui/dom.js";
 import { createStage, createLoop } from "../../render/stage.js";
 import * as S from "./logic.js";
 
-const ENTRY = 20;
-const MINOR = 50;
-const MAJOR = 300;
+const { ENTRY, MINOR, MAJOR } = S;
 
 export default {
   mount(root, ctx) {
-    const { economy, play, haptic, particles } = ctx;
+    const { economy, play, haptic } = ctx;
     let dead = false;
     const stage = h("div.game-stage.arcade-stage", { style: { "--ac": "var(--lime)" } });
     const controls = h("div.game-controls");
@@ -23,6 +21,7 @@ export default {
 
     let gm = null;
     let phase = "menu"; // menu | play | choice | over
+    ctx.setPhase(phase);
     let ticket = null;
     let acc = 0;
     let falling = [];
@@ -61,6 +60,7 @@ export default {
       falling = [];
       acc = 0;
       phase = "play";
+      ctx.setPhase(phase);
       play("coin.insert");
       haptic("impulse");
       status.textContent = "Stopp drücken, wenn die Blöcke über dem Turm stehen";
@@ -91,6 +91,7 @@ export default {
       }
       if (gm.row === S.MINOR_ROW) {
         phase = "choice";
+        ctx.setPhase(phase);
         stopBtn.disabled = true;
         play("win.small");
         showOverlay([
@@ -105,6 +106,7 @@ export default {
                 overlay.remove();
                 overlay = null;
                 phase = "play";
+                ctx.setPhase(phase);
                 stopBtn.disabled = false;
                 play("go");
               },
@@ -117,27 +119,25 @@ export default {
 
     function finish(prize, title) {
       phase = "over";
+      ctx.setPhase(phase);
       stopBtn.disabled = true;
       if (ticket) {
         economy.settle(ticket, prize);
         ticket = null;
       }
-      ctx.progression.addXp(gm ? gm.row * 2 : 0);
-      const r = stage.getBoundingClientRect();
-      if (prize >= MAJOR) {
-        ctx.progression.award("stacker-top");
-        play("win.big");
-        haptic("big");
-        particles.burst(r.left + r.width / 2, r.top + r.height * 0.3, { kind: "confetti", count: 90, spread: 2 });
-      } else if (prize > 0) {
-        play("win.medium");
-        haptic("success");
-      } else {
-        play("lose");
-        haptic("heavy");
-      }
-      if (prize > 0) particles.coinsToBalance(r.left + r.width / 2, r.top + r.height / 2, Math.min(18, prize / 15));
-      status.textContent = prize ? `+${prize} Credits` : `Erreicht: Reihe ${gm?.row ?? 0}`;
+      const row = gm?.row ?? 0;
+      ctx.progression.addXp(Math.min(12, row));
+      ctx.report("stacker:round", { row, prize });
+      if (prize >= MAJOR) ctx.progression.award("stacker-top");
+      ctx.celebrate({
+        stake: ENTRY,
+        payout: prize,
+        jackpot: prize >= MAJOR,
+        title: prize >= MAJOR ? "Turm-Jackpot!" : prize > 0 ? title : `Reihe ${row}`,
+        detail: prize > 0 ? `×${(prize / ENTRY).toLocaleString("de-DE")}` : undefined,
+        banner: prize > 0,
+      });
+      status.textContent = prize ? `+${prize} Credits` : `Erreicht: Reihe ${row}`;
       setTimeout(() => {
         if (dead) return;
         menu(`${title}${prize ? ` +${prize}` : ""}`);
@@ -264,7 +264,7 @@ export default {
           "div.help-text",
           {},
           h("p", {}, "Eine Reihe Blöcke wandert hin und her. Tippe (oder Leertaste/„Stopp“), um sie anzuhalten. Nur Blöcke, die auf der Reihe darunter stehen, bleiben liegen – der Rest fällt ab. Ohne Block ist das Spiel vorbei."),
-          h("p", {}, `Mit jeder Reihe wird es schneller; ab Reihe 5 sind höchstens zwei, ab Reihe 10 nur noch ein Block unterwegs. Reihe ${S.MINOR_ROW}: ${MINOR} Credits mitnehmen oder weiter. Reihe ${S.ROWS}: Jackpot ${MAJOR} Credits.`),
+          h("p", {}, `Mit jeder Reihe wird es schneller (von ${S.stepMs(0)} ms bis ${S.TOP_STEP_MS} ms pro Feld); ab Reihe 5 sind höchstens zwei, ab Reihe 8 nur noch ein Block unterwegs. Reihe ${S.MINOR_ROW}: ${MINOR} Credits mitnehmen oder weiter. Reihe ${S.ROWS}: Jackpot ${MAJOR} Credits.`),
           h("p", {}, "Die Bewegung ist vollständig gleichmäßig und vorhersehbar – kein Zufall, reines Timing.")
         ),
         actions: [{ label: "Verstanden", cls: "btn-primary" }],

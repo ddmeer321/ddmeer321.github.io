@@ -48,7 +48,7 @@ function segmented(label, options, value, onChange) {
   return h("div.setting-row", { style: { flexWrap: "wrap" } }, h("label", {}, label), wrap);
 }
 
-export function openSettings({ settings, update, level, onReset }) {
+export function openSettings({ settings, update, level, onReset, onControl }) {
   const canVibrate = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
   const themeOpts = THEME_UNLOCKS.map((t) => ({
     value: t.id,
@@ -59,6 +59,7 @@ export function openSettings({ settings, update, level, onReset }) {
   const body = h(
     "div",
     {},
+    onControl ? h("button.btn.btn-cyan.btn-block", { type: "button", style: { marginBottom: "8px" }, onclick: () => setTimeout(onControl, 0) }, "⏸️ Spielkontrolle: Pause, Auszeit & Hilfe") : null,
     slider("Gesamtlautstärke", null, settings.master, (v) => update({ master: v })),
     slider("Effekte", "Karten, Münzen, Walzen …", settings.sfx, (v) => update({ sfx: v })),
     slider("Hallen-Atmosphäre", "leiser Klangteppich in der Halle", settings.ambience, (v) => update({ ambience: v })),
@@ -140,6 +141,7 @@ export function openStats({ state, onSettings }) {
           stat("Runden", fmt(s.rounds)),
           stat("Eingesetzt", fmt(s.wagered)),
           stat("Ausgezahlt", fmt(s.won)),
+          stat("Boni erhalten", fmt(s.bonus || 0)),
           stat("Größter Gewinn", fmt(s.biggestWin))
         ),
         rows.length

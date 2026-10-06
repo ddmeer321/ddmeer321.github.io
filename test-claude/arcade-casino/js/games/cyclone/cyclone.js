@@ -1,234 +1,300 @@
-// Lichtwirbel – Timing-Automat. Ein Licht läuft im Kreis; wer es auf dem
-// Jackpot-Feld stoppt, gewinnt am meisten. Die Bewegung ist gleichmäßig und
-// vorhersehbar; das Ergebnis hängt nur vom Zeitpunkt des Tippens ab.
+// Lichtwirbel V1.1 – Timing-Automat mit 5 Stufen pro Runde.
+// Logik und Preistabelle: logic.js. Gewertet wird exakt die Lampe, die zum
+// Zeitpunkt des Tippens leuchtet (berechnet aus derselben Formel wie die
+// Anzeige). Kein Zufall nach dem Start einer Stufe, kein Nachjustieren.
 
 import { h } from "../../ui/dom.js";
 import { createStage, createLoop } from "../../render/stage.js";
-import { createBetControl } from "../../ui/betControl.js";
+import { randInt } from "../../core/rng.js";
+import * as C from "./logic.js";
 
-const N = 36;
-const BASE_LAP = 2.2; // Sekunden pro Runde
-const PAYS = [
-  { dist: 0, mult: 25, label: "Jackpot" },
-  { dist: 1, mult: 4, label: "Nah dran" },
-  { dist: 2, mult: 1, label: "Einsatz zurück" },
-];
-const STEPS = [10, 20, 50, 100];
+const AUTO_STOP_MS = 9000;
 
-export function cycloneMultiplier(index) {
-  const d = Math.min(index, N - index);
-  const p = PAYS.find((x) => x.dist === d);
-  return p ? p.mult : 0;
-}
+export { pointsFor as cyclonePoints } from "./logic.js";
 
 export default {
   mount(root, ctx) {
-    const { economy, play, haptic, particles } = ctx;
-    const data = ctx.data;
+    const { economy, play, haptic } = ctx;
+    const ENTRY = ctx.limits.entry || 20;
     let dead = false;
+
     const stage = h("div.game-stage.arcade-stage", { style: { "--ac": "var(--violet)" } });
-    const streakVal = h("strong.num", {}, "0");
-    const lapVal = h("strong.num", {}, "1,0×");
-    stage.append(h("div.arcade-hud", {}, h("div.slot-display", {}, h("small", {}, "Jackpot-Serie"), streakVal), h("div.slot-display", {}, h("small", {}, "Tempo"), lapVal)));
+    const stageVal = h("strong.num", {}, "–");
+    const ptsVal = h("strong.num", {}, "0");
+    const lapVal = h("strong.num", {}, "–");
+    stage.append(
+      h(
+        "div.arcade-hud",
+        {},
+        h("div.slot-display", {}, h("small", {}, "Stufe"), stageVal),
+        h("div.slot-display", {}, h("small", {}, "Punkte"), ptsVal),
+        h("div.slot-display", {}, h("small", {}, "Umlauf"), lapVal)
+      )
+    );
     const controls = h("div.game-controls");
-    const betCtl = createBetControl({
-      steps: STEPS,
-      value: Number(data.bet) || 10,
-      getBalance: () => economy.balance,
-      onChange: (v) => {
-        data.bet = v;
-        ctx.save();
-      },
-    });
-    const actBtn = h("button.btn.btn-primary.btn-lg", { type: "button", style: { minWidth: "150px" } }, "Start");
-    const status = h("div.status-line", {}, "Start drücken, dann im richtigen Moment stoppen");
-    controls.append(status, h("div.ctrl-group", {}, betCtl.el, actBtn));
+    const status = h("div.status-line", { role: "status" }, `Startgebühr ${ENTRY} Credits · 5 Stopps pro Runde`);
+    const actBtn = h("button.btn.btn-primary.btn-lg", { type: "button", style: { minWidth: "200px" }, "aria-keyshortcuts": "Space" }, `Start · ${ENTRY}`);
+    controls.append(status, actBtn);
     root.append(stage, controls);
     const st = createStage(stage);
     const g = st.ctx;
 
-    let phase = "idle"; // idle | running | stopped
-    let pos = 0; // Licht-Position in Zellen (float)
+    // ---------- Zustand ----------
+    let phase = "idle"; // idle | ready | running | between | result
     let ticket = null;
+    let stageIdx = 0;
     let streak = 0;
-    let lap = BASE_LAP;
-    let result = null;
-    let resultT = 0;
-    let lastCell = 0;
+    let points = 0;
+    let jackpots = 0;
+    let startBulb = 0;
+    let lap = C.lapFor(0);
+    let t0 = 0;
+    let frozen = null; // { bulb, pts }
+    let history = [];
+    let timer = 0;
     let t = 0;
+    let flashT = 0;
 
-    function speedFactor() {
-      return BASE_LAP / lap;
+    function setPhase(p) {
+      phase = p;
+      ctx.setPhase(p);
+      stage.dataset.start = String(startBulb);
+      stage.dataset.lap = String(lap);
+      stage.dataset.t0 = String(t0);
     }
 
-    function updateHud() {
-      streakVal.textContent = String(streak);
-      lapVal.textContent = speedFactor().toLocaleString("de-DE", { maximumFractionDigits: 2, minimumFractionDigits: 1 }) + "×";
+    function hud() {
+      stageVal.textContent = phase === "idle" ? "–" : `${Math.min(stageIdx + 1, C.STAGES)}/${C.STAGES}`;
+      ptsVal.textContent = String(points);
+      lapVal.textContent = phase === "idle" ? "–" : `${lap.toFixed(2).replace(".", ",")}s`;
     }
 
-    function act() {
-      if (phase === "running") return stopLight();
-      const bet = betCtl.value;
-      const check = economy.validateBet(bet, { min: STEPS[0], max: STEPS[STEPS.length - 1] });
+    function startRound() {
+      if (phase !== "idle" && phase !== "result") return;
+      const check = economy.validateBet(ENTRY, { min: ENTRY, max: ENTRY });
       if (!check.ok) {
         play("ui.error");
         ctx.toast(check.reason, { icon: "⚠️", tone: "red" });
         return;
       }
-      ticket = economy.placeBet("cyclone", bet, { min: STEPS[0], max: STEPS[STEPS.length - 1] });
+      ticket = economy.placeBet("cyclone", ENTRY, { min: ENTRY, max: ENTRY });
       if (!ticket) return;
       play("coin.insert");
       haptic("impulse");
-      phase = "running";
-      result = null;
-      // Start immer an derselben Stelle (gegenüber dem Jackpot)
-      pos = N / 2;
-      lastCell = Math.floor(pos);
+      stageIdx = 0;
+      streak = 0;
+      points = 0;
+      jackpots = 0;
+      history = [];
       actBtn.textContent = "Stopp!";
       actBtn.classList.add("btn-gold");
-      betCtl.setDisabled(true);
-      status.textContent = "Jetzt stoppen!";
+      beginStage();
       loop.start();
     }
 
-    function stopLight() {
-      if (phase !== "running" || !ticket) return;
-      const idx = Math.floor(pos) % N;
-      const mult = cycloneMultiplier(idx);
-      const bet = ticket.stake;
-      economy.settle(ticket, bet * mult);
-      ticket = null;
-      phase = "stopped";
-      result = { idx, mult };
-      resultT = 0;
-      actBtn.textContent = "Nochmal";
-      actBtn.classList.remove("btn-gold");
-      betCtl.setDisabled(false);
-      betCtl.fitToBalance();
-      play("reel.stop", { pitch: 1.2 });
-      haptic("heavy");
-      const r = stage.getBoundingClientRect();
-      if (mult >= 25) {
-        streak++;
-        lap = Math.max(0.9, lap * 0.86);
-        ctx.progression.award("cyclone-jackpot");
-        ctx.progression.setBest("cyclone-streak", streak);
-        play("win.big");
-        haptic("big");
-        particles.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: "confetti", count: 80, spread: 2 });
-        particles.coinsToBalance(r.left + r.width / 2, r.top + r.height / 2, 16);
-        ctx.banner({ title: "Jackpot!", sub: `+${ctx.fmt(bet * mult)}`, ms: 2200 });
-        status.textContent = "Jackpot! Das Licht wird schneller …";
-      } else {
-        if (streak > 0) status.textContent = "Serie vorbei – Tempo zurückgesetzt";
-        streak = 0;
-        lap = BASE_LAP;
-        if (mult > 1) {
-          play("win.medium");
-          haptic("success");
-          particles.coinsToBalance(r.left + r.width / 2, r.top + r.height / 2, 8);
-          status.textContent = `Knapp! ${mult}× = +${ctx.fmt(bet * mult)}`;
-        } else if (mult === 1) {
-          play("push");
-          status.textContent = "Einsatz zurück";
-        } else {
-          play("lose");
-          status.textContent = `Daneben (${Math.min(idx, N - idx)} Felder entfernt)`;
-        }
-      }
-      updateHud();
-      ctx.progression.addXp(2);
+    function beginStage() {
+      lap = C.lapFor(stageIdx, streak);
+      startBulb = randInt(C.BULBS);
+      frozen = null;
+      setPhase("ready");
+      hud();
+      status.textContent = `Stufe ${stageIdx + 1}: gleich geht's los …`;
+      clearTimeout(timer);
+      // kurzer sichtbarer Vorlauf: Startlampe blinkt, dann läuft das Licht
+      timer = setTimeout(() => {
+        if (dead) return;
+        t0 = performance.now();
+        setPhase("running");
+        status.textContent = streak > 0 ? `Serie ${streak} – schneller!` : "Jetzt stoppen!";
+        play("go", { vol: 0.5 });
+        timer = setTimeout(() => stopLight(performance.now(), true), AUTO_STOP_MS);
+      }, ctx.reducedMotion() ? 250 : 550);
     }
 
+    function stopLight(now, auto = false) {
+      if (phase !== "running") return;
+      clearTimeout(timer);
+      const bulb = C.bulbAt(startBulb, lap, now - t0);
+      const pts = C.pointsFor(bulb);
+      points += pts;
+      frozen = { bulb, pts };
+      history.push(pts);
+      if (pts === C.POINTS[0]) {
+        jackpots++;
+        streak++;
+        play("stack.perfect", { semi: stageIdx * 2 });
+        haptic("success");
+        flashT = 0.6;
+        ctx.particles.floatText(...screenOf(0), "JACKPOT +" + pts, "#ffc53d");
+      } else if (pts > 0) {
+        streak = 0;
+        play("reel.stop", { pitch: 1.3 });
+        haptic("impulse");
+        ctx.particles.floatText(...screenOf(bulb), "+" + pts, "#2de2e6");
+      } else {
+        streak = 0;
+        play("reel.stop", { pitch: 0.8, vol: 0.7 });
+        haptic("tap");
+      }
+      status.textContent = auto ? "Automatisch gestoppt" : pts === C.POINTS[0] ? "Volltreffer!" : pts ? `${C.distance(bulb)} Lampe daneben` : `${C.distance(bulb)} Lampen daneben`;
+      stageIdx++;
+      setPhase("between");
+      hud();
+      timer = setTimeout(() => {
+        if (dead) return;
+        if (stageIdx >= C.STAGES) finishRound();
+        else beginStage();
+      }, ctx.reducedMotion() ? 450 : 850);
+    }
+
+    function finishRound() {
+      const prize = C.prizeFor(points, ENTRY);
+      if (ticket) {
+        economy.settle(ticket, prize);
+        ticket = null;
+      }
+      ctx.setPhase("result");
+      phase = "result";
+      ctx.progression.setBest("cyclone", points);
+      if (jackpots >= 1) ctx.progression.award("cyclone-jackpot");
+      ctx.progression.setBest("cyclone-streak", history.reduce((acc, p) => (p === C.POINTS[0] ? [acc[0] + 1, Math.max(acc[1], acc[0] + 1)] : [0, acc[1]]), [0, 0])[1]);
+      ctx.report("cyclone:round", { points, jackpots });
+      const perfect = points === C.MAX_POINTS;
+      ctx.celebrate({ stake: ENTRY, payout: prize, jackpot: perfect, title: perfect ? "PERFEKTE RUNDE" : undefined, detail: `${points} Punkte` });
+      status.textContent = `${points} Punkte → ${prize ? `${prize} Credits` : "kein Preis"}`;
+      actBtn.textContent = `Nochmal · ${ENTRY}`;
+      actBtn.classList.remove("btn-gold");
+      hud();
+    }
+
+    function act(now) {
+      if (phase === "running") stopLight(now);
+      else if (phase === "idle" || phase === "result") startRound();
+    }
+
+    // ---------- Darstellung ----------
     function geom() {
       const W = st.width;
       const H = st.height;
-      const R = Math.min(W, H) * 0.38;
-      return { W, H, R, cx: W / 2, cy: H / 2 + 20 };
+      const R = Math.min(W, H - 70) * 0.4;
+      return { W, H, R, cx: W / 2, cy: (H + 60) / 2 };
     }
 
-    function draw() {
+    function screenOf(bulb) {
+      const { R, cx, cy } = geom();
+      const a = (bulb / C.BULBS) * Math.PI * 2 - Math.PI / 2;
+      const r = st.canvas.getBoundingClientRect();
+      return [r.left + cx + Math.cos(a) * R, r.top + cy + Math.sin(a) * R - 14];
+    }
+
+    function draw(now) {
       st.begin();
       const { W, H, R, cx, cy } = geom();
       g.clearRect(0, 0, W, H);
-      // Schale
       const dish = g.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.25);
       dish.addColorStop(0, "#2a1a4a");
       dish.addColorStop(1, "#0b0614");
       g.fillStyle = dish;
       g.beginPath();
-      g.arc(cx, cy, R * 1.2, 0, Math.PI * 2);
+      g.arc(cx, cy, R * 1.18, 0, Math.PI * 2);
       g.fill();
-      g.strokeStyle = "rgba(226,209,255,.4)";
-      g.lineWidth = 2;
+      g.strokeStyle = flashT > 0 ? `rgba(255,197,61,${0.4 + flashT})` : "rgba(226,209,255,.4)";
+      g.lineWidth = flashT > 0 ? 4 : 2;
       g.stroke();
-      const cur = Math.floor(pos) % N;
-      const br = Math.max(5, R * 0.075);
-      for (let i = 0; i < N; i++) {
-        const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+
+      let pos = null;
+      if (phase === "running") pos = C.lightPos(startBulb, lap, now - t0);
+      const cur = frozen ? frozen.bulb : pos !== null ? Math.floor(pos) : phase === "ready" ? startBulb : -1;
+      const br = Math.max(3.5, R * 0.052);
+      for (let i = 0; i < C.BULBS; i++) {
+        const a = (i / C.BULBS) * Math.PI * 2 - Math.PI / 2;
         const x = cx + Math.cos(a) * R;
         const y = cy + Math.sin(a) * R;
-        const m = cycloneMultiplier(i);
-        const base = m >= 25 ? "#ffc53d" : m >= 4 ? "#ff3d9a" : m >= 1 ? "#2de2e6" : "#5b4a8a";
-        // Nachleuchten hinter dem Licht
-        const back = (cur - i + N) % N;
-        let on = phase !== "idle" && back < 5 ? 1 - back / 5 : 0;
-        if (result && i === result.idx) on = 0.6 + 0.4 * Math.sin(resultT * 12);
-        if (phase === "idle") on = m > 0 ? 0.35 + 0.25 * Math.sin(t * 3 + i) : 0;
-        g.fillStyle = base;
-        g.globalAlpha = 0.25 + on * 0.75;
-        if (on > 0.5) {
+        const d = C.distance(i);
+        const base = d === 0 ? "#ffc53d" : d === 1 ? "#ff3d9a" : d === 2 ? "#2de2e6" : "#5b4a8a";
+        let on = d <= 2 ? 0.35 : 0.12;
+        if (phase === "idle") on = d <= 2 ? 0.45 + 0.3 * Math.sin(t * 3) : 0.15;
+        if (pos !== null) {
+          const back = (cur - i + C.BULBS) % C.BULBS;
+          if (back < 4) on = Math.max(on, 1 - back / 4);
+        }
+        if (i === cur && phase === "ready") on = 0.5 + 0.5 * Math.sin(t * 20);
+        if (frozen && i === frozen.bulb) on = 0.75 + 0.25 * Math.sin(t * 14);
+        g.fillStyle = i === cur && phase !== "idle" ? "#fff" : base;
+        g.globalAlpha = Math.min(1, on);
+        if (on > 0.6) {
           g.shadowColor = base;
           g.shadowBlur = br * 3;
         }
         g.beginPath();
-        g.arc(x, y, m >= 25 ? br * 1.45 : br, 0, Math.PI * 2);
+        g.arc(x, y, d === 0 ? br * 1.5 : br, 0, Math.PI * 2);
         g.fill();
         g.shadowBlur = 0;
-        g.globalAlpha = 1;
-        if (on >= 0.99 || (result && i === result.idx)) {
-          g.fillStyle = "#fff";
-          g.beginPath();
-          g.arc(x, y, br * 0.45, 0, Math.PI * 2);
-          g.fill();
-        }
       }
-      // Mitte
+      g.globalAlpha = 1;
+      // Jackpot-Markierung
+      g.fillStyle = "#ffc53d";
+      g.beginPath();
+      g.moveTo(cx, cy - R - br * 3.6);
+      g.lineTo(cx - br * 1.2, cy - R - br * 5.4);
+      g.lineTo(cx + br * 1.2, cy - R - br * 5.4);
+      g.closePath();
+      g.fill();
+      // Mitte: Stufen-Anzeige
       g.textAlign = "center";
       g.textBaseline = "middle";
-      g.font = `900 ${R * 0.22}px ui-rounded, system-ui, sans-serif`;
+      g.font = `900 ${R * 0.2}px ui-rounded, system-ui, sans-serif`;
       g.fillStyle = "#ffc53d";
       g.shadowColor = "#ffc53d";
-      g.shadowBlur = 14;
-      g.fillText(result ? (result.mult ? `${result.mult}×` : "—") : "25×", cx, cy - R * 0.08);
+      g.shadowBlur = 12;
+      g.fillText(phase === "idle" ? "LICHTWIRBEL" : `${points}`, cx, cy - R * 0.1);
       g.shadowBlur = 0;
-      g.font = `800 ${R * 0.09}px ui-rounded, system-ui, sans-serif`;
+      g.font = `800 ${R * 0.085}px ui-rounded, system-ui, sans-serif`;
       g.fillStyle = "#e2d1ff";
-      g.fillText(result ? (PAYS.find((p) => p.mult === result.mult)?.label || "Daneben") : "JACKPOT OBEN", cx, cy + R * 0.16);
+      g.fillText(phase === "idle" ? "5 Stopps · Jackpot oben" : "PUNKTE", cx, cy + R * 0.1);
+      // Stufen-Punkte
+      for (let i = 0; i < C.STAGES; i++) {
+        const x = cx + (i - 2) * R * 0.17;
+        const y = cy + R * 0.32;
+        const p = history[i];
+        g.fillStyle = p === undefined ? "rgba(255,255,255,.12)" : p === 5 ? "#ffc53d" : p > 0 ? "#2de2e6" : "#5b4a8a";
+        g.beginPath();
+        g.arc(x, y, R * 0.045, 0, Math.PI * 2);
+        g.fill();
+      }
     }
-    st.onResize = draw;
+    st.onResize = () => draw(performance.now());
 
-    const loop = createLoop((dt) => {
+    let lastTick = -1;
+    const loop = createLoop((dt, now) => {
       t += dt;
+      flashT = Math.max(0, flashT - dt);
       if (phase === "running") {
-        pos = (pos + (N / lap) * dt) % N;
-        const c = Math.floor(pos);
-        if (c !== lastCell) {
-          lastCell = c;
-          play("cyclone.tick", { pitch: c === 0 ? 1.6 : 1, vol: c === 0 ? 1 : 0.55 });
-          if (c === 0) haptic("tick");
+        const b = C.bulbAt(startBulb, lap, now - t0);
+        if (b !== lastTick) {
+          lastTick = b;
+          if (C.distance(b) === 0) play("cyclone.tick", { pitch: 1.6, vol: 0.9 });
+          else if (b % 2 === 0) play("cyclone.tick", { vol: 0.4 });
         }
       }
-      if (result) resultT += dt;
-      draw();
-      if (phase !== "running" && resultT > 2) loop.stop();
+      draw(now);
+      if (phase === "result" && flashT <= 0 && t > 3) loop.stop();
     });
 
-    actBtn.addEventListener("click", act);
+    // ---------- Eingaben ----------
+    actBtn.addEventListener("pointerdown", (e) => {
+      if (phase === "running") {
+        e.preventDefault();
+        act(performance.now());
+      }
+    });
+    actBtn.addEventListener("click", () => {
+      if (phase !== "running") act(performance.now());
+    });
     stage.addEventListener("pointerdown", (e) => {
       if (phase === "running") {
         e.preventDefault();
-        stopLight();
+        act(performance.now());
       }
     });
     function onKey(e) {
@@ -236,7 +302,7 @@ export default {
       if (e.code === "Space" || e.key === "Enter") {
         if (document.activeElement?.tagName === "BUTTON" && document.activeElement !== actBtn) return;
         e.preventDefault();
-        act();
+        act(performance.now());
       }
     }
     window.addEventListener("keydown", onKey);
@@ -247,27 +313,40 @@ export default {
         body: h(
           "div.help-text",
           {},
-          h("p", {}, `Ein Licht läuft gleichmäßig im Kreis über ${N} Felder. Tippe (oder Leertaste), um es anzuhalten. Es startet immer gegenüber dem Jackpot – mit Rhythmusgefühl kannst du lernen, wann du drücken musst.`),
-          h("table", {}, h("tbody", {}, PAYS.map((p) => h("tr", {}, h("td", {}, p.dist === 0 ? "Jackpot-Feld" : `${p.dist} Feld${p.dist > 1 ? "er" : ""} daneben`), h("td", {}, `${p.mult}× Einsatz`))))),
-          h("p", {}, "Nach jedem Jackpot wird das Licht schneller (bis zu einem Limit). Ein Fehlversuch setzt das Tempo zurück. Kein Zufall – nur dein Timing.")
+          h("p", {}, `Eine Runde kostet ${ENTRY} Credits und hat ${C.STAGES} Stopps. Bei jedem Stopp läuft ein Licht mit gleichmäßiger Geschwindigkeit über ${C.BULBS} Lampen – es startet an einer zufälligen, sichtbaren Lampe. Tippe (oder Leertaste), um es anzuhalten. Es zählt genau die Lampe, die in diesem Moment leuchtet.`),
+          h("table", {}, h("tbody", {}, [
+            ["Jackpot-Lampe (gold, oben)", `${C.POINTS[0]} Punkte`],
+            ["1 Lampe daneben (pink)", `${C.POINTS[1]} Punkte`],
+            ["2 Lampen daneben (cyan)", `${C.POINTS[2]} Punkt`],
+          ].map(([a, b]) => h("tr", {}, h("td", {}, a), h("td", {}, b))))),
+          h("p", {}, `Jede Stufe ist schneller (${C.BASE_LAPS.map((x) => x.toFixed(2).replace(".", ",")).join(" · ")} s pro Umlauf). Jeder Jackpot-Treffer in Folge macht die nächste Stufe zusätzlich ${Math.round((1 - C.STREAK_SPEEDUP) * 100)} % schneller.`),
+          h("h3", {}, "Preise nach Punkten"),
+          h("div.prize-table", {}, C.PRIZES.map(([min, m]) => [h("span", {}, min === C.MAX_POINTS ? `${min} (perfekt)` : `ab ${min}`), h("b.num", {}, `${Math.round(m * ENTRY)} Credits`)])),
+          h("p", {}, "Kein Zufall nach dem Start einer Stufe, keine Korrektur: Ein perfekter Tipp trifft immer. Langfristig gewinnen nur sehr präzise Spieler etwas mehr, als sie einsetzen.")
         ),
         actions: [{ label: "Verstanden", cls: "btn-primary" }],
       })
     );
 
-    updateHud();
+    setPhase("idle");
+    hud();
     loop.start();
-    setTimeout(() => {
+    timer = setTimeout(() => {
       if (phase === "idle" && !dead) loop.stop();
     }, 4000);
 
     return {
       finalize() {
-        // Verlassen bei laufendem Licht: Licht stoppt an der aktuellen Stelle
-        if (phase === "running" && ticket) stopLight();
+        // Verlassen mitten in der Runde: restliche Stopps zählen 0 Punkte.
+        if (ticket) {
+          economy.settle(ticket, C.prizeFor(points, ENTRY));
+          ticket = null;
+        }
       },
+      pause() {},
       destroy() {
         dead = true;
+        clearTimeout(timer);
         loop.destroy();
         st.destroy();
         window.removeEventListener("keydown", onKey);

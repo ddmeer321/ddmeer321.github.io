@@ -6,6 +6,7 @@ import { createStage, createLoop } from "../../render/stage.js";
 import { MACHINES } from "./machines.js";
 import { spin as doSpin } from "./engine.js";
 import { symbolImage, symbolIcon, SYMBOL_NAMES } from "./symbols.js";
+import { LIMITS } from "../../core/limits.js";
 
 const SPIN_SPEED = 20; // Symbole pro Sekunde
 const easeOutBack = (t) => {
@@ -18,10 +19,12 @@ const mod = (a, n) => ((a % n) + n) % n;
 export default {
   mount(root, ctx) {
     const m = MACHINES[ctx.opts.machine] || MACHINES.fruit;
-    const { economy, play, haptic, particles } = ctx;
+    const { economy, play, haptic } = ctx;
     const data = ctx.data;
     const gameId = ctx.id;
-    const limits = { min: m.betSteps[0], max: m.betSteps[m.betSteps.length - 1] };
+    const lim = LIMITS[`slots-${m.id}`];
+    const betSteps = lim.steps;
+    const limits = { min: lim.min, max: lim.max };
     const t = m.theme;
     let dead = false;
 
@@ -46,7 +49,7 @@ export default {
 
     const controls = h("div.game-controls");
     const betCtl = createBetControl({
-      steps: m.betSteps,
+      steps: betSteps,
       value: Number(data.bet) || m.defaultBet,
       getBalance: () => economy.balance,
       onChange: (v) => {
@@ -76,6 +79,7 @@ export default {
 
     // ---------- Spielzustand ----------
     let phase = "idle"; // idle | spinning | showing
+    ctx.setPhase(phase);
     let outcome = null;
     let ticket = null;
     let spinT = 0;
@@ -85,7 +89,8 @@ export default {
     let autoTimer = 0;
     let highlight = null; // { lines, t, idx }
     let winShown = 0;
-    let free = data.free && Number.isInteger(data.free.n) && data.free.n > 0 && m.betSteps.includes(data.free.bet) ? { n: data.free.n, bet: data.free.bet, total: data.free.total || 0 } : null;
+    // Bereits verdiente Freispiele bleiben erhalten – auch mit einem V1.0-Einsatz über dem neuen Limit (max. 500)
+    let free = data.free && Number.isInteger(data.free.n) && data.free.n > 0 && data.free.n <= 200 && Number.isInteger(data.free.bet) && data.free.bet >= limits.min && data.free.bet <= 500 && data.free.bet % m.lines.length === 0 ? { n: data.free.n, bet: data.free.bet, total: Math.max(0, Number(data.free.total) || 0) } : null;
 
     function lineBetFor(bet) {
       return bet / m.lines.length;
@@ -144,6 +149,8 @@ export default {
       ctx.save();
 
       phase = "spinning";
+
+      ctx.setPhase(phase);
       quick = false;
       highlight = null;
       winShown = 0;
@@ -225,6 +232,7 @@ export default {
 
     function finishSpin() {
       phase = "showing";
+      ctx.setPhase(phase);
       const total = outcome.total;
       const bet = outcome.bet;
       if (ticket) {
@@ -240,29 +248,27 @@ export default {
       const winLines = outcome.lines.slice();
       highlight = winLines.length || outcome.scatter ? { lines: winLines, scatter: outcome.scatter, t: 0, idx: -1 } : null;
 
+      ctx.report("slots:spin", { machine: m.id, bet, payout: total, free: isFree });
       if (total > 0) {
         const rect = windowEl.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
-        marquee.classList.add("is-winning");
-        if (ratio >= 15) {
-          play("win.big");
-          haptic("big");
-          particles.burst(cx, cy, { kind: "coins", count: 50, spread: 1.6, power: 1.3 });
-          particles.burst(cx, cy, { kind: "confetti", count: ratio >= 50 ? 90 : 40, spread: 2 });
-          ctx.banner({ title: ratio >= 50 ? "Megagewinn!" : "Großgewinn!", sub: "+" + ctx.fmt(total), ms: 2600 });
-          if (ratio >= 20) ctx.progression.award("slots-big");
-          setAuto(false);
-        } else if (ratio >= 3) {
-          play("win.medium");
-          haptic("success");
-          particles.burst(cx, cy, { kind: "coins", count: 18 });
-        } else {
-          play("win.small");
-          haptic("tap");
-        }
-        particles.coinsToBalance(cx, cy, Math.min(16, 3 + Math.round(ratio * 2)));
-        setMsg(describeWin(winLines[0], outcome.scatter));
+        // Gewinnstufe relativ zum Einsatz. Freispiele kosten nichts – dort ist jede
+        // Auszahlung ein echter Gewinn (Stufe mindestens „klein“).
+        const tier = ctx.celebrate({
+          stake: bet,
+          payout: total,
+          tier: isFree && total < bet ? "small" : undefined,
+          x: cx,
+          y: cy,
+          detail: winLines.length ? `${winLines.length} ${winLines.length === 1 ? "Linie" : "Linien"}` : undefined,
+          banner: ratio >= 5,
+        }).tier;
+        // Teil-Rückzahlungen unter dem Einsatz sind Verluste: kein Leuchtschild, ehrlicher Hinweis
+        if (tier !== "loss") marquee.classList.add("is-winning");
+        if (ratio >= 20) ctx.progression.award("slots-big");
+        if (tier === "big" || tier === "mega" || tier === "jackpot") setAuto(false);
+        setMsg(tier === "loss" ? `${describeWin(winLines[0], outcome.scatter)} · unter Einsatz` : describeWin(winLines[0], outcome.scatter));
       } else {
         setMsg(isFree ? "Kein Gewinn – weiter geht's" : "Kein Gewinn");
       }
@@ -291,6 +297,7 @@ export default {
       ctx.save();
       updateFreeBadge();
       phase = "idle";
+      ctx.setPhase(phase);
       betCtl.fitToBalance();
       updateControls();
 
@@ -542,7 +549,7 @@ export default {
         body: h(
           "div.help-text",
           {},
-          h("p", {}, m.mode === "classic" ? "Nur die mittlere Linie zählt. Kirschen zählen an jeder Position der Linie." : `${m.lines.length} Gewinnlinien, gewertet von links nach rechts. Pro Linie zählt nur der höchste Gewinn.${m.wild ? " Nova (Wild) ersetzt alle Symbole außer dem Kometen." : ""}`),
+          h("p", {}, m.mode === "classic" ? "Nur die mittlere Linie zählt. Kirschen zählen an jeder Position der Linie." : `${m.lines.length} Gewinnlinien, gewertet von links nach rechts. Pro Linie zählt nur der höchste Gewinn.${m.wild ? " Nova (Wild, nur auf Walze 2–4) ersetzt alle Symbole außer dem Kometen." : ""}`),
           h("p", {}, `Einsatz ${ctx.fmt(betCtl.value)} = ${ctx.fmt(lb)} pro Linie. Werte unten: Vielfaches des Linieneinsatzes → Credits.`),
           h("h3", {}, "Gewinntabelle"),
           h("div.paytable", {}, rows),
@@ -596,6 +603,7 @@ export default {
             data.free = { n: free.n, bet: free.bet, total: free.total };
           }
           phase = "idle";
+          ctx.setPhase(phase);
         }
       },
       pause() {
