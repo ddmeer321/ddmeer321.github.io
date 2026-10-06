@@ -92,6 +92,20 @@ Die neuen Automaten bleiben im selben Neon-Vektor-Stil und nutzen dieselben Baus
 * **Spielkontrolle**: bewusst sachlich – Cyan statt Pink/Gold, keine Animationen, klare
   Endzeiten. Hilfe-Inhalte sind reiner Text mit Links, ohne Casino-Optik.
 
+## V1.2-Ergänzungen: Palast-Lounge
+
+* **Jukebox:** klassischer Bogen mit Regenbogen-Neonrand, sechs Leuchtröhren, Lautsprechergitter.
+  Vor dem Kauf gedimmt und entsättigt mit schrägem „ZU VERKAUFEN“-Schild; nach dem Kauf flackert
+  das Licht in Stufen an, die Röhren pulsieren im Takt und Notenzeichen steigen auf. Das Display
+  zeigt den laufenden Titel. Keine Inszenierung über die Halle hinaus – ein Musikkauf ist kein Jackpot.
+* **Lotto-Studio:** Bildschirm mit Kugelmaschine (Glaskuppel, bunte Kugeln) über einem Studiopult.
+  Ruhig wippende Kugeln im Normalzustand, wirbelnde Kugeln und rote „REC“-Leuchte bei LIVE,
+  goldener Rahmen, wenn ein Ergebnis oder Gewinn wartet.
+* **Ziehungs-Show:** dunkles Studio mit Lichtkegel, Kugeln mit weißem Zahlenfeld (lesbar auch klein),
+  Treffer auf Scheinen mit Goldring und Häkchen (nicht nur Farbe). Gewinn: goldener, sanft
+  pulsierender Knopf mit klarem Text; Verlust: ruhiger roter „Zurück“-Knopf, keine Effekte.
+* **Posteingang:** schlichte Liste, ungelesen = pinker Punkt + Rand, Badge in der Kopfzeile.
+
 ## Abgrenzung
 
 Die Recherche diente nur als Inspiration. Es werden keine fremden Grafiken, Marken,

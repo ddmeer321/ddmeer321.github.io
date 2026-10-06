@@ -1,4 +1,4 @@
-# Neonpalast – Arcade-Casino im Browser (V1.1)
+# Neonpalast – Arcade-Casino im Browser (V1.2)
 
 Eine antippbare Arcade-Casino-Halle mit Casino-, Physik- und Skill-Automaten.
 **Ausschließlich virtuelles Spielgeld** – keine Käufe, keine Auszahlungen, keine Verbindung
@@ -7,27 +7,49 @@ zu echtem Geld, Kryptowährungen oder handelbaren Gegenständen.
 Start: `arcade-casino/index.html` über einen beliebigen Static-Server öffnen (kein Build-Schritt,
 keine Abhängigkeiten zur Laufzeit). Grafikstil: [`ART_DIRECTION.md`](ART_DIRECTION.md).
 Wirtschaft, Quoten und alle Simulationen: [`docs/ECONOMY.md`](docs/ECONOMY.md).
+Musik-Herkunft: [`docs/MUSIC.md`](docs/MUSIC.md). Audit und Recherche V1.2: [`docs/V1.2_NOTES.md`](docs/V1.2_NOTES.md).
 
 ## Inhalt
 
 | Bereich | Spiel | Kurzbeschreibung |
 |---|---|---|
+| Palast-Lounge | **Jukebox** *(V1.2)* | dauerhafter Kauf (5.000 C), steht leuchtend in der Halle, 10 Eigenkompositionen, Songs alle zum selben Preis |
+| | **Neon Lotto** *(V1.2)* | täglich 4 aus 20 (Schein 50 C) und alle 3 Tage das Große Neon Lotto 4 aus 24 (100 C), Ziehungs-Show live oder als Aufzeichnung |
 | Slot-Allee | **Fruchtfiesta** | 3×3, 5 Linien, Kirschen ab 2 – RTP exakt 94,2 % · Einsatz 5–250 |
 | | **Goldene Sieben** | klassisch, 1 Linie, Mischgewinne – RTP exakt 94,7 % · Einsatz 5–50 |
 | | **Kosmo 5** | 5×3, 10 Linien, Nova-Wild (Walze 2–4), Komet-Freispiele ×2 – RTP ≈ 93 % · 10–200 |
 | Tisch-Lounge | **Blackjack** | 6 Decks, Hit/Stand/Double/Split, S17, 3:2, Peek – Hausvorteil 0,49 % · 10–1.000 |
 | | **Roulette** | europäisch, animierter Kessel – 97,3 % · bis 2.000 pro Runde, 100 je Einzelzahl |
 | | **Neon Derby** *(neu)* | 6 Pferde, Sieg-/Platzwette, Quoten aus Monte-Carlo desselben Rennmodells, 10–20 s Rennen mit Führungswechseln |
-| Arcade-Ecke | **Neon-Plinko** *(neu)* | echte Pin-Physik bestimmt das Fach, 3 Risikostufen (96,0/94,8/93,7 %), Multi-Drop ×10, bis ×200 |
+| Arcade-Ecke | **Neon-Plinko** | echte Pin-Physik bestimmt das Fach, 3 Risikostufen (≈ 95 % – Risiko = Varianz), Multi-Drop ×10, bis ×200 |
 | | **Münzgreifer** *(neu)* | Kralle positionieren, mehrere Münzen greifen, manche rutschen beim Anheben heraus, Auszahlung über den Schacht |
 | | **Münzkaskade 2.0** | Coin Pusher mit Trägheit, Kettenreaktionen, Stapeln, Kipp-Zustand an der Kante |
 | | **Neon Hoops** | Basketball per Swipe, deterministische Wurfphysik, 45 s, Serien – neu balanciert |
 | | **Turmbau** | Stacker, oben deutlich schneller, Zwischenpreis oder Risiko – neu balanciert |
-| | **Lichtwirbel** | 5 Stufen, jede schneller, Jackpot-Zone eine Lampe – komplett neu balanciert |
+| | **Lichtwirbel** | 5 Stufen, Zonen Blau/Pink/Jackpot – V1.2: Blau für normale Spieler erreichbar |
 
 Dazu: Guthaben mit Hochzähl-Animation, Tagesbonus, Nachschub mit Wartezeit, XP/Level,
-26 Achievements, **3 Tages-Challenges**, Statistik (inkl. Boni), Bestwerte, Hallen-Themes,
+25 Erfolge, **3 Tages-Challenges**, Statistik (inkl. Boni und Ausgaben), Bestwerte, Hallen-Themes,
 Einstellungen und Spielregeln je Automat.
+
+### Neu in V1.2 – „Alles hat Gewicht“
+
+* **Palast-Lounge:** erste Zone der Halle mit Jukebox und Lotto-Studio. Beide zeigen ihren
+  Zustand direkt am Objekt (zu verkaufen / leuchtet / spielt; nächste Ziehung / LIVE / Gewinn wartet).
+* **Jukebox:** bestätigter Kauf, Licht flackert an, erste Musik startet. Bibliothek, Abspieler
+  (Play/Pause/Weiter/Zurück, Zufall, Lautstärke), Probehören, Songkauf mit kurzem Unlock-Moment.
+  In Spielen läuft Musik leiser (einstellbar: leiser/normal/aus). Herkunft: `docs/MUSIC.md`.
+* **Neon Lotto:** Scheine mit 4 Zahlen, max. 20 pro Ziehung. Das Ergebnis wird zum Termin einmal
+  ausgelost und gespeichert; die Show (Studio → Kugelmaschine → vier Zahlen → Auswertung) zeigt
+  es nur – live, wenn man gerade da ist, sonst als Aufzeichnung über den Posteingang. Gewinne
+  werden per goldenem Knopf eingefordert (genau einmal), Verluste ehrlich mit „Zurück“ beendet.
+  Archiv aller Ziehungen.
+* **Posteingang** 📬 mit Badge in der Kopfzeile (generisch: id, Typ, Zeit, Titel, gelesen, Nutzdaten, Aktion).
+* **Balance:** Lichtwirbel neu (Blau 95 % für normale Spieler), Plinko-Risiko = Varianz,
+  ehrliche Texte bei Rückzahlungen unter dem Einsatz, Gesamtsimulation 9 Spielertypen (`sim/economy.mjs`).
+* **Responsible Play:** „Gesunde Pause“ ist kein Erfolg mehr; Lotto-Studio bleibt in Pausen offen
+  (Gewinne einfordern), Scheinkauf ist gesperrt.
+* **Spielstand v3** mit Migration aus V1.1 (und weiter aus V1.0).
 
 ### Neu in V1.1
 
@@ -54,18 +76,20 @@ arcade-casino/
   index.html            App-Rahmen (HUD, Views, Overlays)
   css/                  tokens (Designsystem), base, components, hub, games + je Spiel nachgeladen
   js/main.js            Verdrahtung: Zustand, Wirtschaft, Progression, Spielkontrolle, Router
-  js/core/              state (v2 + Migration), storage, economy (Tickets, Sperr-Guard),
+  js/core/              state (v3 + Migration), storage, economy (Tickets, Sperr-Guard, spend),
                         limits, wintier, control (Pause/Auszeit/Session), challenges,
-                        progression, bonus, rng, events, tablock
-  js/audio/             audio.js (ein AudioContext, synthetisierte Klänge, Stimmen-/Ratenlimits),
+                        lotto, jukebox, inbox, progression, bonus, rng, events, tablock
+  js/audio/             audio.js (ein AudioContext, Busse SFX/Haptik/Ambience/Musik, Limits),
+                        synth.js + tracks.js + music.js (Jukebox-Synthesizer, Stücke, Abspieler),
                         feedback.js (Vibration + Fake-Haptik)
-  js/ui/                dom, toast, modal, banner, celebrate, control, fx, betControl, panels
+  js/ui/                dom, toast, modal, banner, celebrate, control, fx, betControl, panels,
+                        jukebox (Kauf + Panel), inbox
   js/render/            stage (Canvas mit DPR-Deckel/Resize, rAF-Loop mit Tab-Pause)
   js/hub/               Halle + prozedurale SVG-Automaten
   js/games/<spiel>/     je Spiel: reine Logik/Physik (in Node testbar) + Darstellung/Bedienung
   sim/                  Monte-Carlo-/Timing-Simulationen für die Balance
   tests/                Node-Unit-Tests + Playwright-E2E
-  docs/                 ECONOMY.md (Balance), V1.1_PLAN.md (Analyse V1.0)
+  docs/                 ECONOMY.md (Balance), MUSIC.md (Herkunft), V1.1_PLAN.md, V1.2_NOTES.md
 ```
 
 Jedes Spiel exportiert `mount(root, ctx)` und erhält über `ctx` die gemeinsamen Systeme
@@ -82,7 +106,9 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
   Physik**; Neon Derby zeigt genau den simulierten Rennverlauf; Skillgames werten exakt den
   Zustand im Moment der Eingabe.
 * Wer mitten in der Runde geht oder neu lädt, bekommt fair abgerechnet.
-* Pause/Auszeit sperren Einsätze zentral in der Wirtschaft (nicht nur in der Oberfläche).
+* Pause/Auszeit sperren Einsätze zentral in der Wirtschaft (nicht nur in der Oberfläche) – auch Lotto-Scheine.
+* Lotto: ein gespeichertes Ergebnis pro Ziehungs-id, Einfordern genau einmal. Ehrliche Grenze:
+  lokale Uhr und localStorage sind mit Entwicklerwerkzeugen manipulierbar (bei Spielgeld akzeptiert).
 * Nur ein Tab ist aktiv (Tab-Sperre).
 * Der Spielstand liegt nur lokal im Browser und ist nicht gegen absichtliche Manipulation
   (Entwicklerwerkzeuge) geschützt – bei reinem Spielgeld bewusst akzeptiert.
@@ -126,4 +152,6 @@ ohne Konsolenfehler.
 * Ton startet (browserbedingt) erst nach der ersten Berührung. iOS Safari unterstützt keine
   Vibration – dort übernimmt die Klang-Haptik.
 * Pause/Auszeit gelten nur für diesen Browser (lokaler Spielstand).
+* Lotto-Termine folgen der lokalen Zeitzone des Geräts; wer reist, sieht die Ziehung zur lokalen Uhrzeit.
+* Musik ist synthetisch (keine Aufnahmen); auf Handy-Lautsprechern fehlt der Bass.
 * Kein Service Worker/Offline-Modus, keine Cloud-Speicherung.
