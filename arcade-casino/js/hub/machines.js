@@ -395,7 +395,36 @@ export function plinkoArt(id) {
 </svg>`;
 }
 
+export function grabberArt(id) {
+  const cols = ["#d9893b", "#cfd6e6", "#ffc53d", "#d9893b", "#9b5cff", "#d9893b", "#cfd6e6", "#2de2e6", "#d9893b"];
+  const pile = [];
+  for (let i = 0; i < 22; i++) {
+    const row = i < 9 ? 0 : i < 16 ? 1 : 2;
+    const k = i - (row === 0 ? 0 : row === 1 ? 9 : 16);
+    const x = 40 + k * 9.5 + row * 5;
+    const y = 138 - row * 8;
+    pile.push(`<circle cx="${x}" cy="${y}" r="4.6" fill="${cols[(i * 5) % cols.length]}" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>`);
+  }
+  return `<svg viewBox="0 0 130 210" aria-hidden="true">
+  <defs><linearGradient id="${id}-body" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b4b00"/><stop offset=".5" stop-color="#ffc53d"/><stop offset="1" stop-color="#6b4b00"/></linearGradient>
+  <linearGradient id="${id}-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#160c2e"/><stop offset="1" stop-color="#2a1550"/></linearGradient></defs>
+  <rect x="10" y="2" width="110" height="26" rx="8" fill="#0b0614" stroke="#ffc53d" stroke-width="2"/>
+  <text x="65" y="20" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="11" fill="#fff" style="filter:drop-shadow(0 0 3px #ffc53d)">MÜNZGREIFER</text>
+  <rect x="6" y="32" width="118" height="174" rx="10" fill="url(#${id}-body)" stroke="#fff3c4" stroke-width="2"/>
+  <rect x="12" y="38" width="106" height="110" rx="5" fill="url(#${id}-glass)"/>
+  <rect x="14" y="98" width="16" height="48" fill="rgba(255,197,61,.18)"/>
+  <rect x="30" y="94" width="3" height="52" fill="#5b4a8a"/>
+  ${pile.join("")}
+  <rect x="12" y="38" width="106" height="4" fill="#5b4a8a"/>
+  <g class="claw-swing"><path d="M75 40V78" stroke="#b7a8d6" stroke-width="1.4"/><rect x="69" y="76" width="12" height="6" rx="2" fill="#cfc2ee"/><path d="M70 82q-5 8 0 13M80 82q5 8 0 13" stroke="#e9e2ff" stroke-width="2.2" fill="none" stroke-linecap="round"/></g>
+  <rect x="28" y="160" width="74" height="14" rx="3" fill="#0b0614" opacity=".6"/>
+  <text x="65" y="170" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7.5" fill="#fff3c4" class="blink">DIAMANT = 30×</text>
+  <circle cx="65" cy="191" r="10" fill="#ffc53d" stroke="#fff" stroke-width="2"/>
+</svg>`;
+}
+
 export const ART = {
+  grabber: grabberArt,
   plinko: plinkoArt,
   slotFruit: slotFruitArt,
   slotSeven: slotSevenArt,

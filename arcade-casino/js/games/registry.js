@@ -14,6 +14,7 @@ export const GAMES = [
   { id: "blackjack", zone: "tables", title: "Blackjack", blurb: "Einsatz 10–500", art: "blackjack", table: true, css: "blackjack", load: () => import("./blackjack/blackjack.js") },
   { id: "roulette", zone: "tables", title: "Roulette", blurb: "Europäisch · eine Null", art: "roulette", table: true, css: "roulette", load: () => import("./roulette/roulette.js") },
   { id: "plinko", zone: "arcade", title: "Neon-Plinko", blurb: "3 Risikostufen · Multi-Drop", art: "plinko", css: "arcade", load: () => import("./plinko/plinko.js") },
+  { id: "grabber", zone: "arcade", title: "Münzgreifer", blurb: "Greifautomat · Münzen & Chips", art: "grabber", css: "arcade", load: () => import("./grabber/grabber.js") },
   { id: "coinpusher", zone: "arcade", title: "Münzkaskade", blurb: "Coin Pusher", art: "pusher", css: "arcade", wide: true, load: () => import("./coinpusher/coinpusher.js") },
   { id: "hoops", zone: "arcade", title: "Neon Hoops", blurb: "Skill · 45 Sek.", art: "hoops", css: "arcade", best: "hoops", load: () => import("./hoops/hoops.js") },
   { id: "stacker", zone: "arcade", title: "Turmbau", blurb: "Skill · Timing", art: "stacker", css: "arcade", best: "stacker", load: () => import("./stacker/stacker.js") },

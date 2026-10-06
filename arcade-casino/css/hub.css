@@ -549,3 +549,14 @@
 }
 
 .reduce-motion .plinko-ball { animation: none !important; }
+
+.claw-swing {
+  animation: claw-swing 4s ease-in-out infinite;
+}
+
+@keyframes claw-swing {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-34px); }
+}
+
+.reduce-motion .claw-swing { animation: none !important; }
