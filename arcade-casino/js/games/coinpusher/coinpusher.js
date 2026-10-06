@@ -14,6 +14,7 @@ export default {
     const { economy, play, haptic, particles } = ctx;
     const data = ctx.data;
     let dead = false;
+    ctx.setPhase("play"); // Endlosautomat: immer bespielbar (für Tests/Zustandsanzeige)
 
     // ---------- Zustand ----------
     let world = P.deserialize(data.world, random);

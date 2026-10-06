@@ -141,6 +141,7 @@ export function openStats({ state, onSettings }) {
           stat("Runden", fmt(s.rounds)),
           stat("Eingesetzt", fmt(s.wagered)),
           stat("Ausgezahlt", fmt(s.won)),
+          stat("Boni erhalten", fmt(s.bonus || 0)),
           stat("Größter Gewinn", fmt(s.biggestWin))
         ),
         rows.length

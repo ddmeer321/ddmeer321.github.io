@@ -72,6 +72,26 @@ Basketball, Roulette-Kessel).
   bekommen Partikel + Ton + Impuls. `prefers-reduced-motion` reduziert Deko-Animationen.
 * **Partikel**: ein zentrales, gedeckeltes System (max. ~220 gleichzeitig).
 
+## V1.1-Ergänzungen
+
+Die neuen Automaten bleiben im selben Neon-Vektor-Stil und nutzen dieselben Bausteine:
+
+* **Neon-Plinko**: dunkle Glasfront, Pins als kleine Lichtpunkte, die beim Treffer kurz
+  aufglühen; Fächer farbcodiert von kühl (×0,2) bis heiß (Rand-Jackpot). Die Risikostufe
+  verändert nur die Beschriftung/Farbe der Fächer, nie das Brett.
+* **Münzgreifer**: Glaskasten mit Rahmenlicht, Münzhaufen aus denselben Münz-Zeichenfunktionen
+  wie die Münzkaskade (Bronze, Silber, Gold, Chip, Diamant), Kralle als schlichte Vektorform,
+  Schacht links mit Lauflicht.
+* **Neon Derby**: Rennbahn in Seitenansicht mit mitlaufender Kamera (das führende Pferd bei
+  etwa 62 % der Breite) und Distanzmarken; Pferde als stilisierte Silhouetten mit
+  Galopp-Beinen und Startnummer in den Farben der Seidentrikots (Pink, Cyan, Gold, Lime,
+  Violett, Orange).
+* **Gewinnstufen**: Banner wachsen mit der Stufe; Mega/Jackpot nutzen eine Vollflächen-Szene
+  (Lichtwelle, Titel, Multiplikator, hochzählender Betrag). Verluste bleiben ruhig – nie Gold,
+  nie Konfetti.
+* **Spielkontrolle**: bewusst sachlich – Cyan statt Pink/Gold, keine Animationen, klare
+  Endzeiten. Hilfe-Inhalte sind reiner Text mit Links, ohne Casino-Optik.
+
 ## Abgrenzung
 
 Die Recherche diente nur als Inspiration. Es werden keine fremden Grafiken, Marken,

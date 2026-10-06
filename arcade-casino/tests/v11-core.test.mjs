@@ -183,3 +183,17 @@ test("Einsatzlimits: jedes Spiel hat Limits, min ≤ max, Stufen innerhalb der L
     if (l.min !== undefined) assert.ok(l.min <= l.max, id);
   }
 });
+
+test("Boni werden getrennt gezählt: Guthaben = Start − Einsätze + Auszahlungen + Boni", () => {
+  const s = defaultState();
+  const eco = createEconomy({ getState: () => s });
+  const t = eco.placeBet("blackjack", 50, { min: 10, max: 1000 });
+  eco.settle(t, 100);
+  eco.credit(null, 250, "daily");
+  eco.credit("coinpusher", 30, "coins");
+  assert.equal(s.stats.bonus, 250);
+  assert.equal(s.balance, 1000 - s.stats.wagered + s.stats.won + s.stats.bonus);
+  // Bereinigung behält den Zähler, verwirft Unsinn
+  assert.equal(sanitizeState({ ...s, stats: { ...s.stats, bonus: 250 } }).stats.bonus, 250);
+  assert.equal(sanitizeState({ ...s, stats: { ...s.stats, bonus: -5 } }).stats.bonus, 0);
+});

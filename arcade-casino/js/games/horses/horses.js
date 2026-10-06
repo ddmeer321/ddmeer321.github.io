@@ -102,7 +102,7 @@ export default {
         const p = market ? (betType === "win" ? market.pWin[i] : market.pPlace[i]) : null;
         const btn = h(
           `button.horse-row${pick === i ? ".is-picked" : ""}`,
-          { type: "button", role: "radio", "aria-checked": String(pick === i), disabled: phase !== "card" || !market, dataset: { horse: String(i) } },
+          { type: "button", role: "radio", "aria-checked": String(pick === i), disabled: phase !== "card" || !market, dataset: { horse: String(i), odds: odds !== null ? String(odds) : "" } },
           h("span.horse-no", { style: { "--silk": hh.silk } }, String(hh.no)),
           h("span.horse-name", {}, hh.name, h("small", {}, H.STYLES[hh.style].label)),
           h("span.horse-prob", {}, p !== null ? `${Math.round(p * 100)} %` : "…"),

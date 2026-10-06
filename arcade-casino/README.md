@@ -1,104 +1,125 @@
-# Neonpalast – Arcade-Casino im Browser
+# Neonpalast – Arcade-Casino im Browser (V1.1)
 
-Eine begehbare (bzw. antippbare) Arcade-Casino-Halle mit Casino- und Skill-Automaten.
+Eine antippbare Arcade-Casino-Halle mit Casino-, Physik- und Skill-Automaten.
 **Ausschließlich virtuelles Spielgeld** – keine Käufe, keine Auszahlungen, keine Verbindung
-zu echtem Geld, Kryptowährungen oder anderen Vermögenswerten.
+zu echtem Geld, Kryptowährungen oder handelbaren Gegenständen.
 
 Start: `arcade-casino/index.html` über einen beliebigen Static-Server öffnen (kein Build-Schritt,
-keine Abhängigkeiten zur Laufzeit). Grafikstil und Designentscheidungen: siehe
-[`ART_DIRECTION.md`](ART_DIRECTION.md).
+keine Abhängigkeiten zur Laufzeit). Grafikstil: [`ART_DIRECTION.md`](ART_DIRECTION.md).
+Wirtschaft, Quoten und alle Simulationen: [`docs/ECONOMY.md`](docs/ECONOMY.md).
 
 ## Inhalt
 
 | Bereich | Spiel | Kurzbeschreibung |
 |---|---|---|
-| Slot-Allee | **Fruchtfiesta** | 3×3, 5 Gewinnlinien, Kirschen zahlen ab 2 – RTP exakt 94,2 % |
-| | **Goldene Sieben** | klassische 3-Walzen-Maschine, 1 Linie, Mischgewinne, Kirschen überall – RTP exakt 94,7 % |
-| | **Kosmo 5** | 5×3, 10 Linien, Wild (Nova), Scatter (Komet) → Freispiele mit ×2 – RTP ≈ 93 % (Simulation) |
-| Tisch-Lounge | **Blackjack** | 6 Decks, Hit/Stand/Double/Split, Dealer steht auf 17, BJ 3:2, Dealer-Peek |
-| | **Roulette** | europäisch, animierter Kessel mit Kugel, Zahl/Farbe/Gerade/Ungerade/Hälften/Dutzende/Kolonnen |
-| Arcade-Ecke | **Münzkaskade** | Coin Pusher mit vereinfachter Physik, Gold- und Sternmünzen, gespeichertes Münzfeld |
-| | **Neon Hoops** | Basketball per Swipe, deterministische 3D-Flugbahn mit Ring/Brett/Netz, 45 s, Serien, beweglicher Korb |
-| | **Turmbau** | Stacker: Timing, Zwischenpreis oder Risiko bis zum Jackpot |
-| | **Lichtwirbel** | Cyclone-Timing-Ring: Licht auf dem Jackpot-Feld stoppen, wird mit jeder Serie schneller |
+| Slot-Allee | **Fruchtfiesta** | 3×3, 5 Linien, Kirschen ab 2 – RTP exakt 94,2 % · Einsatz 5–250 |
+| | **Goldene Sieben** | klassisch, 1 Linie, Mischgewinne – RTP exakt 94,7 % · Einsatz 5–50 |
+| | **Kosmo 5** | 5×3, 10 Linien, Nova-Wild (Walze 2–4), Komet-Freispiele ×2 – RTP ≈ 93 % · 10–200 |
+| Tisch-Lounge | **Blackjack** | 6 Decks, Hit/Stand/Double/Split, S17, 3:2, Peek – Hausvorteil 0,49 % · 10–1.000 |
+| | **Roulette** | europäisch, animierter Kessel – 97,3 % · bis 2.000 pro Runde, 100 je Einzelzahl |
+| | **Neon Derby** *(neu)* | 6 Pferde, Sieg-/Platzwette, Quoten aus Monte-Carlo desselben Rennmodells, 10–20 s Rennen mit Führungswechseln |
+| Arcade-Ecke | **Neon-Plinko** *(neu)* | echte Pin-Physik bestimmt das Fach, 3 Risikostufen (96,0/94,8/93,7 %), Multi-Drop ×10, bis ×200 |
+| | **Münzgreifer** *(neu)* | Kralle positionieren, mehrere Münzen greifen, manche rutschen beim Anheben heraus, Auszahlung über den Schacht |
+| | **Münzkaskade 2.0** | Coin Pusher mit Trägheit, Kettenreaktionen, Stapeln, Kipp-Zustand an der Kante |
+| | **Neon Hoops** | Basketball per Swipe, deterministische Wurfphysik, 45 s, Serien – neu balanciert |
+| | **Turmbau** | Stacker, oben deutlich schneller, Zwischenpreis oder Risiko – neu balanciert |
+| | **Lichtwirbel** | 5 Stufen, jede schneller, Jackpot-Zone eine Lampe – komplett neu balanciert |
 
-Dazu: Guthaben mit Hochzähl-Animation, Tagesbonus, Gratis-Nachschub bei < 10 Credits,
-XP/Level mit Level-Bonus, 19 Achievements, Statistik, Bestwerte, freischaltbare Hallen-Themes,
-Einstellungen (Lautstärken, Vibration, Klang-Haptik, Bewegung, Theme), Spielregeln je Automat.
+Dazu: Guthaben mit Hochzähl-Animation, Tagesbonus, Nachschub mit Wartezeit, XP/Level,
+26 Achievements, **3 Tages-Challenges**, Statistik (inkl. Boni), Bestwerte, Hallen-Themes,
+Einstellungen und Spielregeln je Automat.
+
+### Neu in V1.1
+
+* **Economy-Rebalance:** Lichtwirbel (V1.0: 10–25× erwartete Rückzahlung), Turmbau, Hoops,
+  Nachschub und Level-Bonus waren ausnutzbar. Alle Skillgames haben jetzt feste Startgebühren,
+  gedeckelte Preise und steigende Schwierigkeit; zentrale Einsatzlimits (`js/core/limits.js`).
+  Details und Simulationsergebnisse: `docs/ECONOMY.md`.
+* **Einheitliches Gewinn-Feedback** (`js/core/wintier.js`, `js/ui/celebrate.js`): Verlust,
+  Einsatz zurück, klein, gut, groß, Mega, Jackpot – relativ zum Einsatz. Jackpot-Inszenierung
+  mit Pause → Einschlag → Lichtwelle → Titel → Multiplikator → Count-Up → Partikel → Ton →
+  Haptik, per Tippen überspringbar, verkürzt bei reduzierter Bewegung. Teil-Rückzahlungen werden
+  nie als Gewinn inszeniert.
+* **Spielkontrolle** (⏸ oben rechts): Pause 15/30/60 Min., verbindliche Auszeit 1/3/7/30/90 Tage
+  (lässt sich nach Bestätigung nicht vorzeitig aufheben – auch nicht per Reset), neutrale
+  Erinnerung nach 30/60/90 Min. aktiver Spielzeit, Hilfe-Seite mit Warnzeichen und seriösen
+  Anlaufstellen. Keine Belohnung fürs Weiterspielen, keine „Hol dir deine Verluste zurück“-Texte.
+* **Spielstand v2** mit Migration aus V1.0 (Guthaben, XP, Level, Erfolge, Einstellungen,
+  Statistik, Bestwerte, Münzfeld bleiben erhalten).
 
 ## Architektur
 
 ```
 arcade-casino/
   index.html            App-Rahmen (HUD, Views, Overlays)
-  css/tokens.css        Designsystem-Tokens (Farben, Radien, Schatten, Zeiten, Themes)
-  css/base|components|hub|games.css   Layout, UI-Bausteine, Halle, gemeinsames Spiel-Layout
-  css/<spiel>.css       spielspezifische Styles (werden beim Öffnen nachgeladen)
-  js/main.js            Verdrahtung: Zustand, Wirtschaft, Progression, HUD, Router, Lebenszyklus
-  js/core/              state (Laden/Bereinigen/Speichern), storage (sicheres localStorage),
-                        economy (Einsätze/Tickets/Auszahlung), progression, bonus, rng, events, tablock
-  js/audio/             audio.js (ein AudioContext, synthetisierte Klänge, Busse, Stimmenlimit),
+  css/                  tokens (Designsystem), base, components, hub, games + je Spiel nachgeladen
+  js/main.js            Verdrahtung: Zustand, Wirtschaft, Progression, Spielkontrolle, Router
+  js/core/              state (v2 + Migration), storage, economy (Tickets, Sperr-Guard),
+                        limits, wintier, control (Pause/Auszeit/Session), challenges,
+                        progression, bonus, rng, events, tablock
+  js/audio/             audio.js (ein AudioContext, synthetisierte Klänge, Stimmen-/Ratenlimits),
                         feedback.js (Vibration + Fake-Haptik)
-  js/ui/                dom, toast, modal, banner, fx (gedeckeltes Partikel-Overlay), betControl, panels
-  js/render/            stage (Canvas mit DPR/Resize, rAF-Loop mit Tab-Pause), palette
+  js/ui/                dom, toast, modal, banner, celebrate, control, fx, betControl, panels
+  js/render/            stage (Canvas mit DPR-Deckel/Resize, rAF-Loop mit Tab-Pause)
   js/hub/               Halle + prozedurale SVG-Automaten
-  js/games/<spiel>/     je Spiel: reine Logik (testbar) + Darstellung/Bedienung
+  js/games/<spiel>/     je Spiel: reine Logik/Physik (in Node testbar) + Darstellung/Bedienung
+  sim/                  Monte-Carlo-/Timing-Simulationen für die Balance
   tests/                Node-Unit-Tests + Playwright-E2E
+  docs/                 ECONOMY.md (Balance), V1.1_PLAN.md (Analyse V1.0)
 ```
 
 Jedes Spiel exportiert `mount(root, ctx)` und erhält über `ctx` die gemeinsamen Systeme
-(Wirtschaft, Audio, Haptik, Toasts, Dialoge, Partikel, Speicher). Rückgabe: `destroy()`,
-optional `finalize()` (Runde sofort korrekt abrechnen) und `pause()`.
+(Wirtschaft, Limits, Audio, Haptik, `celebrate`, `report` für Challenges, `setPhase` für Tests,
+Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und `pause()`.
 
-## Wirtschaft & Fairness
+## Fairness
 
-* Beträge sind immer sichere positive Ganzzahlen; NaN, negative oder gebrochene Werte werden abgelehnt.
-* Der Einsatz wird **vor** jeder Animation synchron abgebucht; jede Runde hat ein Ticket, das genau
-  einmal ausgezahlt werden kann (doppelte Auszahlungen sind ausgeschlossen).
-* Ergebnisse stehen beim Start fest; Animationen zeigen sie nur. Wer ein Spiel mitten in der Runde
-  verlässt oder neu lädt, bekommt die Runde fair abgerechnet (Blackjack: offene Hände halten,
-  Slots/Roulette: feststehendes Ergebnis, Hoops: aktuelle Punktzahl).
-* Nur ein Tab ist aktiv (Tab-Sperre), damit sich Spielstände nicht gegenseitig überschreiben.
-* Wahrscheinlichkeiten sind im Code nachvollziehbar: Walzenstreifen in `js/games/slots/machines.js`,
-  Coin-Pusher-Münztypen in `js/games/coinpusher/physics.js`, Roulette 1/37 je Zahl.
-* Skill-Spiele (Hoops, Turmbau, Lichtwirbel) enthalten **keinen** Zufall und keine versteckte Steuerung.
-* **Hinweis:** Der Spielstand liegt nur lokal im Browser und ist nicht gegen absichtliche
-  Manipulation geschützt (Entwicklerwerkzeuge). Bei reinem Spielgeld ist das bewusst akzeptiert.
+* Beträge sind sichere positive Ganzzahlen. Der Einsatz wird **vor** jeder Animation abgebucht;
+  jede Runde hat ein Ticket, das genau einmal ausgezahlt wird.
+* **Keine dynamischen Quoten:** Nichts hängt von Guthaben, Serien oder Spielzeit ab.
+* Ergebnisse entstehen ehrlich: Slots/Roulette ziehen vorab und zeigen das Ergebnis;
+  **Plinko, Münzgreifer, Münzkaskade und Basketball berechnen das Ergebnis aus der sichtbaren
+  Physik**; Neon Derby zeigt genau den simulierten Rennverlauf; Skillgames werten exakt den
+  Zustand im Moment der Eingabe.
+* Wer mitten in der Runde geht oder neu lädt, bekommt fair abgerechnet.
+* Pause/Auszeit sperren Einsätze zentral in der Wirtschaft (nicht nur in der Oberfläche).
+* Nur ein Tab ist aktiv (Tab-Sperre).
+* Der Spielstand liegt nur lokal im Browser und ist nicht gegen absichtliche Manipulation
+  (Entwicklerwerkzeuge) geschützt – bei reinem Spielgeld bewusst akzeptiert.
+
+## Leistung & Mobilgeräte
+
+* Mobile-first: getestet auf 360×640, 390×844, 844×390 (quer), 768×1024, 1366×820, 1440×900.
+* Canvas-Auflösung mit gedeckeltem DPR, rAF-Schleifen stoppen in Ruhe und bei verstecktem Tab.
+* Partikel gedeckelt, Plinko-Pin-Ticks und Hufschläge mit Ratenlimit und Stimmen-Deckel,
+  Physik mit festem Zeitschritt (Plinko 1/240 s, Pusher 1/120 s).
+* Reduzierte Bewegung (System oder Einstellung): kürzere Inszenierung, keine Blitze/Wackler.
 
 ## Tests
 
 ```bash
 cd arcade-casino
-npm test            # 36 Unit-Tests (node --test): Wirtschaft, Bereinigung, Progression,
-                    # Blackjack-Regeln, Roulette-Auszahlungen, Slot-RTP & Auswertung,
-                    # Coin-Pusher-Physik, Wurfphysik, Stacker, Lichtwirbel
-npm run test:e2e    # 32 Browser-Checks (Playwright/Chromium, startet eigenen Server)
+npm test            # Unit-Tests (node --test): Wirtschaft, Limits, Migration, Pause/Auszeit,
+                    # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
+                    # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
+                    # Turmbau- und Hoops-Balance
+npm run test:e2e    # Browser-Checks (Playwright/Chromium, eigener Server)
 ```
 
-Die E2E-Tests prüfen u. a.: Halle lädt, jedes Spiel öffnet per Touch und „Zurück“ (inkl.
-Browser-Zurück) funktioniert, Blackjack-Runden inkl. Tastatur, ungültige Einsätze werden
-verhindert, Roulette zahlt in mehreren Runden exakt richtig aus, Slots gewinnen und verlieren,
-Spielstand übersteht Neuladen, Coin Pusher schiebt Münzen über die Kante und speichert das Feld,
-Basketball trifft mit passendem und verfehlt mit schwachem Swipe, das Spiel läuft ohne Web Audio,
-ResizeObserver, Vibration und localStorage, und ein zweiter Tab sperrt den ersten – jeweils ohne
-Konsolenfehler.
+Die E2E-Tests warten auf Spielzustände (`data-phase` am Spielcontainer) statt auf feste Zeiten.
+Sie spielen in jedem Spiel echte Runden und prüfen die Bilanz (Guthaben = Start − Einsätze +
+Auszahlungen + Boni), Navigation inkl. Browser-Zurück, Neuladen, Pause/Auszeit (mit simulierter
+Uhr), die neutrale Erinnerung, die Migration eines V1.0-Spielstands, Layouts auf mehreren
+Bildschirmgrößen, reduzierte Bewegung, fehlende Browserfunktionen und die Tab-Sperre – jeweils
+ohne Konsolenfehler.
 
 ## Bekannte Grenzen
 
-* Coin-Pusher-Physik ist bewusst 2D (keine gestapelten Münzen, keine Trägheit) – performant und
-  glaubwürdig, aber keine echte Rigid-Body-Simulation.
-* Basketball normalisiert das Wisch-Tempo auf die Höhe des Spielfelds; auf sehr unterschiedlichen
-  Bildschirmen fühlt sich die nötige Wischgeschwindigkeit leicht anders an.
-* Ton startet (browserbedingt) erst nach der ersten Berührung/Taste. iOS Safari unterstützt keine
+* Physik ist bewusst vereinfacht (2D bzw. 2,5D, kein allgemeiner Rigid-Body-Solver) – aber
+  das Ergebnis folgt immer aus der sichtbaren Simulation.
+* Skillgames können für extrem präzise Spieler leicht positiv sein (Elite ≈ 1,3–1,55×,
+  siehe `docs/ECONOMY.md`); der absolute Ertrag ist durch feste Startgebühren klein.
+* Ton startet (browserbedingt) erst nach der ersten Berührung. iOS Safari unterstützt keine
   Vibration – dort übernimmt die Klang-Haptik.
+* Pause/Auszeit gelten nur für diesen Browser (lokaler Spielstand).
 * Kein Service Worker/Offline-Modus, keine Cloud-Speicherung.
-* Das Spiel ist in `games/arcade-casino/config.json` beschrieben, aber (noch) nicht in
-  `config/games.js` öffentlich gelistet.
-
-## Mögliche Erweiterungen
-
-* Cloud-Speicherung über das vorhandene Konto-System der Seite (`assets/js/cloud-save.js`)
-* Weitere Skill-Automaten (Darts, Mini-Bowling, Memory unter Zeitdruck)
-* Weitere Slots mit eigenen Mechaniken (Cluster-Pays, Hold & Spin)
-* Tägliche Herausforderungen und Wochen-Ranglisten
-* Service Worker für Offline-Spiel

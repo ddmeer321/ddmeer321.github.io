@@ -128,6 +128,10 @@ export function createEconomy({ getState, save = () => {}, emit = () => {}, guar
         s.stats.won += amount;
         g.won += amount;
         if (amount > g.biggestWin) g.biggestWin = amount;
+      } else {
+        // Boni (Tagesbonus, Level, Challenges, Nachschub) getrennt zählen:
+        // Guthaben = Start − Einsätze + Auszahlungen + Boni
+        s.stats.bonus = (s.stats.bonus || 0) + amount;
       }
       setBalance(s.balance + amount, amount, reason);
       emit("credit", { gameId, amount, reason });

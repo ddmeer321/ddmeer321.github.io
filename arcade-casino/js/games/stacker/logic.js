@@ -12,7 +12,7 @@ export const MAX_WIDTH = [3, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1];
 // gute Spieler 6–15× RTP). Durchrechnung je Timing-Genauigkeit: sim/stacker.mjs.
 export const ENTRY = 20;
 export const MINOR = 24; // 1,2× – Zwischenpreis nach Reihe MINOR_ROW
-export const MAJOR = 70; // 3,5× – Jackpot in Reihe ROWS
+export const MAJOR = 60; // 3× – Jackpot in Reihe ROWS
 export const TOP_STEP_MS = 24; // letzte beiden Reihen (≈ 1,5 Bilder bei 60 Hz – sichtbar, aber knapp)
 
 /** Millisekunden pro Zellschritt in Reihe r (0 = unten). */

@@ -3,7 +3,7 @@
 import { h, clear } from "../../ui/dom.js";
 import { createStage, createLoop } from "../../render/stage.js";
 import { WHEEL_ORDER, colorOf } from "./wheel.js";
-import { payoutFor, totalBet, spinNumber, LABELS, betType } from "./logic.js";
+import { payoutFor, totalBet, spinNumber, LABELS, betType, isValidKey } from "./logic.js";
 import { LIMITS } from "../../core/limits.js";
 
 const CHIPS = [
@@ -24,6 +24,21 @@ function chipColor(amount) {
   return c;
 }
 
+/** Gespeicherte „Wie zuvor“-Wetten prüfen (V1.0-Stände kennen das Einzelzahl-Limit noch nicht). */
+function sanitizeBets(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const out = {};
+  let total = 0;
+  for (const [key, v] of Object.entries(raw)) {
+    if (!isValidKey(key) || !Number.isSafeInteger(v) || v <= 0) continue;
+    const amount = betType(key) === "n" ? Math.min(v, MAX_STRAIGHT) : v;
+    if (total + amount > MAX_TOTAL) break;
+    out[key] = amount;
+    total += amount;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 function shortAmount(n) {
   return n >= 1000 ? (n / 1000).toFixed(n % 1000 ? 1 : 0) + "k" : String(n);
 }
@@ -35,7 +50,7 @@ export default {
     let dead = false;
     let bets = {};
     let undo = [];
-    let lastBets = data.lastBets && typeof data.lastBets === "object" ? data.lastBets : null;
+    let lastBets = sanitizeBets(data.lastBets);
     let chip = CHIPS.some((c) => c.v === data.chip) ? data.chip : 10;
     let phase = "bet"; // bet | spin | result
     ctx.setPhase(phase);
