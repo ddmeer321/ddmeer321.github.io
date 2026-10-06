@@ -13,6 +13,7 @@ export const GAMES = [
   { id: "slots-cosmo", zone: "slots", title: "Kosmo 5", blurb: "5×3 · Freispiele", art: "slotCosmo", css: "slots", wide: true, load: () => import("./slots/slots.js"), opts: { machine: "cosmo" } },
   { id: "blackjack", zone: "tables", title: "Blackjack", blurb: "Einsatz 10–500", art: "blackjack", table: true, css: "blackjack", load: () => import("./blackjack/blackjack.js") },
   { id: "roulette", zone: "tables", title: "Roulette", blurb: "Europäisch · eine Null", art: "roulette", table: true, css: "roulette", load: () => import("./roulette/roulette.js") },
+  { id: "horses", zone: "tables", title: "Neon Derby", blurb: "Pferderennen · Sieg & Platz", art: "horses", table: true, css: "arcade", load: () => import("./horses/horses.js") },
   { id: "plinko", zone: "arcade", title: "Neon-Plinko", blurb: "3 Risikostufen · Multi-Drop", art: "plinko", css: "arcade", load: () => import("./plinko/plinko.js") },
   { id: "grabber", zone: "arcade", title: "Münzgreifer", blurb: "Greifautomat · Münzen & Chips", art: "grabber", css: "arcade", load: () => import("./grabber/grabber.js") },
   { id: "coinpusher", zone: "arcade", title: "Münzkaskade", blurb: "Coin Pusher", art: "pusher", css: "arcade", wide: true, load: () => import("./coinpusher/coinpusher.js") },

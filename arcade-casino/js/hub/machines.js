@@ -423,7 +423,29 @@ export function grabberArt(id) {
 </svg>`;
 }
 
+export function horsesArt(id) {
+  const lanes = ["#ff3d9a", "#2de2e6", "#ffc53d", "#8cff5a", "#9b5cff", "#ff8a3d"];
+  const horses = lanes
+    .map((c, i) => {
+      const y = 62 + i * 13;
+      const x = 70 + ((i * 37) % 60);
+      return `<g class="derby-horse" style="animation-delay:${(i * 0.17).toFixed(2)}s"><ellipse cx="${x}" cy="${y}" rx="9" ry="3.6" fill="#5a3220"/><path d="M${x + 6} ${y - 2}l5-5 3 1-5 6z" fill="#5a3220"/><circle cx="${x - 1}" cy="${y - 5}" r="3" fill="${c}"/></g>`;
+    })
+    .join("");
+  return `<svg viewBox="0 0 240 160" aria-hidden="true">
+  <defs><linearGradient id="${id}-turf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d4a2e"/><stop offset="1" stop-color="#0b1f14"/></linearGradient></defs>
+  <rect x="6" y="8" width="228" height="26" rx="8" fill="#0b0614" stroke="#8cff5a" stroke-width="2"/>
+  <text x="120" y="26" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="13" fill="#fff" style="filter:drop-shadow(0 0 3px #8cff5a)">NEON DERBY</text>
+  <rect x="8" y="40" width="224" height="104" rx="10" fill="#2d1409"/>
+  <rect x="12" y="44" width="216" height="96" rx="8" fill="url(#${id}-turf)"/>
+  ${lanes.map((_, i) => `<line x1="12" x2="228" y1="${56 + i * 13}" y2="${56 + i * 13}" stroke="rgba(255,255,255,.08)"/>`).join("")}
+  <g>${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((k) => `<rect x="206" y="${44 + k * 8}" width="5" height="8" fill="${k % 2 ? "#fff" : "#111"}"/>`).join("")}</g>
+  ${horses}
+</svg>`;
+}
+
 export const ART = {
+  horses: horsesArt,
   grabber: grabberArt,
   plinko: plinkoArt,
   slotFruit: slotFruitArt,

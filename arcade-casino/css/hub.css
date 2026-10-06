@@ -560,3 +560,14 @@
 }
 
 .reduce-motion .claw-swing { animation: none !important; }
+
+.derby-horse {
+  animation: derby 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes derby {
+  from { transform: translateX(-10px); }
+  to { transform: translateX(14px); }
+}
+
+.reduce-motion .derby-horse { animation: none !important; }

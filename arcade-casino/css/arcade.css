@@ -167,3 +167,140 @@
   left: calc(10px + var(--safe-left));
   transform: none;
 }
+
+/* ---------- Pferderennen ---------- */
+
+.horses-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px calc(10px + var(--safe-right)) 8px calc(10px + var(--safe-left));
+  background:
+    radial-gradient(80% 50% at 50% 0%, rgba(140, 255, 90, 0.08), transparent 70%),
+    linear-gradient(180deg, #0a1410, #05030c);
+}
+
+.horse-track {
+  position: relative;
+  flex: 0 0 auto;
+  height: clamp(170px, 34vh, 340px);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(140, 255, 90, 0.35);
+  box-shadow: 0 0 20px rgba(140, 255, 90, 0.12);
+}
+
+.horse-track canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.horse-commentary {
+  min-height: 2.6em;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #07040e;
+  border: 1px solid var(--line-strong);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+  color: var(--lime);
+  text-shadow: 0 0 8px rgba(140, 255, 90, 0.4);
+  display: flex;
+  align-items: center;
+}
+
+.horse-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  gap: 5px;
+  align-content: start;
+}
+
+.horse-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto 62px;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  text-align: left;
+  font-weight: 800;
+}
+
+.horse-row:disabled {
+  opacity: 0.85;
+  cursor: default;
+}
+
+.horse-row.is-picked {
+  border-color: var(--gold);
+  background: rgba(255, 197, 61, 0.12);
+  box-shadow: var(--glow-gold);
+}
+
+.horse-no {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--silk);
+  color: #111;
+  font-weight: 900;
+  box-shadow: 0 0 10px var(--silk);
+}
+
+.horse-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.horse-name small {
+  color: var(--ink-mute);
+  font-size: 11px;
+}
+
+.horse-prob {
+  color: var(--ink-dim);
+  font-size: var(--fs-xs);
+}
+
+.horse-odds {
+  justify-self: end;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #07040e;
+  color: var(--gold);
+  font-size: var(--fs-md);
+}
+
+@media (min-width: 900px) {
+  .horses-stage {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    grid-template-rows: auto auto 1fr;
+    column-gap: 16px;
+  }
+  .horse-track { grid-column: 1; grid-row: 1 / span 3; height: auto; min-height: 300px; }
+  .horse-commentary { grid-column: 2; grid-row: 1; }
+  .horse-list { grid-column: 2; grid-row: 2 / span 2; }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .horses-stage { display: grid; grid-template-columns: 1.3fr 1fr; grid-template-rows: auto 1fr; column-gap: 10px; }
+  .horse-track { grid-column: 1; grid-row: 1 / span 2; height: auto; }
+  .horse-commentary { grid-column: 2; grid-row: 1; font-size: 12px; }
+  .horse-list { grid-column: 2; grid-row: 2; }
+  .horse-row { min-height: 38px; }
+}

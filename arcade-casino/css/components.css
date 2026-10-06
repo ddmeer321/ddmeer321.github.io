@@ -990,3 +990,13 @@
 }
 
 .reduce-motion .is-shaking { animation: none; }
+
+.result-banner {
+  max-width: calc(100% - 24px);
+  white-space: normal;
+}
+
+.result-banner.is-big .rb-title {
+  font-size: clamp(1.4rem, 6.5vw, 2.6rem);
+  line-height: 1.05;
+}
