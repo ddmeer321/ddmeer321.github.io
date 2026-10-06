@@ -241,3 +241,9 @@ button {
 @media (max-width: 420px) {
   .hud-title { display: none; }
 }
+
+/* V1.1: mit dem Spielkontroll-Knopf wird die Kopfzeile auf kleinen Handys eng */
+@media (max-width: 380px) {
+  .hud-back-label { display: none; }
+  .hud-back { min-width: 44px; font-size: 18px; }
+}

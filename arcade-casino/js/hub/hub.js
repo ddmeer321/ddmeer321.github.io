@@ -48,7 +48,7 @@ export function createHub(root, { onOpen, renderPerks, onStats, onSettings, onCo
       {},
       h("button.btn.btn-ghost", { type: "button", onclick: onStats }, "🏆 Erfolge & Statistik"),
       h("button.btn.btn-ghost", { type: "button", onclick: onSettings }, "⚙️ Einstellungen"),
-      h("button.btn.btn-ghost", { type: "button", onclick: onControl }, "⏸ Spielkontrolle & Hilfe")
+      h("button.btn.btn-ghost", { type: "button", onclick: onControl }, "⏸️ Spielkontrolle & Hilfe")
     ),
     h(
       "p.hall-note",

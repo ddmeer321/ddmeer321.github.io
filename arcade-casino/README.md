@@ -90,7 +90,11 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 ## Leistung & Mobilgeräte
 
 * Mobile-first: getestet auf 360×640, 390×844, 844×390 (quer), 768×1024, 1366×820, 1440×900.
-* Canvas-Auflösung mit gedeckeltem DPR, rAF-Schleifen stoppen in Ruhe und bei verstecktem Tab.
+* Canvas-Auflösung mit gedeckeltem DPR (max. 2) und **adaptiver Auflösung**: Liegt die
+  mittlere Bildzeit über 90 Bilder bei > 26 ms, senkt `js/render/stage.js` die Pixeldichte
+  schrittweise bis 1. Gemessen (Chromium ohne GPU, 4× CPU-Drosselung, 390×844 @3×):
+  Münzkaskade 19 → 41 fps, Münzgreifer 25 → 50 fps, Plinko ×10 60 fps, Derby/Lichtwirbel 60 fps.
+* rAF-Schleifen stoppen in Ruhe (Tischspiele, Turmbau-Menü) und bei verstecktem Tab.
 * Partikel gedeckelt, Plinko-Pin-Ticks und Hufschläge mit Ratenlimit und Stimmen-Deckel,
   Physik mit festem Zeitschritt (Plinko 1/240 s, Pusher 1/120 s).
 * Reduzierte Bewegung (System oder Einstellung): kürzere Inszenierung, keine Blitze/Wackler.

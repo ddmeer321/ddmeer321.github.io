@@ -419,8 +419,11 @@
 .modal h2 {
   margin: 0 0 var(--s4);
   padding-right: 44px;
-  font-size: clamp(1.25rem, 6vw, 1.75rem);
-  overflow-wrap: anywhere;
+  font-size: clamp(1.1rem, 5.4vw, 1.75rem);
+  /* lange deutsche Komposita („Spielkontrolle“) sauber trennen statt mitten im Wort umbrechen */
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .modal-close {

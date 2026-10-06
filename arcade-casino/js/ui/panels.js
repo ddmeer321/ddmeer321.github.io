@@ -59,7 +59,7 @@ export function openSettings({ settings, update, level, onReset, onControl }) {
   const body = h(
     "div",
     {},
-    onControl ? h("button.btn.btn-cyan.btn-block", { type: "button", style: { marginBottom: "8px" }, onclick: () => setTimeout(onControl, 0) }, "⏸ Spielkontrolle: Pause, Auszeit & Hilfe") : null,
+    onControl ? h("button.btn.btn-cyan.btn-block", { type: "button", style: { marginBottom: "8px" }, onclick: () => setTimeout(onControl, 0) }, "⏸️ Spielkontrolle: Pause, Auszeit & Hilfe") : null,
     slider("Gesamtlautstärke", null, settings.master, (v) => update({ master: v })),
     slider("Effekte", "Karten, Münzen, Walzen …", settings.sfx, (v) => update({ sfx: v })),
     slider("Hallen-Atmosphäre", "leiser Klangteppich in der Halle", settings.ambience, (v) => update({ ambience: v })),

@@ -279,7 +279,8 @@ export default {
         g.lineTo(x, Hh);
         g.stroke();
         g.fillStyle = "rgba(255,255,255,.5)";
-        g.fillText(u === H.DISTANCE ? "ZIEL" : `${H.DISTANCE - u}`, x, top - 8);
+        // Beschriftung am Rand nicht abschneiden
+        if (x > 14 && x < W - 14) g.fillText(u === H.DISTANCE ? "ZIEL" : `${H.DISTANCE - u}`, x, top - 8);
       }
       // Ziellinie
       const fx = X(H.DISTANCE);

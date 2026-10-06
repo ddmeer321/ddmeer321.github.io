@@ -413,8 +413,13 @@ console.log("Neonpalast E2E (V1.1)");
   await openGame(page, "coinpusher");
   await check("Münzkaskade: Münzen fallen über die Kante und werden gutgeschrieben", async () => {
     const box = await page.locator(".arcade-stage").boundingBox();
-    for (let i = 0; i < 25; i++) await page.touchscreen.tap(box.x + box.width * (0.35 + (i % 4) * 0.1), box.y + box.height * 0.4);
-    await page.waitForFunction(() => (window.__neonpalast.getState().stats.perGame.coinpusher?.wagered || 0) >= 250, null, { timeout: 15000 });
+    // Einwürfe sind auf einen alle 0,2 s begrenzt: nach jedem Tippen auf die Abbuchung warten
+    const wagered = () => page.evaluate(() => window.__neonpalast.getState().stats.perGame.coinpusher?.wagered || 0);
+    for (let i = 0; i < 60 && (await wagered()) < 250; i++) {
+      const before = await wagered();
+      await page.touchscreen.tap(box.x + box.width * (0.35 + (i % 4) * 0.1), box.y + box.height * 0.4);
+      await page.waitForFunction((b) => (window.__neonpalast.getState().stats.perGame.coinpusher?.wagered || 0) > b, before, { timeout: 1000 }).catch(() => {});
+    }
     await page.waitForFunction(() => (window.__neonpalast.getState().stats.perGame.coinpusher?.won || 0) > 0, null, { timeout: 30000 });
     const s = await assertLedger(page);
     assert(s.stats.perGame.coinpusher.wagered === 250, `eingeworfen ${s.stats.perGame.coinpusher.wagered}`);
@@ -529,7 +534,7 @@ console.log("Neonpalast E2E (V1.1)");
     assert(/Auszeit/.test(txt), "Status zeigt keine Auszeit");
     await page.locator(".modal button:has-text('Schließen')").first().tap();
   });
-  await check("Auszeit: kürzere Pause verkürzt sie nicht, Neuladen hebt sie nicht auf", async () => {
+  await check("Auszeit: Neuladen hebt sie nicht auf, Automaten bleiben gesperrt", async () => {
     const before = (await state(page)).control.excludeUntil;
     await page.evaluate(() => window.__neonpalast.saveNow());
     await page.reload();
@@ -564,7 +569,7 @@ console.log("Neonpalast E2E (V1.1)");
     const txt = await page.locator(".modal").textContent();
     assert(/Wie wär’s mit einer Pause\?/.test(txt), "Text fehlt");
     assert(!/zurückholen|noch eine Runde|Verlust/i.test(txt), "manipulativer Text");
-    await page.locator(".modal button:has-text('Weiterspielen')").tap();
+    await page.locator(".modal button:has-text('Weiterspielen')").click();
     await page.waitForFunction(() => !document.querySelector(".modal"));
   });
   await check("Keine Konsolenfehler (Erinnerung)", async () => assert(!errors.length, errors.join(" | ")));

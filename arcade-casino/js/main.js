@@ -223,7 +223,7 @@ function applyBlock(fn) {
   session.reset();
   play("ui.back");
   const st = playStatus(getState().control);
-  toast(`${st.kind === "pause" ? "Pause" : "Auszeit"} aktiv bis ${formatUntil(st.until)}`, { icon: "⏸", ms: 4200 });
+  toast(`${st.kind === "pause" ? "Pause" : "Auszeit"} aktiv bis ${formatUntil(st.until)}`, { icon: "⏸️", ms: 4200 });
   // Laufende Runde wird beim Schließen normal abgerechnet (finalize).
   if (current) location.hash = "#/";
   else hub.refreshPerks();
@@ -286,7 +286,7 @@ function setHudForHub() {
 function setHudForGame(g, onHelp) {
   clear(hudLeft);
   hudLeft.append(
-    h("button.btn.btn-ghost.btn-sm", { type: "button", "aria-label": "Zurück zur Halle", onclick: goHub }, "‹ Halle"),
+    h("button.btn.btn-ghost.btn-sm.hud-back", { type: "button", "aria-label": "Zurück zur Halle", onclick: goHub }, "‹", h("span.hud-back-label", {}, " Halle")),
     h("span.hud-title", {}, g.title),
     h("button.btn.btn-ghost.btn-icon.btn-sm", { type: "button", "aria-label": "Spielregeln", onclick: onHelp }, "?")
   );
@@ -340,7 +340,7 @@ function renderPerks() {
       h(
         "div.lock-banner",
         { role: "status" },
-        h("span", { "aria-hidden": "true", style: { fontSize: "26px" } }, "⏸"),
+        h("span", { "aria-hidden": "true", style: { fontSize: "26px" } }, "⏸️"),
         h(
           "div",
           {},
