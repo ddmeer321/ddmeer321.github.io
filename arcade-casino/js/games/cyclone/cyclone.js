@@ -128,15 +128,18 @@ export default {
         ctx.particles.floatText(...screenOf(0), "JACKPOT +" + pts, "#ffc53d");
       } else if (pts > 0) {
         streak = 0;
-        play("reel.stop", { pitch: 1.3 });
-        haptic("impulse");
-        ctx.particles.floatText(...screenOf(bulb), "+" + pts, "#2de2e6");
+        const pink = pts === C.POINTS[1];
+        play("reel.stop", { pitch: pink ? 1.5 : 1.2 });
+        haptic(pink ? "success" : "impulse");
+        if (pink) flashT = 0.25;
+        ctx.particles.floatText(...screenOf(bulb), "+" + pts, pink ? "#ff3d9a" : "#2de2e6");
       } else {
         streak = 0;
         play("reel.stop", { pitch: 0.8, vol: 0.7 });
         haptic("tap");
       }
-      status.textContent = auto ? "Automatisch gestoppt" : pts === C.POINTS[0] ? "Volltreffer!" : pts ? `${C.distance(bulb)} Lampe daneben` : `${C.distance(bulb)} Lampen daneben`;
+      const zn = C.zoneOf(bulb)?.[2];
+      status.textContent = `${auto ? "Automatisch gestoppt · " : ""}${zn === "jackpot" ? "Volltreffer! +5" : zn === "pink" ? "Pinke Zone +3" : zn === "blau" ? "Blaue Zone +1" : `${C.distance(bulb)} Lampen daneben · 0`}`;
       stageIdx++;
       setPhase("between");
       hud();
@@ -211,9 +214,10 @@ export default {
         const x = cx + Math.cos(a) * R;
         const y = cy + Math.sin(a) * R;
         const d = C.distance(i);
-        const base = d === 0 ? "#ffc53d" : d === 1 ? "#ff3d9a" : d === 2 ? "#2de2e6" : "#5b4a8a";
-        let on = d <= 2 ? 0.35 : 0.12;
-        if (phase === "idle") on = d <= 2 ? 0.45 + 0.3 * Math.sin(t * 3) : 0.15;
+        const z = C.zoneOf(i);
+        const base = !z ? "#5b4a8a" : z[2] === "jackpot" ? "#ffc53d" : z[2] === "pink" ? "#ff3d9a" : "#2de2e6";
+        let on = z ? 0.35 : 0.12;
+        if (phase === "idle") on = z ? 0.45 + 0.3 * Math.sin(t * 3) : 0.15;
         if (pos !== null) {
           const back = (cur - i + C.BULBS) % C.BULBS;
           if (back < 4) on = Math.max(on, 1 - back / 4);
@@ -257,7 +261,7 @@ export default {
         const x = cx + (i - 2) * R * 0.17;
         const y = cy + R * 0.32;
         const p = history[i];
-        g.fillStyle = p === undefined ? "rgba(255,255,255,.12)" : p === 5 ? "#ffc53d" : p > 0 ? "#2de2e6" : "#5b4a8a";
+        g.fillStyle = p === undefined ? "rgba(255,255,255,.12)" : p === C.POINTS[0] ? "#ffc53d" : p === C.POINTS[1] ? "#ff3d9a" : p > 0 ? "#2de2e6" : "#5b4a8a";
         g.beginPath();
         g.arc(x, y, R * 0.045, 0, Math.PI * 2);
         g.fill();
@@ -316,8 +320,8 @@ export default {
           h("p", {}, `Eine Runde kostet ${ENTRY} Credits und hat ${C.STAGES} Stopps. Bei jedem Stopp läuft ein Licht mit gleichmäßiger Geschwindigkeit über ${C.BULBS} Lampen – es startet an einer zufälligen, sichtbaren Lampe. Tippe (oder Leertaste), um es anzuhalten. Es zählt genau die Lampe, die in diesem Moment leuchtet.`),
           h("table", {}, h("tbody", {}, [
             ["Jackpot-Lampe (gold, oben)", `${C.POINTS[0]} Punkte`],
-            ["1 Lampe daneben (pink)", `${C.POINTS[1]} Punkte`],
-            ["2 Lampen daneben (cyan)", `${C.POINTS[2]} Punkt`],
+            [`Pinke Zone (bis ${C.ZONES[1][0]} Lampen daneben)`, `${C.POINTS[1]} Punkte`],
+            [`Blaue Zone (bis ${C.ZONES[2][0]} Lampen daneben)`, `${C.POINTS[2]} Punkt`],
           ].map(([a, b]) => h("tr", {}, h("td", {}, a), h("td", {}, b))))),
           h("p", {}, `Jede Stufe ist schneller (${C.BASE_LAPS.map((x) => x.toFixed(2).replace(".", ",")).join(" · ")} s pro Umlauf). Jeder Jackpot-Treffer in Folge macht die nächste Stufe zusätzlich ${Math.round((1 - C.STREAK_SPEEDUP) * 100)} % schneller.`),
           h("h3", {}, "Preise nach Punkten"),

@@ -316,8 +316,10 @@ test("Lichtwirbel: gewertet wird exakt die Lampe zum Zeitpunkt des Tippens", () 
     assert.equal(CY.bulbAt(start, lap, t), 0);
     assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t)), CY.POINTS[0]);
     assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t + bulbMs)), CY.POINTS[1]);
-    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t - 2 * bulbMs)), CY.POINTS[2]);
-    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t + 10 * bulbMs)), 0);
+    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t - 2 * bulbMs)), CY.POINTS[1]);
+    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t + 3 * bulbMs)), CY.POINTS[2]);
+    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t - 6 * bulbMs)), CY.POINTS[2]);
+    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t + 7 * bulbMs)), 0);
   }
 });
 
@@ -333,15 +335,26 @@ test("Lichtwirbel: Preistabelle monoton, perfekte Runde ist der Jackpot", () => 
     assert.ok(m < prev);
     prev = m;
   }
-  assert.equal(CY.prizeFor(CY.MAX_POINTS, 20), 500);
+  assert.equal(CY.prizeFor(CY.MAX_POINTS, 20), 160);
+  // ganzzahlige Preise bei der Startgebühr
+  for (const [, m] of CY.PRIZES) assert.equal(Number.isInteger(m * 20), true);
   assert.equal(CY.prizeFor(0, 20), 0);
 });
 
 test("Lichtwirbel-Balance: kein Spieler mit realistischer Präzision druckt Credits", () => {
   const r = (o) => simulateCyclone({ ...o, rounds: 20000, seed: 3 }).rtp;
   assert.ok(r({ random: true }) < 0.1, "Zufall");
-  assert.ok(r({ sigma: 40 }) < 0.5, "Durchschnitt");
-  assert.ok(r({ sigma: 25 }) < 0.85, "gut");
-  assert.ok(r({ sigma: 15 }) < 1.2, "sehr gut");
-  assert.ok(r({ sigma: 10 }) < 1.7, "Elite");
+  assert.ok(r({ sigma: 40 }) < 0.75, "Durchschnitt");
+  assert.ok(r({ sigma: 25 }) < 1.0, "gut");
+  assert.ok(r({ sigma: 15 }) < 1.25, "sehr gut");
+  assert.ok(r({ sigma: 10 }) < 1.65, "Elite");
+});
+
+test("Lichtwirbel V1.2: blaue Zone für normale Spieler erreichbar, pink spürbar schwerer, Jackpot selten", () => {
+  const z = (sigma) => simulateCyclone({ sigma, rounds: 20000, seed: 4 });
+  const normal = z(50);
+  assert.ok(normal.blueOrBetterRate > 0.9, `blau+ bei σ50: ${normal.blueOrBetterRate}`);
+  assert.ok(normal.pinkOrBetterRate > 0.4 && normal.pinkOrBetterRate < 0.75, `pink+ bei σ50: ${normal.pinkOrBetterRate}`);
+  assert.ok(normal.jackpotHitRate < 0.2, `Jackpot bei σ50: ${normal.jackpotHitRate}`);
+  assert.ok(normal.rtp > 0.4, "normal spielbar, nicht frustrierend");
 });

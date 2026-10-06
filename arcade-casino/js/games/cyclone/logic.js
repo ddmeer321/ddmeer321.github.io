@@ -12,20 +12,33 @@
 
 export const BULBS = 48;
 export const STAGES = 5;
-export const BASE_LAPS = [0.8, 0.66, 0.55, 0.46, 0.38]; // Sekunden pro Umlauf
-export const STREAK_SPEEDUP = 0.85; // je Jackpot-Treffer in Folge
-export const MIN_LAP = 0.34;
-export const POINTS = [5, 2, 1]; // nach Abstand zum Jackpot-Feld (0, 1, 2 Lampen)
+// V1.2: V1.1 war zu streng (blaue Zone ±2 Lampen bei 7–17 ms pro Lampe ≈ Zufall
+// für Menschen). Jetzt: breitere Zonen, etwas ruhigere Umläufe. Simulation je
+// Timing-Genauigkeit in sim/cyclone.mjs und docs/ECONOMY.md.
+export const BASE_LAPS = [0.95, 0.85, 0.76, 0.68, 0.6]; // Sekunden pro Umlauf
+export const STREAK_SPEEDUP = 0.92; // je Jackpot-Treffer in Folge
+export const MIN_LAP = 0.5;
+/** Zonen nach Abstand zur Jackpot-Lampe: [größter Abstand, Punkte, Name]. */
+export const ZONES = [
+  [0, 5, "jackpot"],
+  [2, 3, "pink"],
+  [6, 1, "blau"],
+];
+export const POINTS = ZONES.map((z) => z[1]); // [5, 3, 1]
 export const MAX_POINTS = STAGES * POINTS[0];
 
 /** Preistabelle: [Mindestpunkte, Vielfaches der Startgebühr]. Höchster Treffer zuerst. */
 export const PRIZES = [
-  [25, 25],
-  [21, 3],
-  [17, 1.8],
-  [13, 1.2],
-  [9, 0.8],
-  [6, 0.5],
+  [25, 8],
+  [23, 2],
+  [21, 1.35],
+  [19, 1.1],
+  [17, 0.9],
+  [15, 0.8],
+  [13, 0.65],
+  [11, 0.5],
+  [9, 0.3],
+  [7, 0.2],
 ];
 
 export function lapFor(stage, streak = 0) {
@@ -48,9 +61,14 @@ export function distance(bulb) {
   return Math.min(b, BULBS - b);
 }
 
-export function pointsFor(bulb) {
+export function zoneOf(bulb) {
   const d = distance(bulb);
-  return d < POINTS.length ? POINTS[d] : 0;
+  for (const z of ZONES) if (d <= z[0]) return z;
+  return null;
+}
+
+export function pointsFor(bulb) {
+  return zoneOf(bulb)?.[1] ?? 0;
 }
 
 export function prizeMultiple(points) {
