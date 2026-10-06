@@ -28,7 +28,6 @@ export const ACHIEVEMENTS = [
   { id: "horses-underdog", icon: "🐎", title: "Außenseiter-Riecher", desc: "Gewinne ein Pferderennen mit Quote 8,0 oder höher." },
   { id: "pusher-chain", icon: "⛓️", title: "Kettenreaktion", desc: "Schiebe mit einem einzigen Schub 5 Münzen über die Kante." },
   { id: "challenges-all", icon: "📅", title: "Tagwerk", desc: "Schließe alle drei Tages-Challenges ab." },
-  { id: "break-taken", icon: "☕", title: "Gesunde Pause", desc: "Lege freiwillig eine Spielpause ein." },
 ];
 
 export const THEME_UNLOCKS = [

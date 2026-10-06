@@ -115,7 +115,7 @@ export default {
           haptic("tick");
           renderList();
           const o = betType === "win" ? market.win[i] : market.place[i];
-          commentary.textContent = `Nr. ${hh.no} ${hh.name} · ${betType === "win" ? "Sieg" : "Platz"} · möglicher Gewinn ${ctx.fmt(Math.floor(betCtl.value * o))}`;
+          commentary.textContent = `Nr. ${hh.no} ${hh.name} · ${betType === "win" ? "Sieg" : "Platz"} · mögliche Auszahlung ${ctx.fmt(Math.floor(betCtl.value * o))}`;
           setPhase("card");
         });
         list.append(btn);

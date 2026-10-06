@@ -444,7 +444,59 @@ export function horsesArt(id) {
 </svg>`;
 }
 
+
+/** Jukebox (V1.2). Vor dem Kauf dunkel mit Preisschild, danach beleuchtet. */
+export function jukeboxArt(id) {
+  const tubes = [0, 1, 2, 3, 4, 5].map((i) => `<rect class="jb-tube" x="${22 + i * 15}" y="58" width="9" height="62" rx="4.5" fill="url(#${id}-tube)" style="--i:${i}"/>`).join("");
+  return `<svg viewBox="0 0 130 210" aria-hidden="true">
+  <defs>
+    <linearGradient id="${id}-body" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a1206"/><stop offset=".5" stop-color="#c2622a"/><stop offset="1" stop-color="#3a1206"/></linearGradient>
+    <linearGradient id="${id}-arch" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3d9a"/><stop offset=".5" stop-color="#ffc53d"/><stop offset="1" stop-color="#2de2e6"/></linearGradient>
+    <linearGradient id="${id}-tube" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe6a3"/><stop offset="1" stop-color="#ff7a3d"/></linearGradient>
+  </defs>
+  <path class="jb-arch" d="M10 96 Q10 6 65 6 Q120 6 120 96 Z" fill="none" stroke="url(#${id}-arch)" stroke-width="7"/>
+  <path d="M14 96 Q14 12 65 12 Q116 12 116 96 V204 H14 Z" fill="url(#${id}-body)" stroke="#ffd7b8" stroke-width="2"/>
+  <path d="M20 96 Q20 20 65 20 Q110 20 110 96 Z" fill="#14072a"/>
+  <g class="jb-tubes">${tubes}</g>
+  <rect x="22" y="124" width="86" height="22" rx="4" fill="#0b0614" stroke="#ffc53d" stroke-width="1.2"/>
+  <text class="jb-title" x="65" y="138.5" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7.2" fill="#ffe6a3">JUKEBOX</text>
+  <g class="jb-grille">${[0, 1, 2, 3, 4].map((i) => `<rect x="24" y="${154 + i * 8}" width="82" height="4" rx="2" fill="#2a0f06"/>`).join("")}</g>
+  <circle class="jb-led" cx="65" cy="200" r="3" fill="#2de2e6"/>
+  <g class="jb-notes"><text x="96" y="40" font-size="14" fill="#ffc53d">♪</text><text x="26" y="50" font-size="12" fill="#2de2e6">♫</text></g>
+  <g class="jb-sale"><rect x="18" y="66" width="94" height="34" rx="6" fill="#0b0614" stroke="#ffc53d" stroke-width="1.5" transform="rotate(-6 65 83)"/>
+  <text x="65" y="80" text-anchor="middle" font-family="system-ui" font-weight="900" font-size="9" fill="#ffc53d" transform="rotate(-6 65 83)">ZU VERKAUFEN</text>
+  <text class="jb-price" x="65" y="93" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="8" fill="#fff" transform="rotate(-6 65 83)">ANSEHEN</text></g>
+</svg>`;
+}
+
+/** Lotto-Studio (V1.2): Bildschirm mit Kugelmaschine. */
+export function lottoArt(id) {
+  const balls = [["#ff3d9a", 50, 82], ["#ffc53d", 66, 74], ["#2de2e6", 80, 86], ["#8cff5a", 60, 92], ["#b98cff", 74, 98], ["#fff", 88, 72]]
+    .map(([c, x, y], i) => `<circle class="lt-ball" style="--i:${i}" cx="${x}" cy="${y}" r="6" fill="${c}" stroke="rgba(0,0,0,.3)" stroke-width=".8"/>`)
+    .join("");
+  return `<svg viewBox="0 0 200 210" aria-hidden="true">
+  <defs><linearGradient id="${id}-desk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1b0b3a"/><stop offset=".5" stop-color="#4b2a8a"/><stop offset="1" stop-color="#1b0b3a"/></linearGradient>
+  <radialGradient id="${id}-dome" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="rgba(255,255,255,.35)"/><stop offset="1" stop-color="rgba(120,180,255,.05)"/></radialGradient></defs>
+  <rect x="8" y="4" width="184" height="30" rx="8" fill="#0b0614" stroke="#2de2e6" stroke-width="2"/>
+  <text x="100" y="24" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="14" fill="#fff" style="filter:drop-shadow(0 0 3px #2de2e6)">NEON LOTTO</text>
+  <circle class="lt-live" cx="22" cy="19" r="4" fill="#ff3d3d"/>
+  <rect x="8" y="40" width="184" height="98" rx="8" fill="#0d0820" stroke="#5b4a8a" stroke-width="1.5"/>
+  <circle cx="68" cy="86" r="38" fill="#120a2a" stroke="#9bd8ff" stroke-width="2"/>
+  <g class="lt-balls">${balls}</g>
+  <circle cx="68" cy="86" r="38" fill="url(#${id}-dome)"/>
+  <rect x="62" y="122" width="12" height="12" fill="#9bd8ff" opacity=".5"/>
+  <text class="lt-next" x="150" y="70" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="9" fill="#9bd8ff">NÄCHSTE</text>
+  <text class="lt-time" x="150" y="86" text-anchor="middle" font-family="system-ui" font-weight="900" font-size="13" fill="#fff">ZIEHUNG</text>
+  <text class="lt-sub" x="150" y="102" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="8" fill="#ffc53d">4 AUS 20</text>
+  <path d="M14 146 H186 L178 204 H22 Z" fill="url(#${id}-desk)" stroke="#b98cff" stroke-width="1.5"/>
+  <rect x="40" y="160" width="120" height="12" rx="3" fill="#0b0614" opacity=".7"/>
+  <text x="100" y="169" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7.5" fill="#e2d1ff">TÄGLICH 20 UHR · GROSS ALLE 3 TAGE</text>
+</svg>`;
+}
+
 export const ART = {
+  jukebox: jukeboxArt,
+  lotto: lottoArt,
   horses: horsesArt,
   grabber: grabberArt,
   plinko: plinkoArt,

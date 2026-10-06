@@ -136,9 +136,11 @@
   .zones {
     grid-template-columns: 1.15fr 1fr;
     grid-template-areas:
+      "lounge lounge"
       "slots tables"
       "arcade arcade";
   }
+  .zone-lounge { grid-area: lounge; }
   .zone-slots { grid-area: slots; }
   .zone-tables { grid-area: tables; }
   .zone-arcade { grid-area: arcade; }
@@ -571,3 +573,64 @@
 }
 
 .reduce-motion .derby-horse { animation: none !important; }
+
+/* ---------- V1.2: Palast-Lounge (Jukebox & Lotto-Studio) ---------- */
+
+.zone-lounge { --zone-color: #ffc53d; }
+
+.m-fixture { --m-w: 132px; }
+@media (max-width: 520px) { .m-fixture { --m-w: 102px; } }
+@media (min-width: 700px) { .m-fixture { --m-w: 150px; } }
+
+/* Jukebox: vor dem Kauf dunkel, mit Verkaufsschild */
+.fx-jukebox svg { filter: brightness(0.55) saturate(0.5) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55)); transition: filter 600ms ease; }
+.fx-jukebox .jb-notes, .fx-jukebox .jb-led { opacity: 0; }
+.fx-jukebox .jb-tube { opacity: 0.25; }
+.fx-jukebox .jb-arch { opacity: 0.35; }
+.fx-jukebox.is-owned svg { filter: drop-shadow(0 0 10px rgba(255, 140, 60, 0.45)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55)); }
+.fx-jukebox.is-owned .jb-sale { display: none; }
+.fx-jukebox.is-owned .jb-tube { opacity: 0.85; }
+.fx-jukebox.is-owned .jb-arch, .fx-jukebox.is-owned .jb-led { opacity: 1; }
+.fx-jukebox.is-playing .jb-tube { animation: jb-tube 1.1s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -0.18s); }
+.fx-jukebox.is-playing .jb-arch { animation: jb-arch 3.2s linear infinite; }
+.fx-jukebox.is-playing .jb-notes { opacity: 1; animation: jb-notes 2.4s ease-in-out infinite; }
+.fx-jukebox .fixture-sub { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx-jukebox.is-playing .fixture-sub { color: var(--gold); }
+/* Einschalten nach dem Kauf: Licht flackert an */
+.fx-jukebox.is-powering svg { animation: jb-power 1.4s steps(1, end) both; }
+@keyframes jb-tube { from { opacity: 0.55; } to { opacity: 1; } }
+@keyframes jb-arch { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+@keyframes jb-notes { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-6px); opacity: 1; } }
+@keyframes jb-power {
+  0% { filter: brightness(0.55) saturate(0.5); }
+  12% { filter: brightness(1.4); }
+  18% { filter: brightness(0.6); }
+  30% { filter: brightness(1.3); }
+  36% { filter: brightness(0.7); }
+  55%, 100% { filter: brightness(1.15) drop-shadow(0 0 16px rgba(255, 197, 61, 0.8)); }
+}
+
+/* Lotto-Studio */
+.machine[data-game="lotto"] .lt-live { opacity: 0; }
+.machine[data-game="lotto"] .lt-ball { animation: lt-bob 2.6s ease-in-out infinite; animation-delay: calc(var(--i) * -0.4s); transform-box: fill-box; transform-origin: center; }
+.machine[data-game="lotto"].is-live .lt-live { opacity: 1; animation: blink 1s steps(2, start) infinite; }
+.machine[data-game="lotto"].is-live .lt-ball { animation: lt-mix 0.6s linear infinite; animation-delay: calc(var(--i) * -0.1s); }
+.machine[data-game="lotto"].has-attention::before {
+  content: "";
+  position: absolute;
+  inset: -6px -6px 34px;
+  border-radius: 16px;
+  box-shadow: 0 0 0 2px var(--gold), 0 0 22px rgba(255, 197, 61, 0.55);
+  animation: lt-attn 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes lt-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes lt-mix { 0% { transform: translate(0, 0); } 25% { transform: translate(6px, -8px); } 50% { transform: translate(-4px, -3px); } 75% { transform: translate(3px, 5px); } 100% { transform: translate(0, 0); } }
+@keyframes lt-attn { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+.reduce-motion .fx-jukebox .jb-tube, .reduce-motion .fx-jukebox .jb-arch, .reduce-motion .fx-jukebox .jb-notes,
+.reduce-motion .machine[data-game="lotto"] .lt-ball, .reduce-motion .machine[data-game="lotto"]::before { animation: none !important; }
+.reduce-motion .fx-jukebox.is-powering svg { animation: none; }
+@media (min-width: 1000px) {
+  .zone-lounge { justify-self: center; width: min(100%, 760px); }
+}
