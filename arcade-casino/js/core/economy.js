@@ -15,7 +15,7 @@ export function isValidAmount(n) {
   return typeof n === "number" && Number.isSafeInteger(n) && n > 0;
 }
 
-export function createEconomy({ getState, save = () => {}, emit = () => {} }) {
+export function createEconomy({ getState, save = () => {}, emit = () => {}, guard = () => null }) {
   let seq = 0;
   const open = new Map();
 
@@ -45,6 +45,8 @@ export function createEconomy({ getState, save = () => {}, emit = () => {} }) {
 
     /** Prüft einen Einsatz gegen Limits und Guthaben. */
     validateBet(amount, { min = 1, max = MAX_BALANCE } = {}) {
+      const blocked = guard();
+      if (blocked) return { ok: false, reason: blocked };
       if (!isValidAmount(amount)) return { ok: false, reason: "Ungültiger Einsatz" };
       if (amount < min) return { ok: false, reason: `Mindesteinsatz ${min}` };
       if (amount > max) return { ok: false, reason: `Höchsteinsatz ${max}` };
@@ -68,6 +70,7 @@ export function createEconomy({ getState, save = () => {}, emit = () => {} }) {
     /** Zusätzlicher Einsatz innerhalb derselben Runde (Double Down, Split). */
     addStake(ticket, amount) {
       if (!ticket || ticket.settled || !open.has(ticket.id)) return false;
+      if (guard()) return false;
       if (!api.canAfford(amount)) return false;
       ticket.stake += amount;
       setBalance(getState().balance - amount, -amount, "bet");
@@ -105,6 +108,7 @@ export function createEconomy({ getState, save = () => {}, emit = () => {} }) {
 
     /** Direkte Abbuchung für Automaten ohne Runden (Coin Pusher, Startgebühr). */
     debit(gameId, amount, reason = "debit") {
+      if (guard()) return false;
       if (!api.canAfford(amount)) return false;
       const s = getState();
       const g = statFor(gameId);

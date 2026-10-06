@@ -237,3 +237,7 @@ button {
 @media (max-width: 420px) {
   .brand-text { display: none; }
 }
+
+@media (max-width: 420px) {
+  .hud-title { display: none; }
+}

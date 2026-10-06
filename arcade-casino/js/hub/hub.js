@@ -6,7 +6,7 @@ import { ART } from "./machines.js";
 import { GAMES, ZONES } from "../games/registry.js";
 import { fmt } from "../ui/format.js";
 
-export function createHub(root, { onOpen, renderPerks, onStats, onSettings, getBest, tickerItems }) {
+export function createHub(root, { onOpen, renderPerks, onStats, onSettings, onControl, getBest, tickerItems }) {
   const ambient = h("canvas.hall-ambient", { "aria-hidden": "true" });
   const perks = h("div.hall-perks");
   const tickerTrack = h("div.ticker-track");
@@ -47,7 +47,8 @@ export function createHub(root, { onOpen, renderPerks, onStats, onSettings, getB
       "div.hall-footer",
       {},
       h("button.btn.btn-ghost", { type: "button", onclick: onStats }, "🏆 Erfolge & Statistik"),
-      h("button.btn.btn-ghost", { type: "button", onclick: onSettings }, "⚙️ Einstellungen")
+      h("button.btn.btn-ghost", { type: "button", onclick: onSettings }, "⚙️ Einstellungen"),
+      h("button.btn.btn-ghost", { type: "button", onclick: onControl }, "⏸ Spielkontrolle & Hilfe")
     ),
     h(
       "p.hall-note",
@@ -176,6 +177,9 @@ export function createHub(root, { onOpen, renderPerks, onStats, onSettings, getB
       clear(perks);
       const p = renderPerks();
       if (p) perks.append(...[].concat(p));
+    },
+    setLocked(v) {
+      hall.classList.toggle("is-locked", v);
     },
     setReduced(v) {
       reduced = v;

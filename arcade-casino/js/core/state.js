@@ -7,9 +7,13 @@
 // virtuelles Spielgeld ohne jeden realen Wert handelt, ist das bewusst akzeptiert.
 
 import { readJSON, writeJSON } from "./storage.js";
+import { defaultControl, sanitizeControl } from "./control.js";
+import { sanitizeChallenges } from "./challenges.js";
 
+// Der Schlüssel behält bewusst seinen alten Namen, damit V1.0-Spielstände
+// gefunden und migriert werden. Die Schema-Version steht im Feld `v`.
 export const SAVE_KEY = "neonpalast.save.v1";
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 export const START_BALANCE = 1000;
 export const MAX_BALANCE = 999_999_999;
 
@@ -46,7 +50,30 @@ export function defaultState(now = Date.now()) {
     achievements: {},
     counters: {},
     games: {},
+    control: defaultControl(),
+    challenges: { day: "", items: [], bonus: false },
   };
+}
+
+/**
+ * Hebt ältere Spielstände schrittweise auf die aktuelle Version.
+ * v1 → v2: neue Bereiche (Spielkontrolle, Challenges); Lichtwirbel-Daten der
+ * alten Einzelstopp-Version werden verworfen (Spiel ist neu aufgebaut).
+ */
+export function migrateState(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const out = { ...raw };
+  const v = Number.isInteger(out.v) ? out.v : 1;
+  if (v < 2) {
+    const games = out.games && typeof out.games === "object" ? { ...out.games } : {};
+    delete games.cyclone;
+    out.games = games;
+    out.control = defaultControl();
+    out.challenges = { day: "", items: [], bonus: false };
+    out.migratedFrom = 1;
+  }
+  out.v = SAVE_VERSION;
+  return out;
 }
 
 // ---------- Bereinigung ----------
@@ -91,7 +118,7 @@ export const THEMES = ["neon", "sunset", "ocean", "jungle", "royal"];
 /** Macht aus beliebigen (evtl. kaputten/manipulierten) Daten einen gültigen Stand. */
 export function sanitizeState(raw, now = Date.now()) {
   const def = defaultState(now);
-  const src = plainObject(raw);
+  const src = plainObject(migrateState(raw));
   if (!Object.keys(src).length) return def;
 
   const s = plainObject(src.settings);
@@ -137,6 +164,8 @@ export function sanitizeState(raw, now = Date.now()) {
     counters: intMap(src.counters),
     // Spielspezifische Daten werden von den Spielen selbst geprüft.
     games: plainObject(src.games),
+    control: sanitizeControl(src.control),
+    challenges: sanitizeChallenges(src.challenges),
   };
 }
 
@@ -181,8 +210,11 @@ export function saveSoon(delay = 250) {
 
 export function resetState() {
   const keepSettings = state?.settings;
+  // Spielkontrolle (Pause/Auszeit) überlebt einen Reset bewusst.
+  const keepControl = state?.control;
   state = defaultState();
   if (keepSettings) state.settings = keepSettings;
+  if (keepControl) state.control = keepControl;
   saveNow();
   return state;
 }

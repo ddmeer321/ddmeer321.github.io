@@ -9,7 +9,8 @@ import { evaluate, exactRtp, simulateRtp, spin } from "../js/games/slots/engine.
 import * as CP from "../js/games/coinpusher/physics.js";
 import * as HP from "../js/games/hoops/physics.js";
 import * as ST from "../js/games/stacker/logic.js";
-import { cycloneMultiplier } from "../js/games/cyclone/cyclone.js";
+import * as CY from "../js/games/cyclone/logic.js";
+import { simulate as simulateCyclone } from "../sim/cyclone.mjs";
 import { prizeFor } from "../js/games/hoops/hoops.js";
 
 const C = (r, s = "♠") => ({ r, s });
@@ -306,10 +307,41 @@ test("Turmbau: perfektes Stapeln erreicht den Jackpot, Versatz verkleinert", () 
   assert.equal(res.lost.length, 1);
 });
 
-test("Lichtwirbel: Multiplikatoren symmetrisch um den Jackpot", () => {
-  assert.equal(cycloneMultiplier(0), 25);
-  assert.equal(cycloneMultiplier(1), 4);
-  assert.equal(cycloneMultiplier(35), 4);
-  assert.equal(cycloneMultiplier(2), 1);
-  assert.equal(cycloneMultiplier(18), 0);
+test("Lichtwirbel: gewertet wird exakt die Lampe zum Zeitpunkt des Tippens", () => {
+  const lap = CY.lapFor(0);
+  const bulbMs = (lap * 1000) / CY.BULBS;
+  for (let start = 0; start < CY.BULBS; start += 7) {
+    // perfekter Tipp: Mitte der Jackpot-Lampe nach einer vollen Runde
+    const t = (CY.BULBS + 0.5 - start) * bulbMs;
+    assert.equal(CY.bulbAt(start, lap, t), 0);
+    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t)), CY.POINTS[0]);
+    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t + bulbMs)), CY.POINTS[1]);
+    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t - 2 * bulbMs)), CY.POINTS[2]);
+    assert.equal(CY.pointsFor(CY.bulbAt(start, lap, t + 10 * bulbMs)), 0);
+  }
+});
+
+test("Lichtwirbel: Stufen werden schneller, Serien beschleunigen zusätzlich", () => {
+  for (let i = 1; i < CY.STAGES; i++) assert.ok(CY.lapFor(i) < CY.lapFor(i - 1));
+  assert.ok(CY.lapFor(2, 2) < CY.lapFor(2, 0));
+  assert.ok(CY.lapFor(4, 99) >= CY.MIN_LAP);
+});
+
+test("Lichtwirbel: Preistabelle monoton, perfekte Runde ist der Jackpot", () => {
+  let prev = Infinity;
+  for (const [, m] of CY.PRIZES) {
+    assert.ok(m < prev);
+    prev = m;
+  }
+  assert.equal(CY.prizeFor(CY.MAX_POINTS, 20), 500);
+  assert.equal(CY.prizeFor(0, 20), 0);
+});
+
+test("Lichtwirbel-Balance: kein Spieler mit realistischer Präzision druckt Credits", () => {
+  const r = (o) => simulateCyclone({ ...o, rounds: 20000, seed: 3 }).rtp;
+  assert.ok(r({ random: true }) < 0.1, "Zufall");
+  assert.ok(r({ sigma: 40 }) < 0.5, "Durchschnitt");
+  assert.ok(r({ sigma: 25 }) < 0.85, "gut");
+  assert.ok(r({ sigma: 15 }) < 1.2, "sehr gut");
+  assert.ok(r({ sigma: 10 }) < 1.7, "Elite");
 });
