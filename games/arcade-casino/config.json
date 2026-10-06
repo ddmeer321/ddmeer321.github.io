@@ -7,6 +7,8 @@
   "version": "1.2.1",
   "author": "Dodo",
   "description": "Arcade-Casino mit 12 Automaten (Blackjack, Roulette, drei Slots, Plinko, Münzgreifer, Pferderennen, Coin Pusher und Skill-Automaten), Neon Lotto und einer eigenen Jukebox. Ausschließlich virtuelles Spielgeld – keine Käufe, keine Auszahlungen.",
+  "thumbnail": "assets/img/arcade-casino-keyart.webp",
+  "thumbnailAlt": "Neonhalle mit Spielautomaten, Lichtwirbel, Plinko-Wand und Jukebox unter dem Leuchtschriftzug Neonpalast",
   "icon": "🎰",
   "entry": "arcade-casino/index.html"
 }

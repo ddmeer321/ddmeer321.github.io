@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as H from "../js/games/horses/logic.js";
 import { analyse } from "../sim/horses.mjs";
+import { LIMITS } from "../js/core/limits.js";
 
 test("Pferderennen: gleicher Seed ⇒ identisches Rennen; Rennen dauert 10–20 s", () => {
   const card = H.makeCard(42);
@@ -55,4 +56,21 @@ test("Pferderennen: Auszahlung Sieg/Platz", () => {
   assert.equal(H.payout("win", 1, 20, 4.5, order), 0);
   assert.equal(H.payout("place", 1, 20, 1.8, order), 36);
   assert.equal(H.payout("place", 0, 20, 1.8, order), 0);
+});
+
+test("Pferderennen: keine Auszahlung verliert durch Gleitkomma einen Credit", () => {
+  // Quote x Einsatz ist mathematisch immer ganzzahlig (Zehntel mal Vielfaches
+  // von 10). In Gleitkomma liegt das Ergebnis aber teils knapp darunter --
+  // 2.3 * 50 ist 114.99999999999999. Mit Math.floor fehlte dann ein Credit.
+  const order = [0, 1, 2, 3, 4, 5];
+  const schief = [];
+  for (let zehntel = 12; zehntel <= 400; zehntel++) {
+    for (const einsatz of LIMITS.horses.steps) {
+      const exakt = (zehntel * einsatz) / 10;
+      if (!Number.isInteger(exakt)) continue;
+      const gezahlt = H.payout("win", 0, einsatz, zehntel / 10, order);
+      if (gezahlt !== exakt) schief.push(`Quote ${zehntel / 10} x ${einsatz}: ${gezahlt} statt ${exakt}`);
+    }
+  }
+  assert.deepEqual(schief, []);
 });
