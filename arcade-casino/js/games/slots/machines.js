@@ -62,7 +62,6 @@ export const FRUIT = {
   },
   wild: null,
   scatter: null,
-  betSteps: [5, 10, 25, 50, 100, 250],
   defaultBet: 25,
   theme: { frame: "#ff3d9a", frame2: "#ffde59", bg: ["#3a0d27", "#16050f"], line: "#ffde59", accent: "#5be36a" },
   tagline: "5 Gewinnlinien · Kirschen ab 2",
@@ -91,7 +90,6 @@ export const SEVEN = {
   cherry: { symbol: "cherry", pays: { 1: 1, 2: 5, 3: 20 } },
   wild: null,
   scatter: null,
-  betSteps: [5, 10, 20, 50, 100, 200],
   defaultBet: 10,
   theme: { frame: "#ffc53d", frame2: "#c4162a", bg: ["#2b0508", "#120204"], line: "#ff2d55", accent: "#ffc53d" },
   tagline: "1 Linie · klassische Mischgewinne",
@@ -110,8 +108,10 @@ export const COSMO = {
     buildStrip({ rocket: 2, planet: 3, gem: 4, star: 5, moon: 6, orb: 6, comet: 1, nova: 1 }, 34),
     buildStrip({ rocket: 2, planet: 3, gem: 4, star: 5, moon: 6, orb: 7, comet: 1, nova: 0 }, 35),
   ],
+  // Nova (Wild) liegt nur auf den Walzen 2–4 und kann daher keine eigene Linie
+  // von links bilden – V1.0 listete dafür unerreichbare Gewinne (entfernt in V1.1,
+  // RTP unverändert).
   pays: {
-    nova: { 3: 100, 4: 400, 5: 2000 },
     rocket: { 3: 50, 4: 200, 5: 750 },
     planet: { 3: 30, 4: 100, 5: 400 },
     gem: { 3: 20, 4: 60, 5: 200 },
@@ -122,10 +122,9 @@ export const COSMO = {
   wild: "nova",
   scatter: { symbol: "comet", pays: { 3: 2, 4: 10, 5: 50 }, freeSpins: { 3: 8, 4: 12, 5: 20 } },
   freeSpinMultiplier: 2,
-  betSteps: [10, 20, 50, 100, 200, 500],
   defaultBet: 20,
   theme: { frame: "#2de2e6", frame2: "#9b5cff", bg: ["#140a3a", "#05030f"], line: "#2de2e6", accent: "#ff3d9a" },
-  tagline: "10 Linien · Nova ersetzt · 3 Kometen = Freispiele ×2",
+  tagline: "10 Linien · Nova (Walze 2–4) ersetzt · 3 Kometen = Freispiele ×2",
 };
 
 export const MACHINES = { fruit: FRUIT, seven: SEVEN, cosmo: COSMO };

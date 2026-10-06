@@ -4,25 +4,14 @@ import { h } from "../../ui/dom.js";
 import { createStage, createLoop } from "../../render/stage.js";
 import * as B from "./physics.js";
 
-const ENTRY = 50;
-const ROUND_TIME = 45;
-const FINAL_SPURT = 10; // letzte Sekunden: doppelte Punkte
-const MOVING_FROM = 30; // ab dieser Punktzahl bewegt sich der Ring
-const PRIZES = [
-  [140, 400],
-  [110, 250],
-  [85, 150],
-  [65, 100],
-  [45, 60],
-  [30, 30],
-];
+import { ENTRY, ROUND_TIME, FINAL_SPURT, MOVING_FROM, READY_TIME, STREAK_FOR_X2, PRIZES, multiplier as streakMult, pointsFor, prizeFor } from "./scoring.js";
+
+export { prizeFor };
+
 const FIXED_DT = 1 / 240;
 const CAM = { x: 0, y: 1.6, z: -2.0 };
 
-export function prizeFor(score) {
-  for (const [min, prize] of PRIZES) if (score >= min) return prize;
-  return 0;
-}
+
 
 export default {
   mount(root, ctx) {
@@ -55,6 +44,7 @@ export default {
 
     // ---------- Zustand ----------
     let phase = "menu"; // menu | countdown | play | over
+    ctx.setPhase(phase);
     let ticket = null;
     let timeLeft = ROUND_TIME;
     let clock = 0; // Spielzeit (für Ringbewegung)
@@ -62,6 +52,7 @@ export default {
     let baskets = 0;
     let streak = 0;
     let bestStreak = 0;
+    let swishes = 0;
     let balls = [];
     let ready = true; // Ball liegt bereit
     let readyIn = 0;
@@ -130,6 +121,7 @@ export default {
       baskets = 0;
       streak = 0;
       bestStreak = 0;
+      swishes = 0;
       timeLeft = ROUND_TIME;
       clock = 0;
       balls = [];
@@ -137,6 +129,7 @@ export default {
       flashes = [];
       updateHud();
       phase = "countdown";
+      ctx.setPhase(phase);
       countdown = 3;
       play("count");
       status.textContent = "Bereit machen …";
@@ -144,7 +137,7 @@ export default {
     }
 
     function multiplier() {
-      return streak >= 6 ? 3 : streak >= 3 ? 2 : 1;
+      return streakMult(streak);
     }
 
     function updateHud() {
@@ -162,6 +155,7 @@ export default {
 
     function endRound() {
       phase = "over";
+      ctx.setPhase(phase);
       play("buzzer");
       haptic("heavy");
       const prize = prizeFor(score);
@@ -173,14 +167,11 @@ export default {
       ctx.progression.setBest("hoops-streak", bestStreak);
       ctx.progression.addXp(Math.floor(score / 3));
       if (baskets >= 10) ctx.progression.award("hoops-10");
-      if (prize > 0) {
-        setTimeout(() => {
-          if (dead) return;
-          play(prize >= 150 ? "win.big" : "win.medium");
-          const r = stage.getBoundingClientRect();
-          particles.coinsToBalance(r.left + r.width / 2, r.top + r.height / 2, Math.min(18, prize / 15));
-        }, 500);
-      }
+      ctx.report("hoops:round", { score, baskets, swishes, streak: bestStreak });
+      setTimeout(() => {
+        if (dead) return;
+        ctx.celebrate({ stake: ENTRY, payout: prize, detail: `${score} Punkte`, banner: false });
+      }, 450);
       status.textContent = `Ergebnis: ${score} Punkte${prize ? ` · +${prize} Credits` : ""}`;
       showOverlay("over", { score, baskets, bestStreak, newBest });
     }
@@ -230,7 +221,7 @@ export default {
       const ball = B.createBall(vel);
       balls.push(ball);
       ready = false;
-      readyIn = 0.38;
+      readyIn = READY_TIME;
       hint.style.opacity = "0";
       play("ball.throw");
       haptic("tap");
@@ -251,9 +242,8 @@ export default {
         streak++;
         bestStreak = Math.max(bestStreak, streak);
         baskets++;
-        const spurt = timeLeft <= FINAL_SPURT ? 2 : 1;
-        const base = ball.swish ? 3 : 2;
-        const pts = base * multiplier() * spurt;
+        const pts = pointsFor({ swish: ball.swish, streak, spurt: timeLeft <= FINAL_SPURT });
+        if (ball.swish) swishes++;
         score += pts;
         netPulse = 1;
         play("ball.swish", { vol: ball.swish ? 1 : 0.8 });
@@ -263,8 +253,7 @@ export default {
         particles.floatText(r.left + p.x, r.top + p.y - 20, `+${pts}`, ball.swish ? "#2de2e6" : "#ffc53d");
         particles.burst(r.left + p.x, r.top + p.y, { kind: "sparks", count: ball.swish ? 18 : 10, color: "#ff8a3d" });
         if (ball.swish) flash("SWISH!");
-        if (streak === 3) flash("Serie ×2");
-        if (streak === 6) flash("ON FIRE ×3");
+        if (streak === STREAK_FOR_X2) flash("Serie ×2");
         if (streak >= 5) ctx.progression.award("hoops-combo");
         if (score >= MOVING_FROM && score - pts < MOVING_FROM) flash("Korb in Bewegung!");
         updateHud();
@@ -282,6 +271,7 @@ export default {
         }
         if (countdown <= 0) {
           phase = "play";
+          ctx.setPhase(phase);
           play("go");
           haptic("impulse");
           status.textContent = "Wirf!";
@@ -320,7 +310,7 @@ export default {
           if (b.done && !wasScored && !b.scored && !b.counted) {
             b.counted = true;
             if (phase === "play") {
-              if (streak >= 3) flash("Serie gerissen");
+              if (streak >= STREAK_FOR_X2) flash("Serie gerissen");
               streak = 0;
               updateHud();
             }
@@ -555,7 +545,7 @@ export default {
           h("p", {}, "Wische vom unteren Bildschirmbereich nach oben in Richtung Korb. Die Geschwindigkeit am Ende des Wischens bestimmt die Wurfkraft, die Richtung (leicht schräg) das seitliche Ziel. Der Abwurfwinkel ist immer gleich."),
           h("p", {}, "Gleicher Wisch = gleicher Wurf. Es gibt keinen Zufall und keine versteckte Trefferhilfe – nur deine Hand und die Physik (Schwerkraft, Ring, Brett)."),
           h("h3", {}, "Punkte"),
-          h("p", {}, `Korb 2 Punkte, Swish (ohne Ring/Brett) 3 Punkte. 3 Treffer in Folge: ×2, 6 in Folge: ×3. Ein Fehlwurf beendet die Serie. In den letzten ${FINAL_SPURT} Sekunden zählt alles doppelt. Ab ${MOVING_FROM} Punkten pendelt der Korb – gleichmäßig und vorhersehbar.`),
+          h("p", {}, `Korb 2 Punkte, Swish (ohne Ring/Brett) 3 Punkte. Ab ${STREAK_FOR_X2} Treffern in Folge zählt jeder Korb doppelt; ein Fehlwurf beendet die Serie. In den letzten ${FINAL_SPURT} Sekunden zählt alles doppelt. Ab ${MOVING_FROM} Punkten pendelt der Korb – gleichmäßig und vorhersehbar. Startgebühr ${ENTRY} Credits.`),
           h("h3", {}, "Preise"),
           h("div.prize-table", {}, PRIZES.slice().reverse().map(([min, prize]) => [h("span", {}, `ab ${min} Punkten`), h("b.num", {}, `${prize} Credits`)]))
         ),
