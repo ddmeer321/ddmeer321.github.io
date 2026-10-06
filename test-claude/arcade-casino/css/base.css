@@ -280,3 +280,26 @@ button {
     display: none;
   }
 }
+
+/* V1.2: fünf Elemente rechts (Guthaben, Level, Post, Pause, Einstellungen).
+   Auf Telefonen weicht die Level-Pille (Level steht in Statistik und Laufschrift),
+   die Abstände werden enger; alles, was etwas tut, bleibt mit 44 px treffbar. */
+@media (max-width: 479px) {
+  #hud-level { display: none; }
+  .hud-right { gap: 6px; }
+  .hud-left { gap: 6px; }
+  .hud-right > .btn-icon { min-width: 44px; width: 44px; padding: 0; }
+}
+@media (max-width: 374px) {
+  .hud-right { gap: 4px; }
+  .hud-left { gap: 4px; }
+  .hud-right > .btn-icon { min-width: 42px; width: 42px; }
+  #hud-balance { padding-left: 8px; padding-right: 10px; }
+}
+.hud-right > .btn-icon { min-height: 44px; }
+@media (max-width: 340px) {
+  #hud-balance .coin-ico { display: none; }
+  .hud-right, .hud-left { gap: 2px; }
+  .hud-right > .btn-icon { min-width: 40px; width: 40px; }
+}
+.hud-right > .pill { min-height: 44px; }

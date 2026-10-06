@@ -3,10 +3,10 @@
 
 import { h, clear } from "../ui/dom.js";
 import { ART } from "./machines.js";
-import { GAMES, ZONES } from "../games/registry.js";
+import { GAMES, ZONES, FIXTURES } from "../games/registry.js";
 import { fmt } from "../ui/format.js";
 
-export function createHub(root, { onOpen, renderPerks, onStats, onSettings, onControl, getBest, tickerItems }) {
+export function createHub(root, { onOpen, onFixture, renderPerks, onStats, onSettings, onControl, getBest, tickerItems }) {
   const ambient = h("canvas.hall-ambient", { "aria-hidden": "true" });
   const perks = h("div.hall-perks");
   const tickerTrack = h("div.ticker-track");
@@ -14,8 +14,21 @@ export function createHub(root, { onOpen, renderPerks, onStats, onSettings, onCo
   const zonesEl = h("div.zones");
   const machines = new Map();
 
+  const fixtures = new Map();
   for (const z of ZONES) {
     const floor = h("div.zone-floor");
+    for (const f of FIXTURES.filter((x) => x.zone === z.id)) {
+      const plate = h("span.machine-plate", {}, h("strong", {}, f.title), h("small.fixture-sub", {}, ""));
+      const btn = h(
+        `button.machine.m-fixture.fx-${f.id}`,
+        { type: "button", dataset: { fixture: f.id }, "aria-label": f.title },
+        h("span", { html: ART[f.art](`f-${f.id}`), style: { display: "block", width: "100%" } }),
+        plate
+      );
+      btn.addEventListener("click", () => onFixture?.(f.id, btn));
+      fixtures.set(f.id, btn);
+      floor.append(btn);
+    }
     for (const g of GAMES.filter((x) => x.zone === z.id)) {
       const btn = h(
         `button.machine${g.table ? ".m-table" : ""}${g.wide ? ".m-wide" : ""}`,
@@ -186,5 +199,32 @@ export function createHub(root, { onOpen, renderPerks, onStats, onSettings, onCo
       if (visible) startAmbient();
     },
     machineEl: (id) => machines.get(id),
+    fixtureEl: (id) => fixtures.get(id),
+    /** Jukebox-Zustand in der Halle zeigen: gekauft/leuchtend, spielt, Titel. */
+    setJukebox({ owned, playing, title, price }) {
+      const el = fixtures.get("jukebox");
+      if (!el) return;
+      el.classList.toggle("is-owned", owned);
+      el.classList.toggle("is-playing", playing);
+      el.querySelector(".fixture-sub").textContent = owned ? (playing ? `♪ ${title}` : "Bereit · antippen") : `Zu verkaufen · ${price}`;
+      el.setAttribute("aria-label", owned ? `Jukebox – ${playing ? `spielt ${title}` : "aus"}` : `Jukebox – zu verkaufen für ${price}`);
+      const t = el.querySelector(".jb-title");
+      if (t) t.textContent = owned ? (playing ? title.toUpperCase().slice(0, 18) : "BEREIT") : "JUKEBOX";
+    },
+    /** Lotto-Studio: nächste Ziehung, LIVE, wartende Gewinne. */
+    setLotto({ line1, line2, line3, live, attention, blurb }) {
+      const el = machines.get("lotto");
+      if (!el) return;
+      el.classList.toggle("is-live", Boolean(live));
+      el.classList.toggle("has-attention", Boolean(attention));
+      const set = (sel, v) => {
+        const n = el.querySelector(sel);
+        if (n && v !== undefined) n.textContent = v;
+      };
+      set(".lt-next", line1);
+      set(".lt-time", line2);
+      set(".lt-sub", line3);
+      if (blurb !== undefined) el.querySelector(".machine-plate small").textContent = blurb;
+    },
   };
 }

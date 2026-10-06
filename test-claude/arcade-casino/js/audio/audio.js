@@ -3,7 +3,9 @@
 //
 // * Genau EIN AudioContext für die ganze App (lazy beim ersten Antippen erzeugt,
 //   weil Browser Audio erst nach einer Benutzergeste erlauben).
-// * Busse: sfx, haptic (Fake-Haptik-Transienten), ambience → master → Kompressor.
+// * Busse: sfx, haptic (Fake-Haptik-Transienten), ambience, music (Jukebox,
+//   V1.2) → master → Kompressor. Musik hat eine eigene Lautstärke und wird in
+//   Spielen „geduckt“ (leiser), damit keine Klang-Kakophonie entsteht.
 // * Stimmenbegrenzung + Mindestabstand pro Klang, damit z. B. 30 Münzen
 //   gleichzeitig nicht übersteuern oder die CPU fluten.
 // * Fehlt Web Audio oder wirft irgendetwas, wird still weitergespielt.
@@ -16,7 +18,8 @@ let master = null;
 let buses = null;
 let noiseBuf = null;
 let voices = [];
-let settings = { master: 0.8, sfx: 0.9, ambience: 0.35, audioHaptics: true };
+let settings = { master: 0.8, sfx: 0.9, ambience: 0.35, music: 0.6, audioHaptics: true };
+let musicDuck = 1;
 const lastPlayed = new Map();
 let ambience = null;
 let ambienceWanted = false;
@@ -47,6 +50,7 @@ function ensure() {
       sfx: ctx.createGain(),
       haptic: ctx.createGain(),
       ambience: ctx.createGain(),
+      music: ctx.createGain(),
     };
     for (const b of Object.values(buses)) b.connect(master);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
@@ -68,6 +72,28 @@ function applyVolumes() {
   buses.sfx.gain.setTargetAtTime(settings.sfx, t, 0.02);
   buses.haptic.gain.setTargetAtTime(settings.audioHaptics ? settings.sfx * 0.9 : 0, t, 0.02);
   buses.ambience.gain.setTargetAtTime(settings.ambience * 0.5, t, 0.08);
+  buses.music.gain.setTargetAtTime(settings.music * 0.8 * musicDuck, t, 0.25);
+}
+
+/** Musik leiser (0–1) – z. B. 0,3 während eines Spiels. Weiche Blende. */
+export function setMusicDuck(level) {
+  musicDuck = Math.max(0, Math.min(1, level));
+  applyVolumes();
+}
+
+/** Laufender AudioContext + Musik-Bus für die Jukebox (null, solange gesperrt). */
+export function musicOutput() {
+  const c = ensure();
+  if (!c || c.state !== "running") return null;
+  return { ctx: c, bus: buses.music };
+}
+
+/** Promise, das erfüllt wird, sobald Audio laufen darf (nach Benutzergeste). */
+export async function resumeAudio() {
+  const c = ensure();
+  if (!c) return false;
+  if (c.state !== "running") await c.resume().catch(() => {});
+  return c.state === "running";
 }
 
 export function setAudioSettings(next) {
@@ -320,6 +346,37 @@ const SOUNDS = {
     [72, 76, 79].forEach((n) => tone({ t: t + 0.55, type: "sawtooth", f: NOTE(n - 12), dur: 0.7, attack: 0.02, peak: 0.02 * o.vol }));
     for (let i = 0; i < 6; i++) metal({ t: t + 0.6 + i * 0.09, f: R(2400, 4200), ratios: [1, 2.01], dur: 0.25, peak: 0.035 * o.vol });
   }],
+  // V1.2: Jukebox & Lotto
+  "jukebox.on": [0.5, 10, (t, o) => {
+    tone({ t, type: "sawtooth", f: 60, f2: 240, dur: 0.45, peak: 0.05 * o.vol });
+    noise({ t, dur: 0.06, filter: "lowpass", f: 300, q: 0.7, peak: 0.25 * o.vol });
+    noise({ t: t + 0.12, dur: 0.03, f: 4000, q: 3, peak: 0.1 * o.vol });
+    noise({ t: t + 0.22, dur: 0.03, f: 4500, q: 3, peak: 0.1 * o.vol });
+    arp({ t: t + 0.45, notes: [57, 64, 69, 72, 76], step: 0.07, dur: 0.5, type: "triangle", peak: 0.09 * o.vol });
+  }],
+  "unlock.song": [0.3, 5, (t, o) => {
+    arp({ t, notes: [79, 84, 88], step: 0.05, dur: 0.35, type: "sine", peak: 0.08 * o.vol });
+    metal({ t: t + 0.15, f: 1760, dur: 0.5, peak: 0.04 * o.vol });
+  }],
+  "lotto.intro": [0.5, 12, (t, o) => {
+    arp({ t, notes: [60, 64, 67, 72], step: 0.11, dur: 0.22, type: "square", peak: 0.05 * o.vol });
+    arp({ t: t + 0.5, notes: [65, 69, 72, 77], step: 0.11, dur: 0.22, type: "square", peak: 0.05 * o.vol });
+    tone({ t: t + 1.0, type: "sawtooth", f: NOTE(72), dur: 0.7, peak: 0.05 * o.vol });
+    tone({ t: t + 1.0, type: "sawtooth", f: NOTE(76), dur: 0.7, peak: 0.04 * o.vol });
+    tone({ t: t + 1.0, type: "sawtooth", f: NOTE(79), dur: 0.7, peak: 0.04 * o.vol });
+  }],
+  "lotto.ball": [0.2, 4, (t, o) => {
+    tone({ t, type: "sine", f: 300, f2: 120, dur: 0.12, peak: 0.25 * o.vol });
+    noise({ t, dur: 0.03, filter: "bandpass", f: 1200, q: 2, peak: 0.15 * o.vol });
+    tone({ t: t + 0.16, type: "sine", f: 240, f2: 110, dur: 0.08, peak: 0.12 * o.vol });
+  }],
+  "lotto.reveal": [0.2, 3, (t, o) => {
+    metal({ t, f: 880 * o.pitch, dur: 0.6, peak: 0.08 * o.vol });
+    tone({ t, type: "triangle", f: 1320 * o.pitch, dur: 0.25, peak: 0.06 * o.vol });
+  }],
+  "lotto.hit": [0.05, 2, (t, o) => tone({ t, type: "triangle", f: NOTE(84 + o.semi), dur: 0.14, peak: 0.08 * o.vol })],
+  "lotto.end": [0.4, 4, (t, o) => arp({ t, notes: [67, 64, 60], step: 0.1, dur: 0.3, type: "triangle", peak: 0.06 * o.vol })],
+
   "levelup": [0.4, 12, (t, o) => {
     arp({ t, notes: [67, 72, 76, 79, 84, 88, 91], step: 0.05, dur: 0.2, peak: 0.1 * o.vol, type: "square" });
     tone({ t: t + 0.35, type: "triangle", f: NOTE(91), dur: 0.8, peak: 0.06 * o.vol });

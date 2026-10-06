@@ -41,7 +41,7 @@ export default {
     const inVal = h("strong.num", {}, "0");
     const outVal = h("strong.num", {}, "0");
     stage.append(
-      h("div.arcade-hud", {}, h("div.slot-display", {}, h("small", {}, "Eingeworfen"), inVal), h("div.slot-display", {}, h("small", {}, "Gewonnen"), outVal))
+      h("div.arcade-hud", {}, h("div.slot-display", {}, h("small", {}, "Eingeworfen"), inVal), h("div.slot-display", {}, h("small", {}, "Ausgezahlt"), outVal))
     );
     const hint = h("div.arcade-hint", {}, "Tippen oder halten zum Einwerfen · Position wählen");
     stage.append(hint);

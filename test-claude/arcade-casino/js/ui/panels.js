@@ -63,6 +63,7 @@ export function openSettings({ settings, update, level, onReset, onControl }) {
     slider("Gesamtlautstärke", null, settings.master, (v) => update({ master: v })),
     slider("Effekte", "Karten, Münzen, Walzen …", settings.sfx, (v) => update({ sfx: v })),
     slider("Hallen-Atmosphäre", "leiser Klangteppich in der Halle", settings.ambience, (v) => update({ ambience: v })),
+    slider("Musik (Jukebox)", "deine Jukebox in der Palast-Lounge", settings.music ?? 0.6, (v) => update({ music: v })),
     toggle("Vibration", canVibrate ? "echte Haptik, wo das Gerät es kann" : "von diesem Gerät/Browser nicht unterstützt", settings.vibration && canVibrate, (v) => update({ vibration: v }), !canVibrate),
     toggle("Klang-Haptik", "kurze, dezente Impulse als Haptik-Ersatz", settings.audioHaptics, (v) => update({ audioHaptics: v })),
     segmented(
@@ -142,6 +143,7 @@ export function openStats({ state, onSettings }) {
           stat("Eingesetzt", fmt(s.wagered)),
           stat("Ausgezahlt", fmt(s.won)),
           stat("Boni erhalten", fmt(s.bonus || 0)),
+          stat("Ausgegeben (Jukebox & Musik)", fmt(s.spent || 0)),
           stat("Größter Gewinn", fmt(s.biggestWin))
         ),
         rows.length

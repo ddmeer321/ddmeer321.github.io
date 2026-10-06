@@ -631,3 +631,6 @@
 .reduce-motion .fx-jukebox .jb-tube, .reduce-motion .fx-jukebox .jb-arch, .reduce-motion .fx-jukebox .jb-notes,
 .reduce-motion .machine[data-game="lotto"] .lt-ball, .reduce-motion .machine[data-game="lotto"]::before { animation: none !important; }
 .reduce-motion .fx-jukebox.is-powering svg { animation: none; }
+@media (min-width: 1000px) {
+  .zone-lounge { justify-self: center; width: min(100%, 760px); }
+}
