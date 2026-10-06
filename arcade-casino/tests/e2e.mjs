@@ -35,6 +35,7 @@ const browser = await chromium.launch({ executablePath: exe });
 
 let failures = 0;
 let passes = 0;
+let shotPage = null; // Seite für ein Bildschirmfoto bei Fehlschlag (E2E_SHOTS=Verzeichnis)
 const ONLY = process.env.E2E_ONLY ? new RegExp(process.env.E2E_ONLY, "i") : null;
 async function check(name, fn) {
   if (ONLY && !ONLY.test(name)) return;
@@ -46,6 +47,11 @@ async function check(name, fn) {
   } catch (err) {
     failures++;
     console.log(`  ✘ ${name}\n      ${err.message.split("\n")[0]}`);
+    if (process.env.E2E_SHOTS && shotPage) {
+      const file = path.join(process.env.E2E_SHOTS, `fail-${failures}.png`);
+      await shotPage.screenshot({ path: file }).catch(() => {});
+      console.log(`      Bildschirmfoto: ${file}`);
+    }
   }
 }
 function assert(cond, msg) {
@@ -66,6 +72,7 @@ async function newPage({ mobile = true, size, init, clock = false, url = BASE, w
   ctx.setDefaultTimeout(10000); // Folgefehler sollen nicht minutenlang blockieren
   if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
+  shotPage = page;
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -226,7 +233,9 @@ console.log("Neonpalast E2E (V1.1)");
       if (n % 2 === 1) expected += 20;
       assert(s.balance - before === expected, `Zahl ${n}: erwartet ${expected}, war ${s.balance - before}`);
       assert(Number(await page.locator(".rl-result").textContent()) === n, "angezeigte Zahl ≠ ausgewertete Zahl");
-      await page.locator(".rl-ctrl button:has-text('✕')").tap();
+      // Gewonnene Chips bleiben liegen → wegräumen; ging alles verloren, ist „Löschen“ zu Recht gesperrt
+      const clear = page.locator(".rl-ctrl button:has-text('✕')");
+      if (await clear.isEnabled()) await clear.tap();
     }
   });
   await check("Roulette: höchstens 100 pro Einzelzahl", async () => {

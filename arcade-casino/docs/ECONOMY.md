@@ -105,6 +105,11 @@ Simulation zuerst die Ziellinie erreicht. Die Tests prüfen u. a., dass gleicher
 Rennen ergibt, die Animation zum Zieleinlauf passt, die Quoten zu den Wahrscheinlichkeiten passen
 und unabhängige Rennen die Rückzahlung von ≈ 92 % bestätigen.
 
+`sim/horses.mjs` (30 Startfelder × 400 Rennen): Sieg-RTP 92,4 %, Platz-RTP 91,6 %, der Favorit
+gewinnt in 30,2 % der Rennen (seine Wahrscheinlichkeit laut Quote: 29,9 % – passt),
+Pferde mit Quote ≥ 8 gewinnen 17 % aller Rennen, Ø Renndauer 14,1 s, Ø 2,4 Führungswechsel
+pro Rennen, höchste Quote 27,7.
+
 ## 4. Arcade-Automaten mit Physik
 
 ### Münzgreifer (`sim/grabber.mjs`)
@@ -116,9 +121,9 @@ Es gibt keine versteckte Griffstärken-Manipulation.
 
 | Spielweise | Rückzahlung |
 |---|---|
-| wahllos | ≈ 45 % |
-| menschlich gezielt (Zielfehler ~½ Münze) | ≈ 63 % |
-| perfekter Rechner (probiert alle Positionen) | ≈ 87 % |
+| wahllos | ≈ 46 % (2,31 Einheiten/Griff) |
+| menschlich gezielt (Zielfehler ~½ Münze) | ≈ 63 % (3,14) |
+| perfekter Rechner (probiert alle Positionen) | ≈ 88 % (4,39) |
 
 Damit ist der Greifer – wie in echten Arcades – ein Unterhaltungsautomat mit deutlich
 negativem Erwartungswert; gutes Zielen hilft spürbar, macht ihn aber nicht profitabel.
@@ -131,9 +136,13 @@ simuliert.
 
 | Spielweise | Rückgabequote |
 |---|---|
-| zufälliger Einwurf | ≈ 92 % |
+| zufälliger Einwurf | ≈ 91–92 % |
 | mittig (optimal) | ≈ 97 % |
-| seitlich | ≈ 80 % |
+| seitlich | ≈ 74–80 % (viele Münzen fallen in die Seitenrinnen) |
+
+(1.500 Einwürfe je Lauf; die Spanne ergibt sich aus verschiedenen Seeds/Laufzeiten.
+Bei Dauerbetrieb – ein Einwurf alle 0,45 s – fallen pro Schieber-Zyklus meist 3–7 Münzen
+über die Vorderkante; einzelne Zyklen werfen 8–10.)
 
 **Entscheidung zum 92–95 %-Ziel:** Die Quote hängt bei einem Pusher von der Spielweise ab.
 Durchschnittliches Spiel liegt im Zielband; konsequent mittiges Werfen erreicht ≈ 97 % und bleibt

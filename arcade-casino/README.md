@@ -103,11 +103,11 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 
 ```bash
 cd arcade-casino
-npm test            # Unit-Tests (node --test): Wirtschaft, Limits, Migration, Pause/Auszeit,
+npm test            # 82 Unit-Tests (node --test): Wirtschaft, Limits, Migration, Pause/Auszeit,
                     # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
                     # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
                     # Turmbau- und Hoops-Balance
-npm run test:e2e    # Browser-Checks (Playwright/Chromium, eigener Server)
+npm run test:e2e    # 75 Browser-Checks (Playwright/Chromium, eigener Server, ~6 Min.)
 ```
 
 Die E2E-Tests warten auf Spielzustände (`data-phase` am Spielcontainer) statt auf feste Zeiten.
