@@ -238,6 +238,7 @@ renderInbox();
 
 let previewTimer = 0;
 let previewResume = null;
+let pausedAt = null; // { id, bar } – „Pause“ setzt an derselben Stelle fort
 
 function inGameMusicMode() {
   return current && current.game.kind !== "event" ? jukebox.state().inGames : null;
@@ -248,8 +249,9 @@ function applyMusicDuck() {
   setMusicDuck(mode === "duck" ? 0.3 : mode === "off" ? 0 : 1);
 }
 
-async function musicPlay(id) {
+async function musicPlay(id, fromBar = 0) {
   if (!jukebox.owned || !jukebox.select(id)) return false;
+  pausedAt = null;
   clearTimeout(previewTimer);
   previewTimer = 0;
   previewResume = null;
@@ -257,7 +259,7 @@ async function musicPlay(id) {
     jukebox.setWasPlaying(true);
     return false;
   }
-  const ok = await music.play(id);
+  const ok = await music.play(id, fromBar);
   if (ok) {
     jukebox.setWasPlaying(true);
     stopAmbience();
@@ -273,8 +275,14 @@ function musicStop(remember = false) {
 }
 
 function musicToggle() {
-  if (music.playing) musicStop();
-  else musicPlay(jukebox.state().current);
+  if (music.playing) {
+    const st = music.status();
+    musicStop();
+    pausedAt = { id: st.id, bar: st.bar };
+  } else {
+    const id = jukebox.state().current;
+    musicPlay(id, pausedAt && pausedAt.id === id ? pausedAt.bar : 0);
+  }
 }
 
 function musicStep(dir) {

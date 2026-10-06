@@ -129,25 +129,27 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 
 ```bash
 cd arcade-casino
-npm test            # 82 Unit-Tests (node --test): Wirtschaft, Limits, Migration, Pause/Auszeit,
+npm test            # 108 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
                     # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
                     # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
-                    # Turmbau- und Hoops-Balance
-npm run test:e2e    # 75 Browser-Checks (Playwright/Chromium, eigener Server, ~6 Min.)
+                    # Turmbau- und Hoops-Balance, Jukebox + Musik-Engine, Lotto, Posteingang
+npm run test:e2e    # 95 Browser-Checks (Playwright/Chromium, eigener Server, ~7 Min.)
 ```
 
 Die E2E-Tests warten auf Spielzustände (`data-phase` am Spielcontainer) statt auf feste Zeiten.
 Sie spielen in jedem Spiel echte Runden und prüfen die Bilanz (Guthaben = Start − Einsätze +
-Auszahlungen + Boni), Navigation inkl. Browser-Zurück, Neuladen, Pause/Auszeit (mit simulierter
-Uhr), die neutrale Erinnerung, die Migration eines V1.0-Spielstands, Layouts auf mehreren
-Bildschirmgrößen, reduzierte Bewegung, fehlende Browserfunktionen und die Tab-Sperre – jeweils
-ohne Konsolenfehler.
+Auszahlungen + Boni − Ausgaben), Navigation inkl. Browser-Zurück, Neuladen, Pause/Auszeit (mit
+simulierter Uhr), die neutrale Erinnerung, die Migration eines V1.0-Spielstands, Jukebox (Kauf,
+Songs, leiser in Spielen, Neuladen), Lotto (Scheine, 20er-Limit, Live-Ziehung mit simulierter Uhr,
+verpasste Ziehung über den Posteingang, Neuladen während der Show, Einfordern genau einmal,
+Verlust), Layouts auf mehreren Bildschirmgrößen, reduzierte Bewegung, fehlende
+Browserfunktionen und die Tab-Sperre – jeweils ohne Konsolenfehler.
 
 ## Bekannte Grenzen
 
 * Physik ist bewusst vereinfacht (2D bzw. 2,5D, kein allgemeiner Rigid-Body-Solver) – aber
   das Ergebnis folgt immer aus der sichtbaren Simulation.
-* Skillgames können für extrem präzise Spieler leicht positiv sein (Elite ≈ 1,3–1,55×,
+* Skillgames können für extrem präzise Spieler positiv sein (Elite σ 10 ms ≈ 1,3–1,57×,
   siehe `docs/ECONOMY.md`); der absolute Ertrag ist durch feste Startgebühren klein.
 * Ton startet (browserbedingt) erst nach der ersten Berührung. iOS Safari unterstützt keine
   Vibration – dort übernimmt die Klang-Haptik.
