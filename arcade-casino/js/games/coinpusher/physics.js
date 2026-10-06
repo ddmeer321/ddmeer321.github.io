@@ -1,21 +1,23 @@
-// Vereinfachte Coin-Pusher-Physik (rein, ohne DOM – in Node simulierbar).
+// Münzkaskade 2.0 – vereinfachte, deterministische Coin-Pusher-Physik
+// (rein, ohne DOM – in Node simulierbar).
 //
 // Modell (Draufsicht, Einheiten ≈ mm/10):
 //  * Spielfeld x ∈ [-HALF_W, HALF_W], y von der Rückwand (0) bis zur Vorderkante (LEN).
-//  * Der Schieber ist ein Block über die volle Breite; seine Vorderseite liegt bei
-//    py(t) und pendelt sinusförmig. Oben auf dem Schieber liegt das „Regal“.
-//  * Ebene 0 (Regal): Münzen fahren beim Ausfahren mit, beim Einfahren hält die
-//    Rückwand sie fest. Rutscht eine Münze über die Regalkante, fällt sie aufs Feld.
-//  * Ebene 1 (Feld): Münzen sind Scheiben ohne Trägheit (hohe Reibung auf Filz).
-//    Der Schieber drückt sie nach vorn, Überlappungen werden iterativ aufgelöst –
-//    so pflanzt sich der Druck durch das Münzbett fort.
-//  * Münzen, deren Mittelpunkt über die Vorderkante wandert, fallen in die
-//    Gewinnschale. Vorne fehlen die Seitenwände (ab SIDE_OPEN): wer dort seitlich
-//    über den Rand gedrückt wird, fällt in die Seitenrinne und ist verloren.
+//  * Der Schieber pendelt sinusförmig; seine Vorderseite liegt bei py(t).
+//  * Ebene 0 (Regal oben auf dem Schieber): Münzen fahren beim Ausfahren mit,
+//    die Rückwand hält sie beim Einfahren fest; über die Regalkante fallen sie aufs Feld.
+//  * Ebene 1 (Feld): Scheiben mit Trägheit und starker Filzreibung. Was der
+//    Schieber oder eine andere Münze anstößt, gleitet ein Stück nach – so
+//    entstehen sichtbare Kettenreaktionen.
+//  * Ebene 2 (Stapel): Wird eine Münze im Gedränge zu stark eingequetscht,
+//    rutscht sie auf ihre Nachbarn. Gestapelte Münzen fahren auf ihrer Unterlage
+//    mit; verschwindet die Unterlage (z. B. über die Kante), fallen sie mit.
+//  * Eine Münze fällt, wenn ihr MITTELPUNKT die Vorderkante überschreitet – bis
+//    dahin kann sie gefährlich weit überstehen („Kipp-Zustand“). Vorne an den
+//    Seiten (ab SIDE_OPEN) fehlen die Wände: dort fällt sie in die Rinne.
 //
-// Kein Zufall entscheidet über Gewinn oder Verlust – nur Einwurfposition,
-// Timing und die Lage der Münzen. Zufall gibt es nur beim Münztyp eines
-// Einwurfs (Gold/Bonus, Wahrscheinlichkeiten unten) und minimal beim Aufprall.
+// Auszahlung entsteht ausschließlich aus Münzen, die in dieser Simulation über die
+// Vorderkante fallen. Zufall gibt es nur beim Einwurf (Münztyp, minimaler Versatz).
 
 export const HALF_W = 50;
 export const LEN = 120;
@@ -23,17 +25,25 @@ export const R = 5.4;
 export const PUSH_MID = 29;
 export const PUSH_AMP = 12;
 export const PUSH_PERIOD = 3.4;
-export const SIDE_OPEN = 92;
+export const SIDE_OPEN = 85;
 export const MAX_COINS = 150;
+export const MAX_STACKED = 22;
+export const FRICTION = 11; // 1/s – Filzreibung der Feldmünzen
+export const KICK = 0.35; // Anteil des Stoßes, der als Schwung erhalten bleibt
+export const CLIMB_OVERLAP = 0.7; // ab dieser Quetschung (× R) klettert eine Münze auf den Stapel
+export const TEETER = 0.55; // ab LEN - TEETER·R steht eine Münze sichtbar über
 
 export const COIN_TYPES = {
-  normal: { value: 1 },
-  gold: { value: 5 },
-  star: { value: 1, bonus: 6 },
+  normal: { value: 1, r: R },
+  gold: { value: 5, r: R },
+  star: { value: 1, r: R, bonus: 6 },
+  mega: { value: 15, r: R * 1.45 },
 };
 
 /** Wahrscheinlichkeiten für den Typ einer eingeworfenen Münze. */
-export const DROP_ODDS = { gold: 1 / 18, star: 1 / 60 };
+export const DROP_ODDS = { gold: 1 / 18, star: 1 / 60, mega: 1 / 150 };
+
+const TYPE_CODES = ["normal", "gold", "star", "mega"];
 
 export function pusherY(t) {
   return PUSH_MID + PUSH_AMP * Math.sin((2 * Math.PI * t) / PUSH_PERIOD);
@@ -42,15 +52,15 @@ export function pusherY(t) {
 let nextId = 1;
 
 export function makeCoin(x, y, layer, type = "normal") {
-  return { id: nextId++, x, y, layer, type, z: 0, vz: 0, fall: null };
+  const t = COIN_TYPES[type] ? type : "normal";
+  return { id: nextId++, x, y, layer, type: t, r: COIN_TYPES[t].r, z: 0, vz: 0, vx: 0, vy: 0, rot: ((x * 12.9898 + y * 78.233) % 6.283), fall: null, sx: 0, sy: 0 };
 }
 
 export function createWorld(rnd = Math.random) {
   return { t: 0, py: pusherY(0), coins: [], falling: [], rnd };
 }
 
-/** Füllt ein frisches Feld (Startzustand) nahe am Gleichgewicht: dichtes
- * Gitter mit leichten Zufallslücken, damit es sofort „arbeitet“. */
+/** Frisches Feld nahe am Gleichgewicht: dichtes Gitter mit Zufallslücken. */
 export function seedField(world, fill = 0.9) {
   const { rnd } = world;
   const dx = 2.08 * R;
@@ -72,62 +82,88 @@ export function seedField(world, fill = 0.9) {
 
 export function rollType(rnd) {
   const r = rnd();
-  if (r < DROP_ODDS.star) return "star";
-  if (r < DROP_ODDS.star + DROP_ODDS.gold) return "gold";
+  if (r < DROP_ODDS.mega) return "mega";
+  if (r < DROP_ODDS.mega + DROP_ODDS.star) return "star";
+  if (r < DROP_ODDS.mega + DROP_ODDS.star + DROP_ODDS.gold) return "gold";
   return "normal";
 }
 
 /** Wirft eine Münze an Position x ein (landet auf dem Regal). */
 export function dropCoin(world, x, type = "normal") {
-  const cx = Math.max(-HALF_W + R, Math.min(HALF_W - R, x));
-  const y = Math.max(R, world.py - R * 1.6);
+  const r = (COIN_TYPES[type] || COIN_TYPES.normal).r;
+  const cx = Math.max(-HALF_W + r, Math.min(HALF_W - r, x));
+  const y = Math.max(r, world.py - r * 1.6);
   const c = makeCoin(cx + (world.rnd() - 0.5) * 0.6, y, 0, type);
   c.z = 26;
-  c.vz = 0;
   world.coins.push(c);
   return c;
 }
 
-function resolvePairs(list, iterations, py, fieldMode) {
-  const D = 2 * R;
-  const D2 = D * D;
+// ---------- Kollisionen (Raster-Suche) ----------
+
+const CELL = 2 * R * 1.45;
+
+function buildGrid(list) {
+  const grid = new Map();
+  for (const c of list) {
+    const k = Math.floor(c.x / CELL) * 4096 + Math.floor(c.y / CELL);
+    let arr = grid.get(k);
+    if (!arr) grid.set(k, (arr = []));
+    arr.push(c);
+  }
+  return grid;
+}
+
+/** Löst Überlappungen auf; gibt pro Münze die verbleibende Quetschung zurück. */
+function resolvePairs(list, iterations, py, fieldMode, squeeze) {
   for (let it = 0; it < iterations; it++) {
-    for (let i = 0; i < list.length; i++) {
-      const a = list[i];
-      for (let j = i + 1; j < list.length; j++) {
-        const b = list[j];
-        const dx = b.x - a.x;
-        if (dx > D || dx < -D) continue;
-        const dy = b.y - a.y;
-        if (dy > D || dy < -D) continue;
-        const d2 = dx * dx + dy * dy;
-        if (d2 >= D2) continue;
-        let d = Math.sqrt(d2);
-        let nx;
-        let ny;
-        if (d < 1e-6) {
-          nx = 0;
-          ny = 1;
-          d = 0;
-        } else {
-          nx = dx / d;
-          ny = dy / d;
-        }
-        const push = (D - d) * 0.5;
-        // Am Schieber anliegende Münzen geben nicht nach hinten nach
-        const aLocked = fieldMode && a.y - R <= py + 0.01;
-        const bLocked = fieldMode && b.y - R <= py + 0.01;
-        if (aLocked && !bLocked) {
-          b.x += nx * push * 2;
-          b.y += ny * push * 2;
-        } else if (bLocked && !aLocked) {
-          a.x -= nx * push * 2;
-          a.y -= ny * push * 2;
-        } else {
-          a.x -= nx * push;
-          a.y -= ny * push;
-          b.x += nx * push;
-          b.y += ny * push;
+    const grid = buildGrid(list);
+    const last = it === iterations - 1;
+    for (const a of list) {
+      const gx = Math.floor(a.x / CELL);
+      const gy = Math.floor(a.y / CELL);
+      for (let ix = gx - 1; ix <= gx + 1; ix++) {
+        for (let iy = gy - 1; iy <= gy + 1; iy++) {
+          const arr = grid.get(ix * 4096 + iy);
+          if (!arr) continue;
+          for (const b of arr) {
+            if (b.id <= a.id) continue;
+            const D = a.r + b.r;
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 >= D * D) continue;
+            let d = Math.sqrt(d2);
+            let nx = 0;
+            let ny = 1;
+            if (d > 1e-6) {
+              nx = dx / d;
+              ny = dy / d;
+            } else d = 0;
+            const over = D - d;
+            if (last && squeeze) {
+              squeeze.set(a.id, (squeeze.get(a.id) || 0) + over);
+              squeeze.set(b.id, (squeeze.get(b.id) || 0) + over);
+            }
+            // schwere Mega-Münzen geben weniger nach
+            const wa = a.type === "mega" ? 0.25 : 1;
+            const wb = b.type === "mega" ? 0.25 : 1;
+            const aLocked = fieldMode && a.y - a.r <= py + 0.01;
+            const bLocked = fieldMode && b.y - b.r <= py + 0.01;
+            let ka = wa / (wa + wb);
+            let kb = wb / (wa + wb);
+            if (aLocked && !bLocked) {
+              ka = 0;
+              kb = 1;
+            } else if (bLocked && !aLocked) {
+              ka = 1;
+              kb = 0;
+            }
+            a.x -= nx * over * ka;
+            a.y -= ny * over * ka;
+            b.x += nx * over * kb;
+            b.y += ny * over * kb;
+          }
         }
       }
     }
@@ -136,30 +172,47 @@ function resolvePairs(list, iterations, py, fieldMode) {
 }
 
 function constrainField(c, py) {
-  if (c.y - R < py) c.y = py + R;
+  if (c.y - c.r < py) c.y = py + c.r;
   if (c.y < SIDE_OPEN) {
-    if (c.x < -HALF_W + R) c.x = -HALF_W + R;
-    if (c.x > HALF_W - R) c.x = HALF_W - R;
+    if (c.x < -HALF_W + c.r) c.x = -HALF_W + c.r;
+    if (c.x > HALF_W - c.r) c.x = HALF_W - c.r;
   }
 }
 
-function constrainShelf(c, py) {
-  if (c.y < R) c.y = R;
-  if (c.x < -HALF_W + R) c.x = -HALF_W + R;
-  if (c.x > HALF_W - R) c.x = HALF_W - R;
-  void py;
+function constrainShelf(c) {
+  if (c.y < c.r) c.y = c.r;
+  if (c.x < -HALF_W + c.r) c.x = -HALF_W + c.r;
+  if (c.x > HALF_W - c.r) c.x = HALF_W - c.r;
 }
 
 export function relax(world, iterations = 4) {
   const field = world.coins.filter((c) => c.layer === 1 && c.z <= 0);
   const shelf = world.coins.filter((c) => c.layer === 0 && c.z <= 0);
-  resolvePairs(field, iterations, world.py, true);
-  resolvePairs(shelf, iterations, world.py, false);
+  resolvePairs(field, iterations, world.py, true, null);
+  resolvePairs(shelf, iterations, world.py, false, null);
+}
+
+/** Unterstützende Feldmünzen einer Stapelmünze. */
+function supporters(c, grid) {
+  const out = [];
+  const gx = Math.floor(c.x / CELL);
+  const gy = Math.floor(c.y / CELL);
+  for (let ix = gx - 1; ix <= gx + 1; ix++)
+    for (let iy = gy - 1; iy <= gy + 1; iy++) {
+      const arr = grid.get(ix * 4096 + iy);
+      if (!arr) continue;
+      for (const b of arr) {
+        const dx = b.x - c.x;
+        const dy = b.y - c.y;
+        if (dx * dx + dy * dy < (b.r + c.r) * (b.r + c.r) * 0.72) out.push(b);
+      }
+    }
+  return out;
 }
 
 /**
- * Ein Simulationsschritt. Liefert Ereignisse:
- * { kind: "land"|"shelfDrop"|"win"|"lost", coin }
+ * Ein Simulationsschritt. Ereignisse:
+ * { kind: "land"|"shelfDrop"|"climb"|"topple"|"win"|"lost", coin }
  */
 export function step(world, dt) {
   const events = [];
@@ -167,9 +220,11 @@ export function step(world, dt) {
   world.t += dt;
   world.py = pusherY(world.t);
   const dpy = world.py - prev;
+  const damp = Math.exp(-FRICTION * dt);
 
   for (const c of world.coins) {
-    // Fallende Münzen (Einwurf oder Regal→Feld)
+    c.sx = c.x;
+    c.sy = c.y;
     if (c.z > 0) {
       c.vz -= 260 * dt;
       c.z += c.vz * dt;
@@ -182,27 +237,85 @@ export function step(world, dt) {
       continue;
     }
     if (c.layer === 0) {
-      if (dpy > 0) c.y += dpy; // fährt mit
-      constrainShelf(c, world.py);
-      if (c.y > world.py + R * 0.15) {
-        // über die Regalkante gekippt → fällt aufs Feld
+      if (dpy > 0) c.y += dpy;
+      constrainShelf(c);
+      if (c.y > world.py + c.r * 0.15) {
         c.layer = 1;
         c.z = 4;
         c.vz = 0;
-        c.y = Math.max(c.y, world.py + R);
+        c.y = Math.max(c.y, world.py + c.r);
+        c.vy = Math.max(0, dpy / dt) * 0.5;
         events.push({ kind: "shelfDrop", coin: c });
       }
     } else {
-      if (c.y - R < world.py) c.y = world.py + R;
+      // Trägheit + Reibung
+      c.ivx = c.vx;
+      c.ivy = c.vy;
+      c.x += c.vx * dt;
+      c.y += c.vy * dt;
+      c.vx *= damp;
+      c.vy *= damp;
+      if (c.y - c.r < world.py) c.y = world.py + c.r;
     }
   }
 
-  relax(world, 3);
+  // Feld auflösen und Quetschung messen
+  const field = world.coins.filter((c) => c.layer === 1 && c.z <= 0);
+  const squeeze = new Map();
+  resolvePairs(field, 3, world.py, true, squeeze);
+
+  // Gedrängte Münzen klettern auf den Stapel
+  let stacked = world.coins.filter((c) => c.layer === 2);
+  if (stacked.length < MAX_STACKED) {
+    const cand = field.filter((c) => (squeeze.get(c.id) || 0) > CLIMB_OVERLAP * R && c.type !== "mega" && c.y - c.r > world.py + 1);
+    cand.sort((a, b) => (squeeze.get(b.id) || 0) - (squeeze.get(a.id) || 0) || a.id - b.id);
+    for (const c of cand.slice(0, MAX_STACKED - stacked.length)) {
+      c.layer = 2;
+      c.vx = 0;
+      c.vy = 0;
+      events.push({ kind: "climb", coin: c });
+    }
+  }
+
+  // Stapelmünzen fahren auf ihrer Unterlage mit oder fallen herunter
+  const fieldNow = world.coins.filter((c) => c.layer === 1 && c.z <= 0);
+  const grid = buildGrid(fieldNow);
+  stacked = world.coins.filter((c) => c.layer === 2);
+  for (const c of stacked) {
+    const sup = supporters(c, grid);
+    if (!sup.length) {
+      c.layer = 1;
+      c.z = 3;
+      c.vz = 0;
+      events.push({ kind: "topple", coin: c });
+      continue;
+    }
+    let mx = 0;
+    let my = 0;
+    for (const s of sup) {
+      mx += s.x - s.sx;
+      my += s.y - s.sy;
+    }
+    c.x += mx / sup.length;
+    c.y += my / sup.length;
+    if (c.y - c.r < world.py) c.y = world.py + c.r;
+  }
+  if (stacked.length > 1) resolvePairs(stacked, 2, world.py, false, null);
+
+  // Stöße übertragen Schwung: Nur der Anteil der Bewegung, der NICHT aus der
+  // eigenen Trägheit stammt (Schieber, Nachbarn), wird zur Hälfte zu Geschwindigkeit.
+  for (const c of fieldNow) {
+    const corrX = c.x - c.sx - (c.ivx || 0) * dt;
+    const corrY = c.y - c.sy - (c.ivy || 0) * dt;
+    c.vx = Math.max(-45, Math.min(45, c.vx + (corrX / dt) * KICK));
+    c.vy = Math.max(-45, Math.min(45, c.vy + (corrY / dt) * KICK));
+    c.rot += ((c.x - c.sx) * 0.9 + (c.y - c.sy) * 0.4) / c.r;
+  }
 
   // Kanten prüfen
   const keep = [];
   for (const c of world.coins) {
-    if (c.layer === 1 && c.z <= 0) {
+    if (c.layer >= 1 && c.z <= 0) {
       if (c.y > LEN) {
         c.fall = { t: 0, side: 0 };
         world.falling.push(c);
@@ -220,17 +333,23 @@ export function step(world, dt) {
   }
   world.coins = keep;
 
-  // Fallanimationen altern lassen
   for (const f of world.falling) f.fall.t += dt;
   world.falling = world.falling.filter((f) => f.fall.t < 0.9);
   return events;
 }
 
-/** Kompakter Speicherstand (gerundet). */
+/** Wie weit eine Münze über die Vorderkante ragt (0 = nicht, 1 = kurz vor dem Fallen). */
+export function teeter(c) {
+  const start = LEN - TEETER * c.r;
+  if (c.y <= start) return 0;
+  return Math.min(1, (c.y - start) / (LEN - start));
+}
+
+/** Kompakter Speicherstand. Format: [x, y, Ebene, Typcode] – kompatibel zu V1.0. */
 export function serialize(world) {
   return {
     t: Math.round(world.t * 100) / 100,
-    c: world.coins.filter((c) => c.z <= 0 || c.layer === 0).map((c) => [Math.round(c.x * 10) / 10, Math.round(c.y * 10) / 10, c.layer, c.type === "gold" ? 1 : c.type === "star" ? 2 : 0]),
+    c: world.coins.filter((c) => c.z <= 0 || c.layer === 0).map((c) => [Math.round(c.x * 10) / 10, Math.round(c.y * 10) / 10, c.layer, Math.max(0, TYPE_CODES.indexOf(c.type))]),
   };
 }
 
@@ -244,7 +363,8 @@ export function deserialize(data, rnd = Math.random) {
     const [x, y, layer, tp] = row;
     if (![x, y].every((v) => typeof v === "number" && Number.isFinite(v))) continue;
     if (Math.abs(x) > HALF_W + R || y < 0 || y > LEN) continue;
-    world.coins.push(makeCoin(x, y, layer === 0 ? 0 : 1, tp === 1 ? "gold" : tp === 2 ? "star" : "normal"));
+    const l = layer === 0 ? 0 : layer === 2 ? 2 : 1;
+    world.coins.push(makeCoin(x, y, l, TYPE_CODES[tp] || "normal"));
   }
   relax(world, 6);
   return world;
