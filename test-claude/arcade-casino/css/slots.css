@@ -1,0 +1,184 @@
+/* Slotmaschinen – gemeinsames Gehäuse, Farben pro Maschine über Variablen. */
+
+.slot-stage {
+  container-type: size;
+  --sf: var(--pink);
+  --sf2: var(--gold);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2vh, 18px);
+  padding: 12px calc(12px + var(--safe-right)) 12px calc(12px + var(--safe-left));
+  background:
+    radial-gradient(90% 60% at 50% 30%, color-mix(in srgb, var(--sf) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--sbg0, #2a0c22), var(--sbg1, #0b0614));
+}
+
+.slot-marquee {
+  position: relative;
+  padding: 8px 26px 10px;
+  border-radius: 18px 18px 10px 10px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25));
+  border: 2px solid var(--sf2);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--sf2) 45%, transparent), inset 0 0 18px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+.slot-marquee h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 5.5vw, 2.2rem);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 4px #fff, 0 0 14px var(--sf), 0 0 30px var(--sf);
+}
+
+.slot-marquee p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--sf2) 80%, #fff);
+}
+
+.marquee-bulbs {
+  position: absolute;
+  inset: -7px 10px auto;
+  display: flex;
+  justify-content: space-between;
+}
+
+.marquee-bulbs i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff6c8;
+  box-shadow: 0 0 8px #ffd34d;
+  animation: bulb 0.9s steps(1) infinite;
+}
+
+.marquee-bulbs i:nth-child(odd) {
+  animation-delay: 0.45s;
+}
+
+.slot-marquee.is-winning .marquee-bulbs i {
+  animation-duration: 0.18s;
+}
+
+.slot-cabinet {
+  position: relative;
+  width: min(100%, var(--cab-w, 560px));
+  width: min(100%, var(--cab-w, 560px), calc((100cqh - var(--chrome, 250px)) * var(--ar, 1) + 24px));
+  padding: 10px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--sf) 70%, #000), color-mix(in srgb, var(--sf) 30%, #000));
+  border: 2px solid color-mix(in srgb, var(--sf) 60%, #fff);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--sf) 40%, transparent), var(--shadow-2);
+}
+
+.slot-window {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--aspect, 1);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #05030c;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.6), inset 0 0 24px rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  margin: 0 auto;
+}
+
+.slot-window canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: manipulation;
+}
+
+.slot-meter {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.slot-free {
+  position: absolute;
+  top: -14px;
+  right: 14px;
+  z-index: 3;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--pink), var(--violet));
+  font-weight: 900;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 18px var(--pink);
+  animation: pop-in var(--t-slow) var(--ease-spring) both;
+}
+
+.spin-btn {
+  width: 86px;
+  height: 86px;
+  min-height: 0;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+.spin-btn.is-stop {
+  --btn-bg: #b4304b;
+  box-shadow: 0 3px 0 #5a0f20, 0 0 22px rgba(255, 90, 90, 0.5);
+}
+
+.auto-btn[aria-pressed="true"] {
+  --btn-bg: var(--cyan);
+  --btn-ink: #00292a;
+  box-shadow: var(--glow-cyan);
+}
+
+.paytable {
+  display: grid;
+  gap: 4px;
+}
+
+.paytable-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.paytable-row .pt-syms {
+  display: flex;
+  gap: 2px;
+  min-width: 110px;
+}
+
+.paytable-row .pt-pay {
+  margin-left: auto;
+  font-weight: 900;
+  color: var(--gold);
+  text-align: right;
+}
+
+@media (max-height: 640px) {
+  .slot-marquee p { display: none; }
+  .slot-stage { --chrome: 210px; }
+  .spin-btn { width: 70px; height: 70px; }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .slot-marquee { display: none; }
+  .slot-stage { --chrome: 96px; padding-top: 6px; padding-bottom: 6px; }
+  .slot-meter { margin-top: 6px; }
+  .slot-display { padding: 3px 8px; }
+  .spin-btn { width: 60px; height: 60px; font-size: 13px; }
+}

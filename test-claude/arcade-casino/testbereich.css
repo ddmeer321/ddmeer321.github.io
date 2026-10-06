@@ -1,0 +1,57 @@
+/* Was der Testbereich zu Neonpalast dazutut -- und NUR das.
+ *
+ * Diese Datei ist der einzige Unterschied im Aussehen zwischen dieser Kopie
+ * und dem Spiel auf dem Zweig. Die 50 Spieldateien sind Byte fuer Byte
+ * dieselben; wer das Spiel spaeter nachzieht, kopiert sie einfach drueber.
+ *
+ * DAS BAND HAENGT IN #app, NICHT DAVOR. #app ist position:fixed mit inset:0 --
+ * ein Band im normalen Dokumentfluss laege dahinter und waere unsichtbar. Als
+ * erstes Kind des Spalten-Flex ordnet es sich dagegen von selbst ein, und
+ * .views (flex:1 1 auto) nimmt den Rest. So muss keine Layoutregel des Spiels
+ * angefasst werden.
+ *
+ * Farben aus css/tokens.css: --bg-1 als Grund, --ink als Schrift, --pink als
+ * Akzent.
+ */
+
+.np-testband {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 7px 14px calc(7px + env(safe-area-inset-top));
+  background: #140b24;
+  border-bottom: 2px solid #ff3d9a;
+  color: #f4ecff;
+  font: 600 12px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  text-align: center;
+}
+
+.np-testband a {
+  color: #ff3d9a;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+  white-space: nowrap;
+}
+.np-testband a:hover { color: #f4ecff; }
+.np-testband a:focus-visible { outline: 2px solid #f4ecff; outline-offset: 3px; }
+
+@media (max-width: 480px) {
+  .np-testband { font-size: 11px; padding: 6px 10px calc(6px + env(safe-area-inset-top)); }
+}
+
+/* test-gate.js haengt sein Zugriffsabzeichen unten links auf z-index 9998.
+   Dort sitzt bei Neonpalast die Toast-Schicht und in manchen Spielen die
+   Steuerleiste. Beides soll darueber liegen -- das Abzeichen ist nur
+   Information und pointer-events:none.
+
+   body davor ist noetig, nicht Schmuck: diese Datei haengt als <link> im Kopf,
+   die Spiel-Stylesheets ebenfalls -- aber sie kommen davor, und bei gleicher
+   Spezifitaet gewinnt die spaetere. Hier reicht die Reihenfolge also aus;
+   body steht trotzdem da, damit eine spaeter eingefuegte Spielregel sie nicht
+   still ueberholt. */
+body .toast-layer { z-index: 10000; }
+body .modal-layer { z-index: 10001; }
