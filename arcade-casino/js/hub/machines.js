@@ -494,9 +494,38 @@ export function lottoArt(id) {
 </svg>`;
 }
 
+/** Rubbellos-Tisch: Holztisch mit Filz, drei Lose, eines halb aufgerubbelt. */
+export function scratchArt(id) {
+  const ticket = (x, y, rot, c1, badge, scratched) => `<g transform="translate(${x} ${y}) rotate(${rot})">
+    <rect x="-22" y="-29" width="44" height="58" rx="5" fill="url(#${id}-${c1})" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/>
+    <text x="-14" y="-17" font-family="system-ui" font-weight="900" font-size="10" fill="#fff">${badge}</text>
+    <rect x="-16" y="-10" width="32" height="32" rx="3" fill="#b9bdcb"/>
+    ${scratched ? `<path d="M-14 -6 q8 6 16 0 t12 4 l0 8 q-8 -4 -16 2 t-12 -2 Z" fill="#fff"/><text x="0" y="5" text-anchor="middle" font-family="system-ui" font-weight="900" font-size="8" fill="#14072a">7 7 7</text>` : `<path d="M-16 -2 h32 M-16 6 h32 M-16 14 h32" stroke="rgba(255,255,255,.35)" stroke-width="2"/>`}
+  </g>`;
+  return `<svg viewBox="0 0 200 210" aria-hidden="true">
+  <defs>
+    <linearGradient id="${id}-pink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3d9a"/><stop offset="1" stop-color="#7a2cff"/></linearGradient>
+    <linearGradient id="${id}-cyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2de2e6"/><stop offset="1" stop-color="#1d5bff"/></linearGradient>
+    <linearGradient id="${id}-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc53d"/><stop offset="1" stop-color="#ff6a1f"/></linearGradient>
+    <radialGradient id="${id}-felt" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#14776d"/><stop offset="1" stop-color="#073a36"/></radialGradient>
+  </defs>
+  <rect x="8" y="4" width="184" height="30" rx="8" fill="#0b0614" stroke="#ff3d9a" stroke-width="2"/>
+  <text x="100" y="24" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="14" fill="#fff" style="filter:drop-shadow(0 0 3px #ff3d9a)">RUBBELLOSE</text>
+  <path d="M10 62 Q100 40 190 62 L194 176 Q100 196 6 176 Z" fill="#5a2f1e" stroke="#ffc53d" stroke-opacity=".4" stroke-width="1.5"/>
+  <path d="M20 68 Q100 50 180 68 L183 168 Q100 186 17 168 Z" fill="url(#${id}-felt)"/>
+  ${ticket(58, 116, -12, "pink", "7", true)}
+  ${ticket(100, 112, 4, "cyan", "🍀", false)}
+  ${ticket(142, 118, 14, "gold", "💎", false)}
+  <circle cx="160" cy="160" r="8" fill="#ffc53d" stroke="#b07a10" stroke-width="1.5"/>
+  <text x="160" y="163" text-anchor="middle" font-family="system-ui" font-weight="900" font-size="8" fill="#7a4a00">C</text>
+  <path d="M34 182 L26 206 M166 182 L174 206" stroke="#3d1f12" stroke-width="6" stroke-linecap="round"/>
+</svg>`;
+}
+
 export const ART = {
   jukebox: jukeboxArt,
   lotto: lottoArt,
+  scratch: scratchArt,
   horses: horsesArt,
   grabber: grabberArt,
   plinko: plinkoArt,
