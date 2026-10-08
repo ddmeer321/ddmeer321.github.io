@@ -1398,6 +1398,13 @@ for (const width of [320, 375, 390]) {
       await page.waitForFunction(() => window.__cloudSaves > 0);
       assert((await fakeCloud(page)).balance === 1000, "fremder Fortschritt hochgeladen");
     });
+    await check("Sicherung: Stand eines anderen Kontos wird gesichert, aber in diesem Konto nicht angeboten", async () => {
+      const b = await page.evaluate(() => JSON.parse(localStorage.getItem("neonpalast.save.v1.backup")));
+      assert(b && b.state.balance === 99999 && b.owner === "22222222-2222-4222-8222-222222222222", "keine Sicherung");
+      await page.locator("#hud-settings").tap();
+      await page.waitForSelector(".cloud-status");
+      assert(!(await page.locator(".backup-status").count()), "fremde Sicherung angeboten");
+    });
     await ctx.close();
   }
   {
@@ -1415,6 +1422,22 @@ for (const width of [320, 375, 390]) {
       assert((await state(page)).balance === 3333, "Auswahl ignoriert");
       await page.waitForFunction(() => window.__cloudSaves > 0);
       assert((await fakeCloud(page)).balance === 3333, "Cloud nicht ersetzt");
+    });
+    await check("Sicherung: nicht gewählter Stand (8.888) lässt sich wiederherstellen – und wieder zurücktauschen", async () => {
+      await page.locator("#hud-settings").tap();
+      await page.waitForSelector(".backup-status");
+      assert(/8\.888 Credits/.test(await page.locator(".backup-status").textContent()), "Sicherung zeigt falschen Stand");
+      await page.locator(".backup-restore").tap();
+      await page.locator(".backup-confirm").tap();
+      await page.waitForFunction(() => window.__neonpalast?.getState().balance === 8888, null, { timeout: 15000 });
+      await page.waitForSelector(".machine");
+      await page.waitForFunction(() => JSON.parse(localStorage.getItem("__fake_cloud")).balance === 8888);
+      // Tausch: jetzt liegt 3.333 in der Sicherung
+      await page.locator("#hud-settings").tap();
+      await page.waitForSelector(".backup-status");
+      assert(/3\.333 Credits/.test(await page.locator(".backup-status").textContent()), "Rückweg fehlt");
+      const s = await state(page);
+      assert(s.cloud.owner === "11111111-1111-4111-8111-111111111111", "Konto-Bindung verloren");
     });
     await ctx.close();
   }

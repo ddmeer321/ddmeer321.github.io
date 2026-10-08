@@ -3,8 +3,9 @@
 // auf Android funktioniert).
 
 import { bus } from "./core/events.js";
-import { loadState, getState, saveSoon, saveNow, setWriteGuard, setAfterSave, resetState, replaceState, sanitizeState, defaultState, gameData } from "./core/state.js";
-import { connectCloud, decideBoot, mergeControl, createUploader, summarize } from "./core/cloud.js";
+import { loadState, getState, saveSoon, saveNow, setWriteGuard, setAfterSave, resetState, replaceState, sanitizeState, defaultState, gameData, SAVE_KEY } from "./core/state.js";
+import { connectCloud, decideBoot, mergeControl, createUploader, summarize, makeBackup, validBackup, canRestore } from "./core/cloud.js";
+import { readJSON, writeJSON } from "./core/storage.js";
 import { createEconomy } from "./core/economy.js";
 import { createProgression, xpForRound, levelInfo } from "./core/progression.js";
 import { createTabLock } from "./core/tablock.js";
@@ -38,6 +39,7 @@ import { GAMES, MACHINES, gameById } from "./games/registry.js";
 // ---------- Zustand & Systeme ----------
 
 loadState();
+const BACKUP_KEY = `${SAVE_KEY}.backup`;
 // Cloud-Abgleich vor dem ersten Bild (ohne Anmeldung: sofort, ohne Netz).
 const cloudBoot = await bootCloud();
 const state = getState();
@@ -76,11 +78,62 @@ async function bootCloud() {
     next = defaultState();
     next.settings = local.settings;
   }
+  // Ersetzten Stand sichern – nur bei echten Konflikten (Auswahl, fremdes Konto),
+  // nicht beim normalen „neuerer Stand gewinnt“ zwischen eigenen Geräten.
+  const conflict = decision.reason === "Auswahl" || (local.cloud.owner && local.cloud.owner !== res.owner);
+  if (conflict) {
+    const dropped = next === local ? cloud : local;
+    const backup = makeBackup(dropped, decision.reason === "Auswahl" ? "beim Abgleich nicht gewählt" : "Stand eines anderen Kontos");
+    if (backup) writeJSON(BACKUP_KEY, backup);
+  }
   // Pause/Auszeit werden durch einen Abgleich nie verkürzt.
   next.control = mergeControl(local.control, cloud?.control || local.control);
   next.cloud.owner = res.owner;
   replaceState(next);
   return { ...res, decision };
+}
+
+/** Sicherung des zuletzt ersetzten Stands (eine, die jüngste). */
+function readBackup() {
+  return validBackup(readJSON(BACKUP_KEY));
+}
+function currentOwner() {
+  return cloudBoot?.status === "ready" ? cloudBoot.owner : getState().cloud.owner;
+}
+function backupInfo() {
+  const b = readBackup();
+  if (!b || !canRestore(b, currentOwner())) return null;
+  const x = summarize(sanitizeState(b.state));
+  const when = new Date(b.at).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  return {
+    title: "Gesicherter Spielstand",
+    detail: `${fmt(x.balance)} Credits · Level ${levelInfo(x.xp).level} · ${fmt(x.rounds)} Runden – gesichert am ${when} (${b.reason}).`,
+    current: `${fmt(getState().balance)} Credits · Level ${levelInfo(getState().xp).level}`,
+    onRestore: restoreBackup,
+  };
+}
+/**
+ * Tauscht aktuellen und gesicherten Stand. Der aktuelle Stand wird dabei selbst
+ * gesichert (rückgängig machbar). Pause/Auszeit werden nie verkürzt.
+ */
+function restoreBackup() {
+  const b = readBackup();
+  if (!b || !canRestore(b, currentOwner())) return;
+  const now = getState();
+  const restored = sanitizeState(b.state);
+  restored.control = mergeControl(now.control, restored.control);
+  restored.cloud.owner = currentOwner() || null;
+  const swap = makeBackup(now, "vor dem Wiederherstellen");
+  if (swap) writeJSON(BACKUP_KEY, swap);
+  economy.forfeitOpen();
+  replaceState(restored);
+  saveNow();
+  const done = () => {
+    location.hash = "#/";
+    location.reload();
+  };
+  if (cloudSync) Promise.race([cloudSync.flush(), new Promise((r) => setTimeout(r, 1500))]).then(done);
+  else done();
 }
 
 /** Beide Stände haben Fortschritt (vor dem Anmelden gespielt): Spieler entscheidet. */
@@ -102,7 +155,7 @@ function askWhichSave(local, cloud) {
         "div.boot-choice-card",
         {},
         h("h2", { id: "boot-choice-title" }, "Welchen Spielstand möchtest du?"),
-        h("p", {}, "In deinem Konto liegt schon ein Neonpalast-Spielstand, und in diesem Browser wurde ohne Anmeldung gespielt. Wähle einen – der andere wird ersetzt."),
+        h("p", {}, "In deinem Konto liegt schon ein Neonpalast-Spielstand, und in diesem Browser wurde ohne Anmeldung gespielt. Wähle einen – der andere wird als Sicherung aufbewahrt und lässt sich in den Einstellungen wiederherstellen."),
         h(
           "div.boot-choice-opts",
           {},
@@ -627,6 +680,7 @@ function showSettings() {
     level: levelInfo(getState().xp).level,
     onControl: showControl,
     cloud: cloudInfo(),
+    backup: backupInfo(),
     onReset: () => {
       economy.forfeitOpen();
       resetState();

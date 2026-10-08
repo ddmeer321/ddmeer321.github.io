@@ -108,3 +108,19 @@ test("Hochladen: spätestens nach maxWait, auch bei Dauerspiel; fremder Tab läd
   await up2.flush();
   assert.equal(blocked.length, 0);
 });
+
+test("Sicherung: nur Stände mit Fortschritt, nur im selben Konto wiederherstellbar", async () => {
+  const { makeBackup, validBackup, canRestore } = await import("../js/core/cloud.js");
+  assert.equal(makeBackup(st(), "x"), null, "leerer Stand wird nicht gesichert");
+  const anonym = makeBackup(st({ rounds: 5, balance: 36 }), "beim Abgleich nicht gewählt", 1000);
+  assert.equal(anonym.owner, null);
+  assert.equal(anonym.state.balance, 36);
+  assert.equal(canRestore(anonym, U1), true, "ohne Konto entstanden → im angemeldeten Konto erlaubt");
+  const vonU2 = makeBackup(st({ owner: U2, rounds: 5, balance: 99999 }), "Stand eines anderen Kontos");
+  assert.equal(canRestore(vonU2, U1), false, "nie über Kontogrenzen");
+  assert.equal(canRestore(vonU2, U2), true);
+  assert.equal(canRestore(vonU2, null), false, "abgemeldet: Konto-Sicherung nicht anbieten");
+  assert.equal(validBackup({ bv: 1, at: "gestern", state: {} }), null, "kaputter Zeitstempel");
+  assert.equal(validBackup({ bv: 2, at: 1, state: {} }), null, "unbekannte Version");
+  assert.equal(validBackup(null), null);
+});

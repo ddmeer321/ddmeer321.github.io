@@ -44,6 +44,9 @@ Schicht wie Snake und Cursor Clicker (`window.CloudSave`, Tabelle `game_saves`, 
 * **Abgleich beim Start** (höchstens 4 s, sonst lokal weiter; eine verspätete Antwort wird
   verworfen). Gleiches Konto: der neuere Stand gewinnt. Vor dem Anmelden gespielt und im Konto
   liegt auch Fortschritt: der Spieler wählt. Fortschritt eines Kontos landet nie in einem anderen.
+* **Sicherung:** Der bei einem Konflikt ersetzte Stand bleibt lokal gesichert
+  (`neonpalast.save.v1.backup`) und lässt sich in den Einstellungen wiederherstellen – als
+  Tausch, also umkehrbar, nur im selben Konto, ohne Pause/Auszeit zu verkürzen.
 * **Pause/Auszeit werden nie verkürzt** – beim Abgleich gilt die strengere Sperre; mit Konto
   gilt eine Auszeit damit auf allen Geräten.
 * **Hochladen gebündelt** (3 s nach der letzten Änderung, spätestens nach 15 s, eine Anfrage
@@ -180,11 +183,11 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 
 ```bash
 cd arcade-casino
-npm test            # 136 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
+npm test            # 137 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
                     # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
                     # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
                     # Turmbau- und Hoops-Balance, Jukebox + Musik-Engine, Lotto, Rubbellose, Posteingang
-npm run test:e2e    # 133 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
+npm run test:e2e    # 135 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
 ```
 
 Die E2E-Tests warten auf Spielzustände (`data-phase` am Spielcontainer) statt auf feste Zeiten.

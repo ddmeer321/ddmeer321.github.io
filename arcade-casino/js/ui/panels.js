@@ -52,7 +52,7 @@ function segmented(label, options, value, onChange) {
  * @param {object} o
  * @param {{active:boolean, title:string, detail:string, loginHref?:string}} [o.cloud]  Cloud-Status
  */
-export function openSettings({ settings, update, level, onReset, onControl, cloud = null }) {
+export function openSettings({ settings, update, level, onReset, onControl, cloud = null, backup = null }) {
   const canVibrate = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
   const themeOpts = THEME_UNLOCKS.map((t) => ({
     value: t.id,
@@ -90,6 +90,15 @@ export function openSettings({ settings, update, level, onReset, onControl, clou
           cloud.loginHref ? h("a.btn.btn-ghost.btn-sm", { href: cloud.loginHref }, "Anmelden") : null
         )
       : null,
+    backup
+      ? h(
+          "div.cloud-status.backup-status",
+          {},
+          h("strong", {}, "🗂️ ", backup.title),
+          h("small", {}, backup.detail),
+          h("button.btn.btn-ghost.btn-sm.backup-restore", { type: "button", onclick: () => confirmRestore(backup) }, "Wiederherstellen")
+        )
+      : null,
     h(
       "p.help-text",
       {},
@@ -109,6 +118,23 @@ export function openSettings({ settings, update, level, onReset, onControl, clou
         onClick: () => confirmReset(onReset, Boolean(cloud?.active)),
       },
       { label: "Fertig", cls: "btn-primary" },
+    ],
+  });
+}
+
+function confirmRestore(backup) {
+  openModal({
+    title: "Gesicherten Spielstand wiederherstellen?",
+    body: h(
+      "div.help-text",
+      {},
+      h("p", {}, h("strong", {}, "Gesichert: "), backup.detail),
+      h("p", {}, h("strong", {}, "Aktuell: "), backup.current),
+      h("p", {}, "Die beiden Stände werden getauscht: Dein aktueller Stand wird dabei selbst gesichert, du kannst also wieder zurück. Eine laufende Pause oder Auszeit bleibt bestehen.")
+    ),
+    actions: [
+      { label: "Abbrechen", cls: "btn-ghost" },
+      { label: "Wiederherstellen", cls: "btn-primary backup-confirm", onClick: backup.onRestore },
     ],
   });
 }

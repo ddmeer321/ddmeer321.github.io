@@ -213,3 +213,36 @@ export function createUploader({ api, getState, canWrite = () => true, onStatus 
     lastSavedAt: () => lastOk,
   };
 }
+
+// ---------- Sicherung des ersetzten Stands ----------
+//
+// Wird beim Abgleich ein Stand mit Fortschritt ersetzt (Auswahldialog oder
+// Stand eines anderen Kontos), bleibt er als Sicherung im Browser liegen.
+// Gesichert wird nur bei solchen Konflikten – nicht beim normalen Wechsel
+// zwischen Geräten, sonst stünde dort ständig ein veralteter Stand.
+
+export const BACKUP_VERSION = 1;
+
+/** Sicherungs-Datensatz für einen ersetzten Stand (oder null ohne Fortschritt). */
+export function makeBackup(state, reason, now = Date.now()) {
+  if (!state || !hasProgress(state)) return null;
+  return { bv: BACKUP_VERSION, at: now, reason: String(reason || "").slice(0, 80), owner: state.cloud?.owner || null, state: JSON.parse(JSON.stringify(state)) };
+}
+
+/** Prüft einen gespeicherten Datensatz (Schutz vor kaputten/fremden Daten). */
+export function validBackup(raw) {
+  if (!raw || typeof raw !== "object" || raw.bv !== BACKUP_VERSION) return null;
+  if (!raw.state || typeof raw.state !== "object" || !Number.isFinite(raw.at)) return null;
+  const owner = typeof raw.owner === "string" && /^[0-9a-f-]{36}$/i.test(raw.owner) ? raw.owner.toLowerCase() : null;
+  return { ...raw, owner };
+}
+
+/**
+ * Darf diese Sicherung jetzt wiederhergestellt werden? Nie über Kontogrenzen:
+ * nur Sicherungen ohne Konto oder vom gerade angemeldeten Konto.
+ */
+export function canRestore(backup, currentOwner) {
+  const b = validBackup(backup);
+  if (!b) return false;
+  return !b.owner || b.owner === (currentOwner || null);
+}
