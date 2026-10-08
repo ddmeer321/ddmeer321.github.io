@@ -716,6 +716,28 @@ console.log("Neonpalast E2E (V1.2.1)");
     await page.waitForFunction((id) => window.__neonpalast.music.current !== id, third);
     await page.locator(".modal-close").tap();
   });
+  await check("Studio-Aufnahme: Pullover-Nacht kaufen und streamen, Countdown über 10 Erfolge", async () => {
+    await page.locator('[data-fixture="jukebox"]').tap();
+    await page.waitForSelector(".jb-panel");
+    const row = page.locator(".jb-shop .jb-song", { hasText: "Pullover-Nacht" });
+    assert(/Studio/.test(await row.textContent()), "Studio-Kennzeichen fehlt");
+    await row.locator(".btn-gold").tap();
+    await page.locator(".jb-confirm .btn-gold").tap();
+    await page.waitForFunction(() => window.__neonpalast.jukebox.has("pullover"));
+    const locked = await page.locator(".jb-locked .jb-song", { hasText: "Countdown" }).textContent();
+    assert(/Sammle 10 Erfolge · \d+\/10 Erfolge/.test(locked), `Sperrtext: ${locked}`);
+    await page.locator(".jb-list:not(.jb-shop):not(.jb-locked) .jb-song", { hasText: "Pullover-Nacht" }).locator("button").tap();
+    await page.waitForFunction(() => window.__neonpalast.music.current === "pullover", null, { timeout: 8000 });
+    // ein Takt dauert 2,4 s: Ist Takt 1 erreicht, läuft die Aufnahme wirklich
+    await page.waitForFunction(() => window.__neonpalast.music.status().bar >= 1, null, { timeout: 8000 });
+    assert((await page.evaluate(() => window.__neonpalast.music.status().section)) === "Intro");
+    await page.locator(".modal-close").tap();
+    const ids = ["first-win", "bj-natural", "roulette-straight", "slots-big", "pusher-50", "hoops-10", "stacker-top", "cyclone-jackpot", "high-roller", "plinko-big"];
+    await page.evaluate((list) => list.forEach((id) => window.__neonpalast.progression.award(id)), ids);
+    await page.waitForFunction(() => window.__neonpalast.jukebox.has("countdown"), null, { timeout: 5000 });
+    await page.waitForSelector(".toast:has-text('Countdown')", { timeout: 5000 });
+    await assertLedger(page);
+  });
   await check("Musik in Spielen leiser, „aus“ stoppt sie, Rückkehr in die Halle setzt fort", async () => {
     await openGame(page, "plinko");
     assert(await page.evaluate(() => window.__neonpalast.music.playing), "Musik sollte leise weiterlaufen");

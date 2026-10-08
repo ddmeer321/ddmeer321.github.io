@@ -13,7 +13,7 @@ Musik-Herkunft: [`docs/MUSIC.md`](docs/MUSIC.md). Audit und Recherche V1.2: [`do
 
 | Bereich | Spiel | Kurzbeschreibung |
 |---|---|---|
-| Palast-Lounge | **Jukebox** *(V1.2)* | dauerhafter Kauf (5.000 C), steht leuchtend in der Halle, 10 Eigenkompositionen, Songs alle zum selben Preis |
+| Palast-Lounge | **Jukebox** *(V1.2)* | dauerhafter Kauf (5.000 C), steht leuchtend in der Halle, 12 Eigenkompositionen (davon 2 Studio-Aufnahmen), Songs alle zum selben Preis |
 | | **Rubbellose** *(neu)* | eigener Tisch: Lose links kaufen, auf dem Tisch ablegen, groß nach vorn holen und mit dem Finger freirubbeln – 7 Lossorten (20–500 C), u. a. MULTI-Feld bis ×10, Extrazahl ×5 und Münzen-Sammeln; Ergebnis beim Kauf festgelegt |
 | | **Neon Lotto** *(V1.2.1)* | täglich 4 aus 40 (Schein 50 C) und alle 3 Tage das Große Neon Lotto 6 aus 49 + Neonzahl (100 C, Höchstgewinn 1 : 139.838.160), Ziehungs-Show live oder als Aufzeichnung |
 | Slot-Allee | **Fruchtfiesta** | 3×3, 5 Linien, Kirschen ab 2 – RTP exakt 94,2 % · Einsatz 5–250 |
@@ -32,6 +32,20 @@ Musik-Herkunft: [`docs/MUSIC.md`](docs/MUSIC.md). Audit und Recherche V1.2: [`do
 Dazu: Guthaben mit Hochzähl-Animation, Tagesbonus, Nachschub mit Wartezeit, XP/Level,
 25 Erfolge, **3 Tages-Challenges**, Statistik (inkl. Boni und Ausgaben), Bestwerte, Hallen-Themes,
 Einstellungen und Spielregeln je Automat.
+
+### Neu: Studio-Aufnahmen in der Jukebox (V1.5)
+
+Zwei neue Eigenkompositionen, diesmal nicht live im Browser erzeugt, sondern offline mit
+deutlich mehr Klangaufwand berechnet (Skripte in `tools/music/`, Ergebnis in `assets/music/`):
+
+* **Pullover-Nacht** (Indie · Dream-Pop, 100 BPM, d-Moll) – käuflich zum Einheitspreis.
+* **Countdown** (Electro · Cinematic, 140 BPM) – **besonderes Stück**: tickende Uhr, Herzschlag,
+  Trommelwirbel bis zum Drop, Rückung nach fis-Moll im Finale. Nicht käuflich, wird mit
+  **10 Erfolgen** frei (auch rückwirkend für bereits gesammelte Erfolge).
+
+Die MP3s werden erst beim Abspielen gestreamt (kein Laden beim Start), laufen über denselben
+Musik-Bus wie alle Stücke (Lautstärke, „leiser in Spielen“, Pause bei verstecktem Tab) und sind
+in der Bibliothek als „Studio“ gekennzeichnet. Details: `docs/MUSIC.md`.
 
 ### Neu: Cloud-Spielstand
 
@@ -183,18 +197,18 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 
 ```bash
 cd arcade-casino
-npm test            # 137 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
+npm test            # 138 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
                     # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
                     # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
                     # Turmbau- und Hoops-Balance, Jukebox + Musik-Engine, Lotto, Rubbellose, Posteingang
-npm run test:e2e    # 135 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
+npm run test:e2e    # 136 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
 ```
 
 Die E2E-Tests warten auf Spielzustände (`data-phase` am Spielcontainer) statt auf feste Zeiten.
 Sie spielen in jedem Spiel echte Runden und prüfen die Bilanz (Guthaben = Start − Einsätze +
 Auszahlungen + Boni − Ausgaben), Navigation inkl. Browser-Zurück, Neuladen, Pause/Auszeit (mit
 simulierter Uhr), die neutrale Erinnerung, die Migration eines V1.0-Spielstands, Jukebox (Kauf,
-Songs, leiser in Spielen, Neuladen), Lotto (Scheine, 20er-Limit, Live-Ziehung mit simulierter Uhr,
+Songs, Studio-Aufnahme streamen, Countdown über Erfolge, leiser in Spielen, Neuladen), Lotto (Scheine, 20er-Limit, Live-Ziehung mit simulierter Uhr,
 verpasste Ziehung über den Posteingang, Neuladen während der Show, Einfordern genau einmal,
 Verlust, 6 aus 49 + Neonzahl, Erstattung alter Scheine), Touch-Gesten auf Spielflächen bei
 320/375/390 px (echte Touch-Wischer über das DevTools-Protokoll), Ladefehler vs. Defekt, Layouts auf mehreren Bildschirmgrößen, reduzierte Bewegung, fehlende

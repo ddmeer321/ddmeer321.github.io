@@ -3,7 +3,7 @@
 // Die Jukebox ist ein dauerhafter Kauf. Dazu gehören zwei Starter-Stücke.
 // Weitere Stücke kosten ALLE denselben Preis (Musikgeschmack ist subjektiv –
 // „teurer“ darf nicht „besser“ bedeuten). Besondere Stücke sind nicht käuflich,
-// sondern werden über Meilensteine frei (Level, alle Automaten gespielt).
+// sondern werden über Meilensteine frei (Level, alle Automaten gespielt, Erfolge).
 // Preise: Begründung und Simulation in docs/ECONOMY.md (Abschnitt Jukebox).
 
 import { TRACKS, TRACK_IDS, trackById } from "../audio/tracks.js";
@@ -38,11 +38,12 @@ export function priceOf(id) {
 }
 
 /** Ist die Freischaltbedingung eines besonderen Stücks erfüllt? */
-export function specialUnlocked(track, { level = 1, gamesPlayed = 0 } = {}) {
+export function specialUnlocked(track, { level = 1, gamesPlayed = 0, achievements = 0 } = {}) {
   const u = track.unlock;
   if (!u) return false;
   if (u.type === "level") return level >= u.value;
   if (u.type === "variety") return gamesPlayed >= u.value;
+  if (u.type === "achievements") return achievements >= u.value;
   return false;
 }
 
@@ -51,7 +52,7 @@ export function specialUnlocked(track, { level = 1, gamesPlayed = 0 } = {}) {
  * @param {() => object} o.getState
  * @param {object} o.economy   spend() aus core/economy.js
  * @param {() => void} o.saveNow
- * @param {() => {level:number, gamesPlayed:number}} o.progress
+ * @param {() => {level:number, gamesPlayed:number, achievements:number}} o.progress
  * @param {(ev:string, d?:any) => void} [o.emit]
  */
 export function createJukebox({ getState, economy, saveNow, progress, emit = () => {}, now = () => Date.now() }) {

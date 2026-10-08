@@ -159,7 +159,7 @@ test("Musik-Engine: jedes Stück spielt alle Takte fehlerfrei durch (inkl. Schle
   const { ctx, count } = mockAudio();
   initSynth(ctx);
   assert.equal(new Set(TRACK_IDS).size, TRACKS.length, "eindeutige ids");
-  for (const tr of TRACKS) {
+  for (const tr of TRACKS.filter((x) => !x.audio)) {
     const bus = makeBus(tr, ctx.createGain());
     tr.start?.(bus);
     const sd = stepDur(tr);
@@ -176,4 +176,36 @@ test("Musik-Engine: jedes Stück spielt alle Takte fehlerfrei durch (inkl. Schle
     assert.ok(tr.title && tr.style && tr.desc && tr.bpm > 50 && tr.bpm < 200, `${tr.id} Metadaten`);
     assert.ok(typeof tr.section(0) === "string");
   }
+});
+
+test("Studio-Aufnahmen: Datei vorhanden, Takte passen zur Länge, Abschnitte, Freischaltung", async () => {
+  const fs = await import("node:fs");
+  const studio = TRACKS.filter((t) => t.audio);
+  assert.deepEqual(studio.map((t) => t.id), ["pullover", "countdown"]);
+  for (const tr of studio) {
+    const file = new URL(`../${tr.audio}`, import.meta.url);
+    const size = fs.statSync(file).size;
+    assert.ok(size > 500_000 && size < 4_000_000, `${tr.id}: ${size} Bytes`);
+    assert.equal(fs.readFileSync(file).subarray(0, 3).toString(), "ID3", `${tr.id} ist eine MP3 mit Titel-Tag`);
+    const barDur = (60 / tr.bpm) * 4;
+    assert.ok(tr.bars * barDur <= tr.duration && tr.duration - tr.bars * barDur < 6, `${tr.id}: Takte passen zur Dauer`);
+    assert.equal(typeof tr.step, "undefined", "Aufnahmen werden nicht live erzeugt");
+    assert.equal(tr.section(0), "Intro");
+    assert.ok(tr.title && tr.style && tr.desc, `${tr.id} Metadaten`);
+  }
+  const cd = TRACKS.find((t) => t.id === "countdown");
+  assert.equal(cd.section(23), "Spannung");
+  assert.equal(cd.section(24), "Drop");
+  assert.equal(cd.section(67), "Schluss");
+  assert.equal(cd.kind, "special", "Countdown ist ein besonderes Stück");
+  assert.equal(priceOf("countdown"), null, "nicht käuflich");
+  assert.equal(priceOf("pullover"), SONG_PRICE, "Pullover-Nacht zum Einheitspreis");
+  assert.equal(specialUnlocked(cd, { achievements: 9 }), false);
+  assert.equal(specialUnlocked(cd, { achievements: 10 }), true);
+  const { jb, p } = setup(20000, { level: 1, gamesPlayed: 0, achievements: 9 });
+  jb.buy();
+  assert.equal(jb.has("countdown"), false);
+  p.achievements = 10;
+  assert.deepEqual(jb.checkSpecials(), ["countdown"]);
+  assert.equal(jb.buySong("countdown").ok, false, "auch nachträglich nicht käuflich");
 });

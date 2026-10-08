@@ -1,13 +1,16 @@
 // Jukebox-Bibliothek (V1.2). Alle Stücke sind Eigenkompositionen für
-// Neonpalast und werden live im Browser erzeugt (js/audio/synth.js) – es gibt
-// keine Audiodateien und keine fremden Rechte (Herkunft: docs/MUSIC.md).
+// Neonpalast, ohne fremde Rechte (Herkunft: docs/MUSIC.md). Die meisten werden
+// live im Browser erzeugt (js/audio/synth.js). Seit V1.5 gibt es zusätzlich
+// Studio-Aufnahmen (`audio`): offline mit tools/music/*.mjs berechnet und als
+// MP3 gestreamt – dort steckt mehr Klangaufwand drin, als live möglich wäre.
 //
 // kind:
 //   starter – gehört zur Jukebox dazu
 //   shop    – mit Credits freischaltbar, ALLE zum selben Preis (Geschmack ist subjektiv)
 //   special – nicht käuflich, sondern über einen Meilenstein (siehe `unlock`)
 //
-// step(bus, bar, step, t, sd): plant die Noten eines Sechzehntels.
+// step(bus, bar, step, t, sd): plant die Noten eines Sechzehntels (live erzeugte Stücke).
+// audio: Pfad der Aufnahme; bars/bpm geben die Taktlänge für Abschnitte und Fortsetzen.
 
 import { bar, voice, ep, kick, noise, snare, hat, rim, clap, tom, pop, riser, bed, pluck, brass, pulse25, pulse12, mtof } from "./synth.js";
 
@@ -370,6 +373,28 @@ const hymn = {
 };
 
 /** Reihenfolge in der Bibliothek: Starter, Kaufbare (alphabetisch nach Stil gemischt), Besondere. */
-export const TRACKS = [drive, lounge, pixel, house, bossa, rain, swing, turbo, sunset, hymn];
+// ---------- Studio-Aufnahmen ----------
+// Der Testbereich (test-claude) teilt sich die Dateien mit der Live-Fassung.
+const MUSIC_BASE = typeof location !== "undefined" && location.pathname.includes("/test-claude/") ? "/arcade-casino/assets/music/" : "assets/music/";
+const sectionsAt = (list) => (b) => list.reduce((name, [from, n]) => (b >= from ? n : name), list[0][1]);
+
+const pullover = {
+  id: "pullover", title: "Pullover-Nacht", style: "Indie · Dream-Pop", kind: "shop", color: "#9fb4ff",
+  bpm: 100, key: "d-Moll", prog: "Dm – B♭ – F – C", form: "Intro → Strophe → Aufbau → Refrain → Break → Refrain → Outro",
+  desc: "Studio-Aufnahme: gezupfte Gitarre mit viel Hall, Halftime-Groove, Kopfstimmen-Lead mit Echo.",
+  audio: `${MUSIC_BASE}pullover-nacht.mp3`, duration: 100, bars: 40, loopFrom: 0, gain: 0.9,
+  section: sectionsAt([[0, "Intro"], [4, "Strophe"], [12, "Aufbau"], [16, "Refrain"], [24, "Break"], [28, "Refrain"], [36, "Outro"]]),
+};
+
+const countdown = {
+  id: "countdown", title: "Countdown", style: "Electro · Cinematic", kind: "special", color: "#ff2e63",
+  unlock: { type: "achievements", value: 10, text: "Sammle 10 Erfolge" },
+  bpm: 140, key: "e-Moll → fis-Moll", prog: "Em – C – G – D · Am – C – D – H", form: "Intro → Aufbau → Spannung → Drop → Atempause → Aufbau → Finale",
+  desc: "Studio-Aufnahme: tickende Uhr, Herzschlag, Trommelwirbel bis zum Drop, Rückung im Finale.",
+  audio: `${MUSIC_BASE}countdown.mp3`, duration: 121.6, bars: 68, loopFrom: 0, gain: 0.85,
+  section: sectionsAt([[0, "Intro"], [8, "Aufbau"], [16, "Spannung"], [24, "Drop"], [40, "Atempause"], [44, "Aufbau"], [48, "Finale"], [64, "Schluss"]]),
+};
+
+export const TRACKS = [drive, lounge, pixel, house, bossa, rain, swing, turbo, pullover, sunset, hymn, countdown];
 export const TRACK_IDS = TRACKS.map((t) => t.id);
 export const trackById = (id) => TRACKS.find((t) => t.id === id) || null;

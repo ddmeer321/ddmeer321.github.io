@@ -198,7 +198,7 @@ const inbox = createInbox({ getState, save: saveSoon, emit: (t, p) => bus.emit(t
 const lotto = createLotto({ getState, economy, saveNow, inbox, emit: (t, p) => bus.emit(t, p) });
 const playerProgress = () => {
   const s = getState();
-  return { level: levelInfo(s.xp).level, gamesPlayed: MACHINES.filter((g) => s.counters[`played-${g.id}`]).length };
+  return { level: levelInfo(s.xp).level, gamesPlayed: MACHINES.filter((g) => s.counters[`played-${g.id}`]).length, achievements: Object.keys(s.achievements || {}).length };
 };
 const jukebox = createJukebox({ getState, economy, saveNow, progress: playerProgress, emit: (t, p) => bus.emit(t, p) });
 const music = createMusicPlayer({ onChange: (st) => bus.emit("music:change", st) });
@@ -338,6 +338,7 @@ bus.on("progress:achievement", (a) => {
     play("achievement");
     toast(`Erfolg: ${a.title}`, { icon: a.icon, tone: "gold", ms: 3600 });
   }, 400);
+  setTimeout(checkSpecialSongs, 1200); // nach dem Erfolgs-Toast
 });
 
 balanceBtn.addEventListener("click", () => {
@@ -1128,4 +1129,6 @@ updateLockState();
 // Verpasste Ziehungen sofort auswerten (landen im Posteingang), danach regelmäßig prüfen.
 lottoTick();
 setInterval(lottoTick, 5000);
+// Meilensteine, die schon vor einem Update erreicht wurden (z. B. Erfolge für „Countdown“)
+setTimeout(checkSpecialSongs, 1500);
 refreshJukeboxHub();

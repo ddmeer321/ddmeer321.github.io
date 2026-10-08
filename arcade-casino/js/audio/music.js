@@ -6,12 +6,61 @@
 //   Scheduler wartet dann einfach (keine aufgestauten Noten, kein Lastspitzen).
 // * Beim Stoppen/Wechseln werden alle Knoten des Stücks ausgeblendet und
 //   getrennt – kein Speicherleck.
+// * Studio-Aufnahmen (track.audio, V1.5) laufen über ein <audio>-Element, das
+//   in denselben Musik-Bus geleitet wird (gleiche Lautstärke, gleiches Ducking).
+//   Gestreamt statt dekodiert: Ein dekodiertes 2-Minuten-Stück bräuchte ~45 MB.
 
 import { musicOutput, resumeAudio } from "./audio.js";
 import { initSynth, makeBus, closeBus, stepDur } from "./synth.js";
 import { trackById } from "./tracks.js";
 
 const LOOKAHEAD = 0.15;
+const barDur = (tr) => (60 / tr.bpm) * 4;
+
+/** Startet eine Aufnahme im Musik-Bus. Rückgabe: { el, gain, nodes } oder Fehler. */
+async function startFile(tr, out, startBar) {
+  const el = new Audio();
+  el.preload = "auto";
+  el.loop = true;
+  el.src = tr.audio;
+  const src = out.ctx.createMediaElementSource(el);
+  const gain = out.ctx.createGain();
+  gain.gain.value = 0;
+  gain.gain.setTargetAtTime(tr.gain ?? 1, out.ctx.currentTime, 0.05);
+  src.connect(gain);
+  gain.connect(out.bus);
+  const file = { el, src, gain, hold: false };
+  if (startBar > 0) el.currentTime = startBar * barDur(tr);
+  try {
+    await el.play();
+  } catch (err) {
+    stopFile(file, out.ctx, 0);
+    throw err;
+  }
+  return file;
+}
+
+function stopFile(file, ctx, fade = 0.12) {
+  if (!file || file.closed) return;
+  file.closed = true;
+  try {
+    file.gain.gain.cancelScheduledValues(ctx.currentTime);
+    file.gain.gain.setTargetAtTime(0, ctx.currentTime, fade);
+  } catch {
+    /* ignorieren */
+  }
+  setTimeout(() => {
+    try {
+      file.el.pause();
+      file.el.removeAttribute("src");
+      file.el.load(); // Netz-/Pufferspeicher freigeben
+      file.src.disconnect();
+      file.gain.disconnect();
+    } catch {
+      /* bereits getrennt */
+    }
+  }, fade * 1000 * 5 + 50);
+}
 
 export function createMusicPlayer({ onChange = () => {} } = {}) {
   let player = null; // { track, bus, bar, step, next }
@@ -19,9 +68,31 @@ export function createMusicPlayer({ onChange = () => {} } = {}) {
   let marks = [];
   let section = "";
   let barNo = 0;
+  let playToken = {}; // verwirft verspätet geladene Aufnahmen
+
+  function tickFile() {
+    const tr = player.track;
+    const { el } = player.file;
+    // versteckter Tab: AudioContext ist angehalten – das Element pausiert mit
+    if (document.hidden && !el.paused) {
+      el.pause();
+      player.file.hold = true;
+    } else if (!document.hidden && player.file.hold) {
+      player.file.hold = false;
+      el.play().catch(() => {});
+    }
+    const bar = Math.min(tr.bars - 1, Math.floor(el.currentTime / barDur(tr)));
+    const sec = tr.section(bar);
+    if (sec !== section || bar !== barNo) {
+      section = sec;
+      barNo = bar;
+      onChange(api.status());
+    }
+  }
 
   function tick() {
     if (!player) return;
+    if (player.file) return tickFile();
     const out = musicOutput();
     if (!out) return;
     const { ctx } = out;
@@ -58,7 +129,8 @@ export function createMusicPlayer({ onChange = () => {} } = {}) {
   function stopInternal() {
     clearInterval(timer);
     timer = 0;
-    if (player) closeBus(player.bus);
+    if (player?.file) stopFile(player.file, player.ctx);
+    else if (player) closeBus(player.bus);
     player = null;
     marks = [];
     section = "";
@@ -69,14 +141,37 @@ export function createMusicPlayer({ onChange = () => {} } = {}) {
     async play(id, startBar = 0) {
       const tr = trackById(id);
       if (!tr) return false;
-      if (!(await resumeAudio())) return false;
+      const ticket = (playToken = {});
+      if (!(await resumeAudio()) || ticket !== playToken) return false;
       const out = musicOutput();
       if (!out) return false;
-      initSynth(out.ctx);
       stopInternal();
+      const bar0 = Number.isInteger(startBar) && startBar >= 0 && startBar < tr.bars ? startBar : 0;
+      if (tr.audio) {
+        let file;
+        try {
+          file = await startFile(tr, out, bar0);
+        } catch (err) {
+          console.warn("[music] Aufnahme nicht abspielbar", tr.id, err);
+          return false;
+        }
+        if (ticket !== playToken) {
+          // während des Ladens wurde schon etwas anderes gestartet/gestoppt
+          stopFile(file, out.ctx, 0);
+          return false;
+        }
+        file.el.addEventListener("error", () => {
+          if (player?.file === file) api.stop();
+        });
+        player = { track: tr, file, ctx: out.ctx };
+        tick();
+        timer = setInterval(tick, 250);
+        onChange(api.status());
+        return true;
+      }
+      initSynth(out.ctx);
       const bus = makeBus(tr, out.bus);
       tr.start?.(bus);
-      const bar0 = Number.isInteger(startBar) && startBar >= 0 && startBar < tr.bars ? startBar : 0;
       player = { track: tr, bus, bar: bar0, step: 0, next: out.ctx.currentTime + 0.08 };
       tick();
       timer = setInterval(tick, 25);
@@ -85,6 +180,7 @@ export function createMusicPlayer({ onChange = () => {} } = {}) {
     },
     stop() {
       const had = Boolean(player);
+      playToken = {};
       stopInternal();
       if (had) onChange(api.status());
     },
