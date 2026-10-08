@@ -121,7 +121,7 @@ export function openJukeboxPanel(api) {
         songRow(t, {
           current: t.id === j.current,
           playing: st.playing && st.id === t.id,
-          badge: t.kind === "special" ? "besonders" : null,
+          badge: t.kind === "special" ? "besonders" : t.audio ? "Studio" : null,
           right: h("button.btn.btn-sm.btn-ghost", { type: "button", "aria-label": `${t.title} abspielen`, onclick: () => api.play(t.id) }, st.playing && st.id === t.id ? "läuft" : "▶"),
         })
       )
@@ -137,6 +137,7 @@ export function openJukeboxPanel(api) {
           shop.map((t) =>
             songRow(t, {
               playing: previewId === t.id,
+              badge: t.audio ? "Studio" : null,
               right: h(
                 "div.jb-shop-actions",
                 {},
@@ -156,8 +157,11 @@ export function openJukeboxPanel(api) {
           "ul.jb-list.jb-locked",
           {},
           specials.map((t) => {
-            const p = t.unlock.type === "level" ? `Level ${progress.level}/${t.unlock.value}` : `${progress.gamesPlayed}/${t.unlock.value} Automaten`;
-            const li = songRow(t, { right: h("span.jb-lock", { "aria-label": "gesperrt" }, "🔒") });
+            const p =
+              t.unlock.type === "level" ? `Level ${progress.level}/${t.unlock.value}`
+              : t.unlock.type === "achievements" ? `${Math.min(progress.achievements || 0, t.unlock.value)}/${t.unlock.value} Erfolge`
+              : `${progress.gamesPlayed}/${t.unlock.value} Automaten`;
+            const li = songRow(t, { badge: t.audio ? "Studio" : null, right: h("span.jb-lock", { "aria-label": "gesperrt" }, "🔒") });
             li.querySelector("small").textContent = `${t.unlock.text} · ${p}`;
             return li;
           })
@@ -173,7 +177,7 @@ export function openJukeboxPanel(api) {
       shopList,
       specialList ? h("h3", {}, "Besondere Stücke") : null,
       specialList,
-      h("p.jb-credit", {}, "Alle Stücke sind Eigenkompositionen für Neonpalast und werden live im Browser erzeugt.")
+      h("p.jb-credit", {}, "Alle Stücke sind Eigenkompositionen für Neonpalast. Die meisten entstehen live im Browser; Studio-Aufnahmen werden beim Abspielen geladen.")
     );
   }
 
