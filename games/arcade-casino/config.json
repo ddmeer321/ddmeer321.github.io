@@ -6,7 +6,7 @@
   "features": ["highscore", "pc", "tablet", "mobile"],
   "version": "1.2.1",
   "author": "Dodo",
-  "description": "Arcade-Casino mit 12 Automaten (Blackjack, Roulette, drei Slots, Plinko, Münzgreifer, Pferderennen, Coin Pusher und Skill-Automaten), Neon Lotto und einer eigenen Jukebox. Ausschließlich virtuelles Spielgeld – keine Käufe, keine Auszahlungen.",
+  "description": "Arcade-Casino mit 12 Automaten (Blackjack, Roulette, drei Slots, Plinko, Münzgreifer, Pferderennen, Coin Pusher und Skill-Automaten), Neon Lotto, Rubbellosen und einer eigenen Jukebox. Ausschließlich virtuelles Spielgeld – keine Käufe, keine Auszahlungen.",
   "icon": "🎰",
   "entry": "arcade-casino/index.html"
 }

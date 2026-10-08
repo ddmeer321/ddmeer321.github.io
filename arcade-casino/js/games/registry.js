@@ -13,6 +13,7 @@ export const FIXTURES = [{ id: "jukebox", zone: "lounge", title: "Jukebox", art:
 
 export const GAMES = [
   { id: "lotto", zone: "lounge", kind: "event", title: "Neon Lotto", blurb: "Ziehung täglich 20 Uhr", art: "lotto", table: true, css: "lotto", load: () => import("./lotto/lotto.js") },
+  { id: "scratch", zone: "lounge", kind: "lounge", title: "Rubbellose", blurb: "Lose ab 20 C · selbst rubbeln", art: "scratch", table: true, css: "scratch", load: () => import("./scratch/scratch.js") },
   { id: "slots-fruit", zone: "slots", title: "Fruchtfiesta", blurb: "3×3 · 5 Linien", art: "slotFruit", css: "slots", load: () => import("./slots/slots.js"), opts: { machine: "fruit" } },
   { id: "slots-seven", zone: "slots", title: "Goldene Sieben", blurb: "Klassik · 1 Linie", art: "slotSeven", css: "slots", load: () => import("./slots/slots.js"), opts: { machine: "seven" } },
   { id: "slots-cosmo", zone: "slots", title: "Kosmo 5", blurb: "5×3 · Freispiele", art: "slotCosmo", css: "slots", wide: true, load: () => import("./slots/slots.js"), opts: { machine: "cosmo" } },
@@ -31,5 +32,10 @@ export function gameById(id) {
   return GAMES.find((g) => g.id === id) || null;
 }
 
-/** Die eigentlichen Automaten (ohne Lotto-Studio). */
-export const MACHINES = GAMES.filter((g) => g.kind !== "event");
+/**
+ * Die eigentlichen Automaten (ohne Lotto-Studio und Lounge-Tische). Daran hängen
+ * „Entdecker“ und die Jukebox-Freischaltung „alle 12 Automaten“ – Lounge-Spiele
+ * (kind "lounge", z. B. Rubbellose) zählen bewusst nicht dazu, sind aber wie
+ * Automaten während Pause/Auszeit gesperrt.
+ */
+export const MACHINES = GAMES.filter((g) => !g.kind);

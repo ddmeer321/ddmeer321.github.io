@@ -14,6 +14,7 @@ Musik-Herkunft: [`docs/MUSIC.md`](docs/MUSIC.md). Audit und Recherche V1.2: [`do
 | Bereich | Spiel | Kurzbeschreibung |
 |---|---|---|
 | Palast-Lounge | **Jukebox** *(V1.2)* | dauerhafter Kauf (5.000 C), steht leuchtend in der Halle, 10 Eigenkompositionen, Songs alle zum selben Preis |
+| | **Rubbellose** *(neu)* | eigener Tisch: Lose links kaufen, auf dem Tisch ablegen, groß nach vorn holen und mit dem Finger freirubbeln – 3 Lossorten (20/50/200 C), Ergebnis beim Kauf festgelegt |
 | | **Neon Lotto** *(V1.2.1)* | täglich 4 aus 40 (Schein 50 C) und alle 3 Tage das Große Neon Lotto 6 aus 49 + Neonzahl (100 C, Höchstgewinn 1 : 139.838.160), Ziehungs-Show live oder als Aufzeichnung |
 | Slot-Allee | **Fruchtfiesta** | 3×3, 5 Linien, Kirschen ab 2 – RTP exakt 94,2 % · Einsatz 5–250 |
 | | **Goldene Sieben** | klassisch, 1 Linie, Mischgewinne – RTP exakt 94,7 % · Einsatz 5–50 |
@@ -31,6 +32,17 @@ Musik-Herkunft: [`docs/MUSIC.md`](docs/MUSIC.md). Audit und Recherche V1.2: [`do
 Dazu: Guthaben mit Hochzähl-Animation, Tagesbonus, Nachschub mit Wartezeit, XP/Level,
 25 Erfolge, **3 Tages-Challenges**, Statistik (inkl. Boni und Ausgaben), Bestwerte, Hallen-Themes,
 Einstellungen und Spielregeln je Automat.
+
+### Neu: Rubbellose
+
+Ein Tisch in der Palast-Lounge. Links der Losverkauf (Neon Sieben 20 C, Glückszahlen 50 C,
+Diamant-Tresor 200 C), rechts der eigene Tisch, auf dem gekaufte Lose liegen (höchstens 12).
+Ein Los antippen holt es groß nach vorn, der Tisch verschwimmt dahinter; die Felder werden
+mit Finger oder Maus freigerubbelt („Alles aufdecken“ für Tastatur/Barrierefreiheit). Danach
+„Gewinn einfordern“ (gold) bzw. „Los ablegen“ (rot). Das Ergebnis steht beim Kauf fest und ist
+gespeichert; Gewinnpläne und RTP (68–69 %) stehen im Spiel und in `docs/ECONOMY.md` (7b).
+Rubbellose zählen nicht zu den 12 Automaten (Entdecker-Erfolg und Jukebox-Freischaltung
+bleiben unverändert) und sind in Pause/Auszeit gesperrt.
 
 ### V1.2.1 – Touch-, Lotto- und Balance-Hotfix
 
@@ -146,11 +158,11 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 
 ```bash
 cd arcade-casino
-npm test            # 117 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
+npm test            # 126 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
                     # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
                     # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
-                    # Turmbau- und Hoops-Balance, Jukebox + Musik-Engine, Lotto, Posteingang
-npm run test:e2e    # 113 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
+                    # Turmbau- und Hoops-Balance, Jukebox + Musik-Engine, Lotto, Rubbellose, Posteingang
+npm run test:e2e    # 123 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
 ```
 
 Die E2E-Tests warten auf Spielzustände (`data-phase` am Spielcontainer) statt auf feste Zeiten.

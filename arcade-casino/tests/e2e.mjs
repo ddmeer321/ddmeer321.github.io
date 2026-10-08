@@ -116,14 +116,14 @@ const phaseIs = ([sel, list]) => list.includes(document.querySelector(sel)?.data
 const noHorizontalScroll = (page) => page.evaluate(() => document.scrollingElement.scrollWidth <= window.innerWidth + 1);
 
 const MACHINES = ["slots-fruit", "slots-seven", "slots-cosmo", "blackjack", "roulette", "horses", "plinko", "grabber", "coinpusher", "hoops", "stacker", "cyclone"];
-const GAMES = [...MACHINES, "lotto"];
+const GAMES = [...MACHINES, "lotto", "scratch"];
 
 console.log("Neonpalast E2E (V1.2.1)");
 
 // ---------- Hub & Navigation ----------
 {
   const { page, ctx, errors } = await newPage();
-  await check("Hub lädt mit allen 12 Automaten, Lotto-Studio und Jukebox", async () => {
+  await check("Hub lädt mit allen 12 Automaten, Lotto-Studio, Rubbellos-Tisch und Jukebox", async () => {
     const n = await page.locator(".machine[data-game]").count();
     assert(n === GAMES.length, `erwartet ${GAMES.length}, gefunden ${n}`);
     assert(await page.locator('[data-fixture="jukebox"]').isVisible(), "Jukebox fehlt");
@@ -520,6 +520,10 @@ console.log("Neonpalast E2E (V1.2.1)");
     await page.goto(BASE + "#/play/blackjack");
     await page.waitForSelector(".modal:has-text('Automaten pausiert')");
     assert((await page.locator(root("blackjack")).count()) === 0, "Spiel trotz Pause geöffnet");
+    await page.locator(".modal button:has-text('OK')").tap();
+    await page.goto(BASE + "#/play/scratch");
+    await page.waitForSelector(".modal:has-text('Automaten pausiert')");
+    assert((await page.locator(root("scratch")).count()) === 0, "Rubbellose trotz Pause geöffnet");
   });
   await check("Pause: Lotto-Studio offen, Scheinkauf gesperrt", async () => {
     await page.goto(BASE + "#/play/lotto");
@@ -1123,14 +1127,159 @@ for (const width of [320, 375, 390]) {
   await ctx.close();
 }
 
+// ---------- Rubbellose ----------
+{
+  const ctx = await browser.newContext(VIEWPORTS.phone);
+  ctx.setDefaultTimeout(10000);
+  const page = await ctx.newPage();
+  shotPage = page;
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  const cdp = await ctx.newCDPSession(page);
+  await page.goto(BASE + "#/play/scratch");
+  await phase(page, "scratch", "idle");
+  await check("Rubbellose: Lose kaufen, landen auf dem Tisch, Abbuchung je Los, Ergebnis sofort gespeichert", async () => {
+    for (const t of ["neon7", "lucky", "vault"]) await page.locator(`.sc-buy[data-type="${t}"]`).tap();
+    await page.waitForFunction(() => document.querySelectorAll(".sc-mini").length === 3);
+    const s = await assertLedger(page);
+    assert(s.balance === 1000 - 20 - 50 - 200, `Guthaben ${s.balance}`);
+    const saved = JSON.parse(await page.evaluate(() => localStorage.getItem("neonpalast.save.v1"))).games.scratch.tickets;
+    assert(saved.length === 3 && saved.every((t) => t.layout && Number.isInteger(t.prize)), "Lose nicht sofort gespeichert");
+    assert((await page.locator(".sc-mini.is-open").count()) === 0, "Ergebnis verraten");
+  });
+  await check("Rubbellose: Los antippen → groß im Vordergrund, Tisch verschwommen; Finger-Rubbeln deckt Felder auf", async () => {
+    await page.locator(".sc-mini").first().tap();
+    await page.waitForSelector(".sc-focus .sc-foil");
+    assert(await page.evaluate(() => getComputedStyle(document.querySelector(".sc-world")).filter.includes("blur")), "Tisch nicht verschwommen");
+    await phase(page, "scratch", "scratch");
+    const box = await page.locator(".sc-foil").boundingBox();
+    await page.evaluate(() => {
+      window.__sc = { cancel: 0 };
+      document.querySelector(".sc-foil").addEventListener("pointercancel", () => window.__sc.cancel++);
+    });
+    // echte Touch-Wischer, Zeile für Zeile, bis das ganze Los offen ist
+    for (let row = 0, y = 6; y < box.height && !(await page.evaluate(phaseIs, [root("scratch"), ["win", "push", "lose"]])); y += 12, row++) {
+      const x0 = row % 2 ? box.width - 4 : 4;
+      const x1 = row % 2 ? 4 : box.width - 4;
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: box.x + x0, y: box.y + y }] });
+      for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: box.x + x0 + ((x1 - x0) * i) / 10, y: box.y + y }] });
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    }
+    await phase(page, "scratch", ["win", "push", "lose"]);
+    const r = await page.evaluate(() => ({ ...window.__sc, scroll: document.scrollingElement.scrollTop, open: document.querySelectorAll(".sc-field.is-revealed").length, all: document.querySelectorAll(".sc-field").length }));
+    assert(r.cancel === 0 && r.scroll === 0, `Browser-Geste beim Rubbeln: ${JSON.stringify(r)}`);
+    assert(r.open === r.all, `nicht alle Felder offen: ${r.open}/${r.all}`);
+  });
+  await check("Rubbellose: Gewinn genau einmal einfordern bzw. Niete mit rotem Knopf ablegen", async () => {
+    const before = await state(page);
+    const t = before.games.scratch.tickets.find((x) => x.revealed.every(Boolean));
+    if (t.prize > 0) {
+      await page.locator(".sc-claim").dblclick();
+    } else {
+      assert(await page.locator(".sc-drop.btn-danger").isVisible(), "kein roter Ablegen-Knopf");
+      assert(!/nochmal|neues Los|fast/i.test(await page.locator(".sc-focus").textContent()), "Kaufdruck im Verlustfall");
+      await page.locator(".sc-drop").tap();
+    }
+    await page.waitForFunction(() => !document.querySelector(".sc-focus"));
+    const s = await assertLedger(page);
+    assert(s.balance === before.balance + t.prize, `Guthaben ${s.balance} ≠ ${before.balance} + ${t.prize}`);
+    assert(s.games.scratch.tickets.length === 2 && s.stats.perGame.scratch.rounds === 1, "Los nicht genau einmal abgerechnet");
+  });
+  await check("Rubbellose: Neuladen mitten im Rubbeln ändert weder Bild noch Gewinn, Fortschritt bleibt", async () => {
+    await page.locator(".sc-mini").first().tap();
+    await page.waitForSelector(".sc-foil");
+    const box = await page.locator(".sc-foil").boundingBox();
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: box.x + 4, y: box.y + 20 }] });
+    for (let i = 1; i <= 12; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: box.x + 4 + ((box.width - 8) * i) / 12, y: box.y + 20 + (i % 2) * 14 }] });
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await page.evaluate(() => window.__neonpalast.saveNow());
+    const before = (await state(page)).games.scratch.tickets[0];
+    await page.reload();
+    await phase(page, "scratch", "idle");
+    const after = (await state(page)).games.scratch.tickets[0];
+    assert(JSON.stringify(after.layout) === JSON.stringify(before.layout) && after.prize === before.prize, "Los neu gewürfelt");
+    assert(JSON.stringify(after.revealed) === JSON.stringify(before.revealed), "Fortschritt verloren");
+    await page.locator(".sc-mini").first().tap();
+    await page.waitForSelector(".sc-foil");
+    const shown = await page.locator(".sc-field.is-revealed").count();
+    assert(shown === before.revealed.filter(Boolean).length, `aufgedeckte Felder ${shown}`);
+    await page.locator(".sc-back-table").tap();
+    await page.waitForFunction(() => !document.querySelector(".sc-focus"));
+    await phase(page, "scratch", "idle");
+  });
+  await check("Rubbellose: höchstens 12 Lose auf dem Tisch", async () => {
+    for (let i = 0; i < 12 && !(await page.locator('.sc-buy[data-type="neon7"]').isDisabled()); i++) await page.locator('.sc-buy[data-type="neon7"]').tap();
+    assert((await page.locator(".sc-mini").count()) === 12, "nicht 12 Lose");
+    assert(/Tisch voll/.test(await page.locator('.sc-buy[data-type="neon7"]').textContent()), "Limit nicht angezeigt");
+    await assertLedger(page);
+    assert(await noHorizontalScroll(page), "Querscrollen");
+  });
+  await check("Keine Konsolenfehler (Rubbellose)", async () => assert(!errors.length, errors.join(" | ")));
+  await ctx.close();
+}
+
+// ---------- Rubbellose: bekannter Gewinn / manipulierter Spielstand ----------
+{
+  const win = { id: "s1", type: "neon7", prize: 10000, layout: { cells: [100, 20, 100, 40, 100, 200] }, revealed: [false, false, false, false, false, false], boughtAt: 1, rot: 3, dx: 0, dy: 0 };
+  const lose = { id: "s2", type: "vault", prize: 0, layout: { cells: Array.from({ length: 9 }, () => ({ s: "⭐", amount: 0 })) }, revealed: Array(9).fill(false), boughtAt: 2, rot: -4, dx: 0, dy: 0 };
+  const save = { v: 3, balance: 1000, stats: { wagered: 220, won: 0, bonus: 220 }, games: { scratch: { seq: 2, tickets: [win, lose], history: [] } } };
+  const ctx = await browser.newContext(VIEWPORTS.small);
+  ctx.setDefaultTimeout(10000);
+  await ctx.addInitScript((s) => {
+    if (!sessionStorage.getItem("seeded")) {
+      localStorage.setItem("neonpalast.save.v1", s);
+      sessionStorage.setItem("seeded", "1");
+    }
+  }, JSON.stringify(save));
+  const page = await ctx.newPage();
+  shotPage = page;
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto(BASE + "#/play/scratch");
+  await phase(page, "scratch", "idle");
+  await check("Rubbellose: Gewinn kommt aus dem Losbild (gespeicherter Betrag zählt nicht), Treffer hervorgehoben", async () => {
+    await page.locator('.sc-mini[data-id="s1"]').tap();
+    await page.locator(".sc-reveal").tap();
+    await phase(page, "scratch", "win");
+    assert((await page.locator(".sc-field.is-win").count()) === 3, "3 gleiche nicht hervorgehoben");
+    assert(/100/.test(await page.locator(".sc-status").textContent()), "falscher Betrag angezeigt");
+    await page.locator(".sc-claim").tap();
+    await page.waitForFunction(() => !document.querySelector(".sc-focus"));
+    const s = await state(page);
+    assert(s.balance === 1100, `Guthaben ${s.balance}`);
+  });
+  await check("Rubbellose: Niete – „Leider kein Gewinn“, kein Gewinn-Feuerwerk, roter Knopf", async () => {
+    await page.locator('.sc-mini[data-id="s2"]').tap();
+    await page.locator(".sc-reveal").tap();
+    await phase(page, "scratch", "lose");
+    assert(/LEIDER KEIN GEWINN/.test(await page.locator(".sc-status").textContent()));
+    assert(!(await page.locator(".sc-claim").count()), "Einfordern bei Niete");
+    await page.locator(".sc-drop").tap();
+    await page.waitForFunction(() => !document.querySelector(".sc-focus"));
+    const s = await state(page);
+    assert(s.balance === 1100 && s.games.scratch.tickets.length === 0, "Niete falsch abgerechnet");
+    assert(await noHorizontalScroll(page), "Querscrollen");
+  });
+  await check("Keine Konsolenfehler (Rubbellose bekannt)", async () => assert(!errors.length, errors.join(" | ")));
+  await ctx.close();
+}
+
 // ---------- Layouts ----------
 for (const size of ["small", "landscape", "tablet", "wide"]) {
   const { page, ctx, errors } = await newPage({ size });
   await check(`Layout ${size} (${VIEWPORTS[size].viewport.width}×${VIEWPORTS[size].viewport.height}): neue Spiele ohne Querscrollen, Bedienelemente sichtbar`, async () => {
-    for (const id of ["plinko", "grabber", "horses", "cyclone", "blackjack", "lotto"]) {
+    for (const id of ["plinko", "grabber", "horses", "cyclone", "blackjack", "lotto", "scratch"]) {
       await openGame(page, id);
       assert(await noHorizontalScroll(page), `${id}: horizontaler Scrollbalken`);
       const vis = await page.evaluate((sel) => {
+        if (sel.includes("scratch")) {
+          // Losverkauf: Kaufknöpfe fingertauglich und erreichbar, Tisch sichtbar
+          const buys = [...document.querySelectorAll(`${sel} .sc-buy`)];
+          const first = buys[0].getBoundingClientRect();
+          const t = document.querySelector(`${sel} .sc-felt`).getBoundingClientRect();
+          return buys.length === 3 && buys.every((b) => b.getBoundingClientRect().height >= 40) && first.right <= window.innerWidth + 2 && first.bottom <= window.innerHeight + 2 && t.height >= 120;
+        }
         if (sel.includes("lotto")) {
           // Lotto-Studio scrollt: Zahlenfeld muss fingertauglich sein, Kaufknopf erreichbar
           const nums = [...document.querySelectorAll(`${sel} .lt-num`)];

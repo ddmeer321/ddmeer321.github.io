@@ -380,6 +380,43 @@ Speichern in einem Schritt) – Doppelklick, zweites Öffnen oder Neuladen zahle
 Grenze: Alles läuft im Browser; wer Systemuhr oder localStorage mit Entwicklerwerkzeugen
 verändert, kann Termine oder Ergebnisse manipulieren. Bei reinem Spielgeld ist das akzeptiert.
 
+## 7b. Rubbellose (`js/games/scratch/tickets.js`)
+
+Ein Lounge-Tisch: Lose links kaufen, sie liegen auf dem eigenen Tisch, werden angetippt,
+groß nach vorn geholt und mit Finger oder Maus freigerubbelt. Höchstens **12 Lose** liegen
+gleichzeitig auf dem Tisch. Feste Gewinnpläne, kein Pool, keine Abhängigkeit von Guthaben,
+Verlauf oder Level.
+
+| Los | Preis | Spielregel | irgendein Gewinn | Höchstgewinn | **RTP** |
+|---|---|---|---|---|---|
+| Neon Sieben | 20 C | 3 gleiche Beträge (6 Felder) | 1 : 3,5 | 10.000 C (1 : 10.000) | **68 %** |
+| Glückszahlen | 50 C | eigene Zahl = Gewinnzahl (2 + 6 Felder) | 1 : 3,5 | 50.000 C (1 : 50.000) | **69 %** |
+| Diamant-Tresor | 200 C | 💎 finden (9 Felder) | 1 : 3,7 | 50.000 C (1 : 10.000) | **69 %** |
+
+Gewinnpläne (Betrag · Chance je Los):
+
+* **Neon Sieben:** 10.000 · 1 : 10.000 · 1.000 · 1 : 667 · 200 · 1 : 100 · 100 · 1 : 40 ·
+  40 · 1 : 12,5 · 20 (Einsatz zurück) · 1 : 5,9
+* **Glückszahlen:** 50.000 · 1 : 50.000 · 2.500 · 1 : 625 · 500 · 1 : 83 · 250 · 1 : 33 ·
+  100 · 1 : 12,5 · 50 (Einsatz zurück) · 1 : 6,25
+* **Diamant-Tresor:** 50.000 · 1 : 10.000 · 10.000 · 1 : 667 · 2.000 · 1 : 80 · 1.000 · 1 : 29 ·
+  400 · 1 : 14 · 200 (Einsatz zurück) · 1 : 6,7
+
+Alle Höchstgewinne liegen unter `MAX_SINGLE_WIN` (60.000). Rubbellose sind wie das Lotto ein
+Ausgabeposten (RTP ≈ 68–69 %, also deutlich unter den Automaten mit 92–97 %); weil jedes Los
+einzeln gekauft, aufgerubbelt und eingefordert wird, ist das Tempo bewusst gering.
+
+**Ehrlichkeit:** Der Gewinn wird beim **Kauf** einmal mit crypto-Zufall aus dem Gewinnplan
+gezogen, das passende Losbild erzeugt und sofort gespeichert. Rubbeln, „Alles aufdecken“,
+Weglegen und Neuladen decken nur auf. Beim Laden wird der Gewinn immer aus dem Losbild neu
+berechnet (ein manipulierter Betrag zählt nicht); kaputte Bilder werden verworfen, nie neu
+gewürfelt. Nieten-Bilder sind gleichverteilt aus allen möglichen Nieten gezogen – keine
+eingebauten „Beinahe-Gewinne“ (Test: Paar-Häufigkeit = reiner Zufall). Einfordern ist atomar
+und genau einmal möglich; Kaufen ist während Pause/Auszeit gesperrt.
+
+Tests: `tests/scratch.test.mjs` (RTP exakt, Monte-Carlo 400.000 Lose je Sorte, Losbild ↔ Gewinn,
+Nieten ohne Zusatz-Paare, Kauf/Limit/Pause, Einfordern einmal, Neuladen, Bereinigung).
+
 ## 8. Jukebox und Songs (V1.2, `js/core/jukebox.js`)
 
 | Kauf | Preis | Begründung |
