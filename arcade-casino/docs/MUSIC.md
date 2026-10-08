@@ -5,7 +5,7 @@ und keine fremden Melodien. Die meisten Stücke sind als kleines Programm in
 `js/audio/tracks.js` notiert (Akkorde, Basslinien, Rhythmus, Melodie) und werden zur Laufzeit
 mit Web Audio synthetisiert (`js/audio/synth.js`) – ohne Netzwerk, auch offline.
 
-**Studio-Aufnahmen (V1.5):** „Pullover-Nacht“ und „Countdown“ sind ebenfalls komplett
+**Studio-Aufnahmen (V1.5/1.6):** „Pullover-Nacht“, „Spiegelparkett“ und „Countdown“ sind ebenfalls komplett
 synthetisch und eigen, aber offline mit mehr Klangaufwand berechnet, als live im Browser
 möglich wäre (Karplus-Strong-Gitarre, Supersaw-Flächen, Freeverb-Hall, Ping-Pong-Echo,
 Sidechain). Die Skripte liegen in `tools/music/` und erzeugen die Stücke reproduzierbar
@@ -29,6 +29,7 @@ geschützt; die Melodien sind für dieses Projekt neu geschrieben.
 | Sonnenuntergang 1986 | City-Pop · Funk | 108 BPM, a-Moll | Besonders | Level 10 |
 | Palasthymne | Hymne | 92 BPM, C-Dur | Besonders | alle 12 Automaten gespielt |
 | Pullover-Nacht *(Studio)* | Indie · Dream-Pop | 100 BPM, d-Moll | Kaufbar | 1.500 Credits |
+| Spiegelparkett *(Studio)* | 80er Dance-Pop · Funk | 124 BPM, g-Moll | Kaufbar | 1.500 Credits |
 | Countdown *(Studio)* | Electro · Cinematic | 140 BPM, e-Moll → fis-Moll | Besonders | 10 Erfolge |
 
 ## Preisregel

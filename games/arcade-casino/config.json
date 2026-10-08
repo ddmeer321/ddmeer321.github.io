@@ -5,7 +5,7 @@
   "status": "beta",
   "features": ["highscore", "pc", "tablet", "mobile"],
   "statusUntil": "2026-10-10",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": "Dodo",
   "description": "Arcade-Casino mit 12 Automaten (Blackjack, Roulette, drei Slots, Plinko, Münzgreifer, Pferderennen, Coin Pusher und Skill-Automaten), Neon Lotto, Rubbellosen und einer eigenen Jukebox. Ausschließlich virtuelles Spielgeld – keine Käufe, keine Auszahlungen.",
   "thumbnail": "assets/img/arcade-casino-keyart.webp",

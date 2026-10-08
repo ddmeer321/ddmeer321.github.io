@@ -13,7 +13,7 @@ Musik-Herkunft: [`docs/MUSIC.md`](docs/MUSIC.md). Audit und Recherche V1.2: [`do
 
 | Bereich | Spiel | Kurzbeschreibung |
 |---|---|---|
-| Palast-Lounge | **Jukebox** *(V1.2)* | dauerhafter Kauf (5.000 C), steht leuchtend in der Halle, 12 Eigenkompositionen (davon 2 Studio-Aufnahmen), Songs alle zum selben Preis |
+| Palast-Lounge | **Jukebox** *(V1.2)* | dauerhafter Kauf (5.000 C), steht leuchtend in der Halle, 13 Eigenkompositionen (davon 3 Studio-Aufnahmen), Songs alle zum selben Preis |
 | | **Rubbellose** *(neu)* | eigener Tisch: Lose links kaufen, auf dem Tisch ablegen, groß nach vorn holen und mit dem Finger freirubbeln – 7 Lossorten (20–500 C), u. a. MULTI-Feld bis ×10, Extrazahl ×5 und Münzen-Sammeln; Ergebnis beim Kauf festgelegt |
 | | **Neon Lotto** *(V1.2.1)* | täglich 4 aus 40 (Schein 50 C) und alle 3 Tage das Große Neon Lotto 6 aus 49 + Neonzahl (100 C, Höchstgewinn 1 : 139.838.160), Ziehungs-Show live oder als Aufzeichnung |
 | Slot-Allee | **Fruchtfiesta** | 3×3, 5 Linien, Kirschen ab 2 – RTP exakt 94,2 % · Einsatz 5–250 |
@@ -33,12 +33,14 @@ Dazu: Guthaben mit Hochzähl-Animation, Tagesbonus, Nachschub mit Wartezeit, XP/
 25 Erfolge, **3 Tages-Challenges**, Statistik (inkl. Boni und Ausgaben), Bestwerte, Hallen-Themes,
 Einstellungen und Spielregeln je Automat.
 
-### Neu: Studio-Aufnahmen in der Jukebox (V1.5)
+### Neu: Studio-Aufnahmen in der Jukebox (V1.5/1.6)
 
-Zwei neue Eigenkompositionen, diesmal nicht live im Browser erzeugt, sondern offline mit
+Drei neue Eigenkompositionen, diesmal nicht live im Browser erzeugt, sondern offline mit
 deutlich mehr Klangaufwand berechnet (Skripte in `tools/music/`, Ergebnis in `assets/music/`):
 
 * **Pullover-Nacht** (Indie · Dream-Pop, 100 BPM, d-Moll) – käuflich zum Einheitspreis.
+* **Spiegelparkett** *(V1.6)* (80er Dance-Pop · Funk, 124 BPM, g-Moll) – geheimnisvoll und treibend:
+  Drumcomputer, federnde Basslinie, Synth-Stabs, Funk-Gitarre, Bläser-Stöße. Käuflich zum Einheitspreis.
 * **Countdown** (Electro · Cinematic, 140 BPM) – **besonderes Stück**: tickende Uhr, Herzschlag,
   Trommelwirbel bis zum Drop, Rückung nach fis-Moll im Finale. Nicht käuflich, wird mit
   **10 Erfolgen** frei (auch rückwirkend für bereits gesammelte Erfolge).
