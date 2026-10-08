@@ -1292,6 +1292,183 @@ for (const width of [320, 375, 390]) {
   await ctx.close();
 }
 
+// ---------- Cloud-Spielstand (simulierte Cloud, kein echtes Konto) ----------
+{
+  const U1 = "11111111-1111-4111-8111-111111111111";
+  const U2 = "22222222-2222-4222-8222-222222222222";
+  /** Seite mit simulierter Cloud: owner = angemeldetes Konto (null = abgemeldet), cloud = Cloud-Stand, local = lokaler Stand. */
+  async function cloudPage({ owner = U1, cloud = null, local = null, hang = false } = {}) {
+    const ctx = await browser.newContext(VIEWPORTS.phone);
+    ctx.setDefaultTimeout(10000);
+    await ctx.addInitScript(
+      ({ owner, cloud, local, hang }) => {
+        if (!sessionStorage.getItem("seeded")) {
+          sessionStorage.setItem("seeded", "1");
+          if (local) localStorage.setItem("neonpalast.save.v1", JSON.stringify(local));
+          if (cloud) localStorage.setItem("__fake_cloud", JSON.stringify(cloud));
+        }
+        window.__cloudSaves = 0;
+        window.CloudSave = {
+          ready: () => (hang ? new Promise(() => {}) : Promise.resolve(owner)),
+          load: async (id) => (id === "arcade-casino" ? JSON.parse(localStorage.getItem("__fake_cloud") || "null") : null),
+          save: async (id, data) => {
+            if (id !== "arcade-casino") return false;
+            localStorage.setItem("__fake_cloud", JSON.stringify(data));
+            window.__cloudSaves++;
+            return true;
+          },
+        };
+      },
+      { owner, cloud, local, hang }
+    );
+    const page = await ctx.newPage();
+    shotPage = page;
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+    await page.goto(BASE);
+    return { ctx, page, errors };
+  }
+  const fakeCloud = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("__fake_cloud") || "null"));
+  const save = (o) => ({ v: 3, balance: 1000, stats: { rounds: 0, wagered: 0, won: 0, bonus: 0 }, ...o });
+
+  {
+    const ctx = await browser.newContext(VIEWPORTS.phone);
+    const page = await ctx.newPage();
+    shotPage = page;
+    const external = [];
+    page.on("request", (r) => !r.url().startsWith(BASE) && external.push(r.url()));
+    await page.goto(BASE);
+    await page.waitForSelector(".machine");
+    await check("Cloud: ohne Anmeldung keine einzige Netzwerkanfrage (auch kein Supabase-SDK), Hinweis in den Einstellungen", async () => {
+      assert(!external.length, `externe Anfragen: ${external.join(", ")}`);
+      await page.locator("#hud-settings").tap();
+      await page.waitForSelector(".cloud-status");
+      assert(/Nur auf diesem Gerät/.test(await page.locator(".cloud-status").textContent()), "Status falsch");
+      assert(await page.locator(".cloud-status a[href='../login.html']").count(), "Anmelde-Link fehlt");
+    });
+    await ctx.close();
+  }
+  {
+    const { ctx, page, errors } = await cloudPage({ owner: U1, local: save({ balance: 2500, xp: 300, stats: { rounds: 12, wagered: 400, won: 0, bonus: 1900 } }) });
+    await page.waitForSelector(".machine");
+    await check("Cloud: erste Anmeldung – lokaler Stand wird ans Konto gebunden und hochgeladen", async () => {
+      await page.waitForFunction(() => window.__cloudSaves > 0);
+      const c = await fakeCloud(page);
+      assert(c.balance === 2500 && c.cloud.owner === "11111111-1111-4111-8111-111111111111", JSON.stringify(c && { b: c.balance, o: c.cloud }));
+      await page.locator("#hud-settings").tap();
+      await page.waitForSelector(".cloud-status.is-on");
+    });
+    await check("Cloud: Änderungen werden gebündelt nachgeladen (nach einem Kauf/Einsatz)", async () => {
+      await page.keyboard.press("Escape");
+      const before = await page.evaluate(() => window.__cloudSaves);
+      await page.evaluate(() => {
+        window.__neonpalast.economy.debit("lotto", 50, "test");
+        window.__neonpalast.saveNow();
+      });
+      await page.waitForFunction((n) => window.__cloudSaves > n, before, { timeout: 20000 });
+      const c = await fakeCloud(page);
+      assert(c.balance === 2450, `Cloud-Guthaben ${c.balance}`);
+    });
+    await check("Keine Konsolenfehler (Cloud Upload)", async () => assert(!errors.length, errors.join(" | ")));
+    await ctx.close();
+  }
+  {
+    const { ctx, page, errors } = await cloudPage({
+      owner: U1,
+      local: save({ balance: 500, cloud: { owner: U1, savedAt: 1000 }, stats: { rounds: 3, wagered: 500, won: 0, bonus: 0 } }),
+      cloud: save({ balance: 7777, cloud: { owner: U1, savedAt: 2000 }, stats: { rounds: 30, wagered: 0, won: 0, bonus: 6777 } }),
+    });
+    await page.waitForSelector(".machine");
+    await check("Cloud: neuerer Stand aus dem Konto wird geladen (anderes Gerät)", async () => {
+      await page.waitForSelector(".toast:has-text('aus deinem Konto geladen')");
+      assert((await state(page)).balance === 7777, "Cloud-Stand nicht übernommen");
+    });
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await cloudPage({
+      owner: U1,
+      local: save({ balance: 99999, xp: 5000, cloud: { owner: U2, savedAt: 9000 }, stats: { rounds: 99, wagered: 1, won: 0, bonus: 99000 } }),
+    });
+    await page.waitForSelector(".machine");
+    await check("Cloud: Fortschritt eines anderen Kontos wird nie übernommen (neuer Stand für dieses Konto)", async () => {
+      const s = await state(page);
+      assert(s.balance === 1000 && s.cloud.owner === "11111111-1111-4111-8111-111111111111", `Guthaben ${s.balance}`);
+      await page.waitForFunction(() => window.__cloudSaves > 0);
+      assert((await fakeCloud(page)).balance === 1000, "fremder Fortschritt hochgeladen");
+    });
+    await check("Sicherung: Stand eines anderen Kontos wird gesichert, aber in diesem Konto nicht angeboten", async () => {
+      const b = await page.evaluate(() => JSON.parse(localStorage.getItem("neonpalast.save.v1.backup")));
+      assert(b && b.state.balance === 99999 && b.owner === "22222222-2222-4222-8222-222222222222", "keine Sicherung");
+      await page.locator("#hud-settings").tap();
+      await page.waitForSelector(".cloud-status");
+      assert(!(await page.locator(".backup-status").count()), "fremde Sicherung angeboten");
+    });
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await cloudPage({
+      owner: U1,
+      local: save({ balance: 3333, stats: { rounds: 10, wagered: 100, won: 0, bonus: 2433 } }),
+      cloud: save({ balance: 8888, cloud: { owner: U1, savedAt: 5 }, stats: { rounds: 40, wagered: 0, won: 0, bonus: 7888 } }),
+    });
+    await check("Cloud: ohne Anmeldung gespielt + Konto hat Fortschritt → Spieler wählt, der andere Stand wird ersetzt", async () => {
+      await page.waitForSelector(".boot-choice");
+      const txt = await page.locator(".boot-choice").textContent();
+      assert(/3\.333/.test(txt) && /8\.888/.test(txt), `Auswahl zeigt die Stände nicht: ${txt}`);
+      await page.locator(".boot-choice .local-pick").click();
+      await page.waitForSelector(".machine");
+      assert((await state(page)).balance === 3333, "Auswahl ignoriert");
+      await page.waitForFunction(() => window.__cloudSaves > 0);
+      assert((await fakeCloud(page)).balance === 3333, "Cloud nicht ersetzt");
+    });
+    await check("Sicherung: nicht gewählter Stand (8.888) lässt sich wiederherstellen – und wieder zurücktauschen", async () => {
+      await page.locator("#hud-settings").tap();
+      await page.waitForSelector(".backup-status");
+      assert(/8\.888 Credits/.test(await page.locator(".backup-status").textContent()), "Sicherung zeigt falschen Stand");
+      await page.locator(".backup-restore").tap();
+      await page.locator(".backup-confirm").tap();
+      await page.waitForFunction(() => window.__neonpalast?.getState().balance === 8888, null, { timeout: 15000 });
+      await page.waitForSelector(".machine");
+      await page.waitForFunction(() => JSON.parse(localStorage.getItem("__fake_cloud")).balance === 8888);
+      // Tausch: jetzt liegt 3.333 in der Sicherung
+      await page.locator("#hud-settings").tap();
+      await page.waitForSelector(".backup-status");
+      assert(/3\.333 Credits/.test(await page.locator(".backup-status").textContent()), "Rückweg fehlt");
+      const s = await state(page);
+      assert(s.cloud.owner === "11111111-1111-4111-8111-111111111111", "Konto-Bindung verloren");
+    });
+    await ctx.close();
+  }
+  {
+    const until = Date.now() + 3 * 3600_000;
+    const { ctx, page } = await cloudPage({
+      owner: U1,
+      local: save({ balance: 900, cloud: { owner: U1, savedAt: 9_000_000_000_000 }, stats: { rounds: 5, wagered: 100, won: 0, bonus: 0 } }),
+      cloud: save({ balance: 1200, cloud: { owner: U1, savedAt: 10 }, control: { pauseUntil: 0, excludeUntil: until, remindMin: 60, lastBlockStart: 1 } }),
+    });
+    await page.waitForSelector(".machine");
+    await check("Cloud: eine Auszeit von einem anderen Gerät gilt auch hier (Sperren werden nie verkürzt)", async () => {
+      const s = await state(page);
+      assert(s.balance === 900, "lokaler (neuerer) Stand verworfen");
+      assert(s.control.excludeUntil === until, `Auszeit nicht übernommen: ${s.control.excludeUntil}`);
+      await page.waitForFunction(() => document.documentElement.classList.contains("is-play-locked"));
+    });
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await cloudPage({ owner: U1, hang: true, local: save({ balance: 4321 }) });
+    await check("Cloud: Server hängt – nach kurzer Zeit wird lokal gespielt, nichts überschrieben", async () => {
+      await page.waitForSelector(".machine", { timeout: 15000 });
+      assert((await state(page)).balance === 4321);
+      await page.locator("#hud-settings").tap();
+      assert(/nicht erreichbar/.test(await page.locator(".cloud-status").textContent()), "Status falsch");
+    });
+    await ctx.close();
+  }
+}
+
 // ---------- Layouts ----------
 for (const size of ["small", "landscape", "tablet", "wide"]) {
   const { page, ctx, errors } = await newPage({ size });

@@ -6,7 +6,7 @@ export function ensureCss(name) {
   const p = new Promise((resolve) => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = `css/${name}.css?v=6`;
+    link.href = `css/${name}.css?v=8`;
     link.onload = () => resolve();
     link.onerror = () => {
       console.warn(`[css] ${name}.css konnte nicht geladen werden`);

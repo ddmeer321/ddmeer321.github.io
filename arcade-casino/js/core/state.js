@@ -1,6 +1,7 @@
 // Spielstand: Aufbau, Validierung beim Laden und Speichern.
 //
-// Der Stand liegt ausschließlich im Browser (localStorage). Er wird beim Laden
+// Der Stand liegt im Browser (localStorage); angemeldete Spieler bekommen
+// zusätzlich eine Kopie in der Cloud (core/cloud.js). Er wird beim Laden
 // streng bereinigt (keine NaN-/negativen Werte, keine fremden Typen), ist aber
 // NICHT gegen absichtliche Manipulation durch den Benutzer geschützt – wer die
 // Entwicklerwerkzeuge öffnet, kann sein Spielgeld ändern. Da es sich nur um
@@ -15,7 +16,11 @@ import { defaultInbox, sanitizeInbox } from "./inbox.js";
 
 // Der Schlüssel behält bewusst seinen alten Namen, damit V1.0-Spielstände
 // gefunden und migriert werden. Die Schema-Version steht im Feld `v`.
-export const SAVE_KEY = "neonpalast.save.v1";
+// Der Testbereich (test-claude/) liegt auf derselben Domain und damit im selben
+// localStorage – er bekommt einen eigenen Schlüssel, damit Test-Fortschritt nie
+// im echten Spielstand (und über die Cloud in einem echten Konto) landet.
+const IN_TEST_AREA = typeof location !== "undefined" && location.pathname.includes("/test-claude/");
+export const SAVE_KEY = IN_TEST_AREA ? "neonpalast.save.test" : "neonpalast.save.v1";
 export const SAVE_VERSION = 3;
 export const START_BALANCE = 1000;
 export const MAX_BALANCE = 999_999_999;
@@ -58,6 +63,8 @@ export function defaultState(now = Date.now()) {
     games: {},
     control: defaultControl(),
     challenges: { day: "", items: [], bonus: false },
+    // Cloud-Abgleich: zu welchem Konto gehört dieser Stand, wann zuletzt gespeichert
+    cloud: { owner: null, savedAt: 0 },
     jukebox: defaultJukebox(),
     lotto: defaultLotto(),
     inbox: defaultInbox(),
@@ -193,7 +200,15 @@ export function sanitizeState(raw, now = Date.now()) {
     jukebox: sanitizeJukebox(src.jukebox),
     lotto: sanitizeLotto(src.lotto),
     inbox: sanitizeInbox(src.inbox),
+    cloud: sanitizeCloudMeta(src.cloud),
   };
+}
+
+/** Konto-Bindung des Stands (Supabase-User-ID) und Zeitpunkt der letzten Speicherung. */
+export function sanitizeCloudMeta(raw) {
+  const c = plainObject(raw);
+  const owner = typeof c.owner === "string" && /^[0-9a-f-]{36}$/i.test(c.owner) ? c.owner.toLowerCase() : null;
+  return { owner, savedAt: int(c.savedAt, 0, 0) };
 }
 
 // ---------- Laufzeit-Instanz ----------
@@ -201,9 +216,15 @@ export function sanitizeState(raw, now = Date.now()) {
 let state = null;
 let saveTimer = 0;
 let canWrite = () => true;
+let afterSave = () => {};
 
 export function setWriteGuard(fn) {
   canWrite = fn;
+}
+
+/** Wird nach jedem erfolgreichen lokalen Speichern aufgerufen (Cloud-Abgleich). */
+export function setAfterSave(fn) {
+  afterSave = typeof fn === "function" ? fn : () => {};
 }
 
 export function loadState() {
@@ -226,7 +247,10 @@ export function saveNow() {
   clearTimeout(saveTimer);
   saveTimer = 0;
   if (!state || !canWrite()) return false;
-  return writeJSON(SAVE_KEY, state);
+  state.cloud.savedAt = Math.max(Date.now(), state.cloud.savedAt + 1);
+  const ok = writeJSON(SAVE_KEY, state);
+  if (ok) afterSave(state);
+  return ok;
 }
 
 /** Speichert gebündelt (mehrere Änderungen kurz hintereinander = ein Schreibvorgang). */
@@ -239,9 +263,12 @@ export function resetState() {
   const keepSettings = state?.settings;
   // Spielkontrolle (Pause/Auszeit) überlebt einen Reset bewusst.
   const keepControl = state?.control;
+  const keepOwner = state?.cloud?.owner || null;
   state = defaultState();
   if (keepSettings) state.settings = keepSettings;
   if (keepControl) state.control = keepControl;
+  // Der Stand gehört weiter demselben Konto – der Reset wird auch in der Cloud wirksam.
+  state.cloud.owner = keepOwner;
   saveNow();
   return state;
 }
