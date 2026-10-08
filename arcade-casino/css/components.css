@@ -1085,3 +1085,30 @@
 .live-dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; background: #ff3d3d; animation: blink 1s steps(2, start) infinite; }
 .toast.has-action { pointer-events: auto; }
 .toast-action { margin-left: 6px; min-height: 36px; }
+
+/* Cloud-Spielstand in den Einstellungen */
+.cloud-status {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 4px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.03);
+}
+.cloud-status.is-on { border-color: color-mix(in srgb, var(--cyan) 55%, transparent); }
+.cloud-status small { color: var(--ink-dim); font-size: 13px; }
+.cloud-status .btn { justify-self: start; margin-top: 4px; }
+
+/* Auswahl beim Start: welcher Spielstand? */
+.boot-choice { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; background: rgba(5, 2, 12, 0.88); }
+.boot-choice-card { width: min(440px, 100%); display: grid; gap: 12px; padding: 18px; border-radius: var(--r-lg); background: var(--panel-solid); border: 1px solid var(--line-strong); box-shadow: var(--shadow-2); }
+.boot-choice-card h2 { margin: 0; font-size: 20px; }
+.boot-choice-card p { margin: 0; color: var(--ink-dim); font-size: 14px; }
+.boot-choice-opts { display: grid; gap: 10px; }
+.boot-choice-opts .btn { display: grid; gap: 2px; text-align: left; min-height: 56px; white-space: normal; }
+.boot-choice-opts small { font-weight: 600; opacity: 0.85; text-transform: none; letter-spacing: 0; }
+
+/* Startanzeige, solange der Cloud-Abgleich läuft (erscheint erst nach kurzer Verzögerung) */
+.boot-loader { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; background: var(--bg-0); color: var(--ink-dim); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; font-size: 13px; opacity: 0; animation: boot-in 200ms 350ms ease both; pointer-events: none; }
+@keyframes boot-in { to { opacity: 1; } }

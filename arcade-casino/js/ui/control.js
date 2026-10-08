@@ -82,7 +82,7 @@ function confirmExclusion(days, o) {
       {},
       h("p", {}, h("strong", {}, `Bis ${formatUntil(until)}`), ` kannst du in Neonpalast keine Spiele starten (${days === 1 ? "1 Tag" : `${days} Tage`}).`),
       h("p", {}, "Die Auszeit lässt sich nach dem Bestätigen nicht vorzeitig aufheben – auch nicht in den Einstellungen. Das Zurücksetzen des Fortschritts beendet sie ebenfalls nicht."),
-      h("p", {}, "Hinweis: Der Spielstand liegt nur lokal in diesem Browser. Wer sich auch bei echten Glücksspielen schützen möchte, findet unter „Hilfe“ seriöse Anlaufstellen.")
+      h("p", {}, "Hinweis: Ohne Anmeldung gilt die Auszeit nur in diesem Browser. Bist du in der Spielebibliothek angemeldet (Cloud-Spielstand), gilt sie auf allen deinen Geräten. Wer sich auch bei echten Glücksspielen schützen möchte, findet unter „Hilfe“ seriöse Anlaufstellen.")
     ),
     actions: [
       { label: "Abbrechen", cls: "btn-ghost" },

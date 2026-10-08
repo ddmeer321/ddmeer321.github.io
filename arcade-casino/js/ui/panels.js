@@ -48,7 +48,11 @@ function segmented(label, options, value, onChange) {
   return h("div.setting-row", { style: { flexWrap: "wrap" } }, h("label", {}, label), wrap);
 }
 
-export function openSettings({ settings, update, level, onReset, onControl }) {
+/**
+ * @param {object} o
+ * @param {{active:boolean, title:string, detail:string, loginHref?:string}} [o.cloud]  Cloud-Status
+ */
+export function openSettings({ settings, update, level, onReset, onControl, cloud = null }) {
   const canVibrate = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
   const themeOpts = THEME_UNLOCKS.map((t) => ({
     value: t.id,
@@ -77,10 +81,21 @@ export function openSettings({ settings, update, level, onReset, onControl }) {
       (v) => update({ motion: v })
     ),
     segmented("Hallen-Theme", themeOpts, settings.theme, (v) => update({ theme: v })),
+    cloud
+      ? h(
+          `div.cloud-status${cloud.active ? ".is-on" : ""}`,
+          { role: "status" },
+          h("strong", {}, cloud.active ? "☁️ " : "💾 ", cloud.title),
+          h("small", {}, cloud.detail),
+          cloud.loginHref ? h("a.btn.btn-ghost.btn-sm", { href: cloud.loginHref }, "Anmelden") : null
+        )
+      : null,
     h(
       "p.help-text",
       {},
-      "Alle Credits sind virtuelles Spielgeld ohne realen Wert. Der Spielstand wird nur lokal in diesem Browser gespeichert und ist nicht vor Änderungen durch dich selbst geschützt – das ist bei reinem Spielgeld auch nicht nötig."
+      cloud?.active
+        ? "Alle Credits sind virtuelles Spielgeld ohne realen Wert. Der Spielstand liegt in diesem Browser und als Kopie in deinem Konto (Cloud) – er ist nicht vor Änderungen durch dich selbst geschützt, das ist bei reinem Spielgeld auch nicht nötig."
+        : "Alle Credits sind virtuelles Spielgeld ohne realen Wert. Der Spielstand wird nur lokal in diesem Browser gespeichert und ist nicht vor Änderungen durch dich selbst geschützt – das ist bei reinem Spielgeld auch nicht nötig."
     )
   );
   openModal({
@@ -91,17 +106,22 @@ export function openSettings({ settings, update, level, onReset, onControl }) {
         label: "Fortschritt zurücksetzen",
         cls: "btn-danger btn-sm",
         keepOpen: true,
-        onClick: () => confirmReset(onReset),
+        onClick: () => confirmReset(onReset, Boolean(cloud?.active)),
       },
       { label: "Fertig", cls: "btn-primary" },
     ],
   });
 }
 
-function confirmReset(onReset) {
+function confirmReset(onReset, cloudActive = false) {
   openModal({
     title: "Wirklich zurücksetzen?",
-    body: h("p.help-text", {}, "Guthaben, Level, Erfolge, Statistiken und Bestwerte werden gelöscht. Einstellungen bleiben erhalten."),
+    body: h(
+      "p.help-text",
+      {},
+      "Guthaben, Level, Erfolge, Statistiken und Bestwerte werden gelöscht. Einstellungen bleiben erhalten.",
+      cloudActive ? " Das gilt auch für den Cloud-Spielstand in deinem Konto – auf allen Geräten." : ""
+    ),
     actions: [
       { label: "Abbrechen", cls: "btn-ghost" },
       { label: "Zurücksetzen", cls: "btn-danger", onClick: onReset },

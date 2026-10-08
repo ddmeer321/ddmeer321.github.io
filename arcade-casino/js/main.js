@@ -3,7 +3,8 @@
 // auf Android funktioniert).
 
 import { bus } from "./core/events.js";
-import { loadState, getState, saveSoon, saveNow, setWriteGuard, resetState, gameData } from "./core/state.js";
+import { loadState, getState, saveSoon, saveNow, setWriteGuard, setAfterSave, resetState, replaceState, sanitizeState, defaultState, gameData } from "./core/state.js";
+import { connectCloud, decideBoot, mergeControl, createUploader, summarize } from "./core/cloud.js";
 import { createEconomy } from "./core/economy.js";
 import { createProgression, xpForRound, levelInfo } from "./core/progression.js";
 import { createTabLock } from "./core/tablock.js";
@@ -36,11 +37,99 @@ import { GAMES, MACHINES, gameById } from "./games/registry.js";
 
 // ---------- Zustand & Systeme ----------
 
-const state = loadState();
+loadState();
+// Cloud-Abgleich vor dem ersten Bild (ohne Anmeldung: sofort, ohne Netz).
+const cloudBoot = await bootCloud();
+const state = getState();
 let hub = null;
 let current = null; // { game, instance, token }
 const tabLock = createTabLock({ onLost: showTabLost });
 setWriteGuard(() => tabLock.isOwner());
+
+// ---------- Cloud-Spielstand ----------
+let cloudState = { state: cloudBoot.status === "ready" ? "saved" : "off", at: 0 };
+const cloudSync =
+  cloudBoot.status === "ready"
+    ? createUploader({ api: cloudBoot.api, getState, canWrite: () => tabLock.isOwner(), onStatus: (st) => (cloudState = st) })
+    : null;
+setAfterSave(() => cloudSync?.schedule());
+if (cloudSync) {
+  saveNow(); // Ergebnis des Abgleichs (Konto-Bindung, Sperren) lokal sichern …
+  cloudSync.flush(); // … und sofort in die Cloud
+}
+
+/**
+ * Lädt den Cloud-Stand und entscheidet, womit gespielt wird. Läuft vor dem
+ * Aufbau der Oberfläche; verspätete Antworten werden verworfen (connectCloud).
+ */
+async function bootCloud() {
+  const res = await connectCloud();
+  document.getElementById("boot-loader")?.remove();
+  if (res.status !== "ready") return res;
+  const local = getState();
+  const cloud = res.data ? sanitizeState(res.data) : null;
+  let decision = decideBoot(local, cloud, res.owner);
+  if (decision.use === "ask") decision = { use: await askWhichSave(local, cloud), reason: "Auswahl" };
+  let next = local;
+  if (decision.use === "cloud") next = cloud;
+  if (decision.use === "fresh") {
+    next = defaultState();
+    next.settings = local.settings;
+  }
+  // Pause/Auszeit werden durch einen Abgleich nie verkürzt.
+  next.control = mergeControl(local.control, cloud?.control || local.control);
+  next.cloud.owner = res.owner;
+  replaceState(next);
+  return { ...res, decision };
+}
+
+/** Beide Stände haben Fortschritt (vor dem Anmelden gespielt): Spieler entscheidet. */
+function askWhichSave(local, cloud) {
+  return new Promise((resolve) => {
+    const fmtDate = (t) => (t ? new Date(t).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "unbekannt");
+    const line = (s) => {
+      const x = summarize(s);
+      return `${fmt(x.balance)} Credits · Level ${levelInfo(x.xp).level} · ${fmt(x.rounds)} Runden · zuletzt ${fmtDate(x.savedAt)}`;
+    };
+    const pick = (use) => {
+      layer.remove();
+      resolve(use);
+    };
+    const layer = h(
+      "div.boot-choice",
+      { role: "dialog", "aria-modal": "true", "aria-labelledby": "boot-choice-title" },
+      h(
+        "div.boot-choice-card",
+        {},
+        h("h2", { id: "boot-choice-title" }, "Welchen Spielstand möchtest du?"),
+        h("p", {}, "In deinem Konto liegt schon ein Neonpalast-Spielstand, und in diesem Browser wurde ohne Anmeldung gespielt. Wähle einen – der andere wird ersetzt."),
+        h(
+          "div.boot-choice-opts",
+          {},
+          h("button.btn.btn-primary.cloud-pick", { type: "button", onclick: () => pick("cloud") }, "☁️ Spielstand aus deinem Konto", h("small", {}, line(cloud))),
+          h("button.btn.btn-ghost.local-pick", { type: "button", onclick: () => pick("local") }, "💾 Spielstand aus diesem Browser", h("small", {}, line(local)))
+        )
+      )
+    );
+    document.body.append(layer);
+    layer.querySelector(".cloud-pick").focus();
+  });
+}
+
+/** Text für die Einstellungen. */
+function cloudInfo() {
+  if (cloudBoot.status === "ready") {
+    const t = cloudState.state === "saving" ? "wird gerade gesichert …" : cloudState.state === "error" ? "letzte Sicherung fehlgeschlagen – lokal ist alles gespeichert, neuer Versuch bei der nächsten Änderung" : cloudState.at ? `zuletzt gesichert um ${new Date(cloudState.at).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr` : "verbunden";
+    return { active: true, title: "Cloud-Spielstand aktiv", detail: `Dein Fortschritt wird in deinem Konto gesichert und ist auf jedem Gerät verfügbar, auf dem du angemeldet bist – ${t}.` };
+  }
+  if (cloudBoot.status === "timeout" || cloudBoot.status === "error") {
+    return { active: false, title: "Cloud gerade nicht erreichbar", detail: "Du spielst mit dem Stand aus diesem Browser. Beim nächsten Start wird wieder abgeglichen." };
+  }
+  if (cloudBoot.signedIn) {
+    return { active: false, title: "Cloud-Speicherung nicht aktiv", detail: "Deine Anmeldung ist abgelaufen oder die Cloud-Speicherung ist in deinem Profil ausgeschaltet. Der Spielstand bleibt in diesem Browser.", loginHref: "../login.html" };
+  }
+  return { active: false, title: "Nur auf diesem Gerät", detail: "Melde dich in der Spielebibliothek an, um deinen Spielstand in deinem Konto zu sichern und auf anderen Geräten weiterzuspielen.", loginHref: "../login.html" };
+}
 
 function blockReason() {
   const st = playStatus(getState().control);
@@ -71,6 +160,8 @@ const viewHub = $("view-hub");
 const viewGame = $("view-game");
 
 initToasts($("toast-layer"));
+if (cloudBoot.decision?.use === "cloud") toast("Spielstand aus deinem Konto geladen", { icon: "☁️", ms: 3200 });
+if (cloudBoot.decision?.use === "fresh") toast("Neuer Spielstand für dieses Konto – der vorherige gehört einem anderen Konto", { icon: "☁️", ms: 5000 });
 initModal($("modal-layer"));
 initFx($("fx-canvas"), { balanceEl: balanceBtn });
 initAudio(state.settings);
@@ -535,6 +626,7 @@ function showSettings() {
     update: updateSettings,
     level: levelInfo(getState().xp).level,
     onControl: showControl,
+    cloud: cloudInfo(),
     onReset: () => {
       economy.forfeitOpen();
       resetState();
@@ -953,6 +1045,7 @@ function flush() {
     console.error(err);
   }
   saveNow();
+  cloudSync?.flush();
 }
 
 window.addEventListener("pagehide", flush);
@@ -960,6 +1053,7 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     current?.instance?.pause?.();
     saveNow();
+    cloudSync?.flush();
   }
 });
 

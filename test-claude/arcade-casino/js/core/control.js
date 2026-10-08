@@ -4,7 +4,9 @@
 //   verbindlich – es gibt bewusst keinen Knopf, der sie vorzeitig aufhebt.
 // * Während einer aktiven Sperre kann kein Spiel gestartet und kein Einsatz
 //   gemacht werden (zusätzlich in der Wirtschaft abgesichert).
-// * Der Zustand liegt – wie der ganze Spielstand – lokal im Browser.
+// * Der Zustand liegt – wie der ganze Spielstand – lokal im Browser; mit
+//   Cloud-Spielstand zusätzlich im Konto (core/cloud.js: Sperren werden beim
+//   Abgleich nie verkürzt, es gilt immer die strengere).
 
 export const PAUSE_OPTIONS = [15, 30, 60]; // Minuten
 export const EXCLUSION_OPTIONS = [1, 3, 7, 30, 90]; // Tage

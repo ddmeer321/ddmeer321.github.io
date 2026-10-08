@@ -33,6 +33,25 @@ Dazu: Guthaben mit Hochzähl-Animation, Tagesbonus, Nachschub mit Wartezeit, XP/
 25 Erfolge, **3 Tages-Challenges**, Statistik (inkl. Boni und Ausgaben), Bestwerte, Hallen-Themes,
 Einstellungen und Spielregeln je Automat.
 
+### Neu: Cloud-Spielstand
+
+Wer in der Spielebibliothek angemeldet ist (und die Cloud-Speicherung im Profil nicht
+ausgeschaltet hat), bekommt seinen Spielstand zusätzlich im Konto gesichert – über dieselbe
+Schicht wie Snake und Cursor Clicker (`window.CloudSave`, Tabelle `game_saves`, `game_id`
+`arcade-casino`). Details: `js/core/cloud.js`.
+
+* **Ohne Anmeldung keine einzige Netzwerkanfrage** – auch das Supabase-SDK wird dann nicht geladen.
+* **Abgleich beim Start** (höchstens 4 s, sonst lokal weiter; eine verspätete Antwort wird
+  verworfen). Gleiches Konto: der neuere Stand gewinnt. Vor dem Anmelden gespielt und im Konto
+  liegt auch Fortschritt: der Spieler wählt. Fortschritt eines Kontos landet nie in einem anderen.
+* **Pause/Auszeit werden nie verkürzt** – beim Abgleich gilt die strengere Sperre; mit Konto
+  gilt eine Auszeit damit auf allen Geräten.
+* **Hochladen gebündelt** (3 s nach der letzten Änderung, spätestens nach 15 s, eine Anfrage
+  gleichzeitig, beim Verlassen sofort). Lokal ist vorher immer schon gespeichert.
+* **Testbereich** speichert lokal und in der Cloud getrennt (`neonpalast.save.test`,
+  `arcade-casino-test`) und kann nie einen echten Spielstand überschreiben.
+* Status in den Einstellungen („Cloud-Spielstand aktiv“, „Nur auf diesem Gerät“ …).
+
 ### Neu: Rubbellose
 
 Ein Tisch in der Palast-Lounge. Links der Losverkauf mit sieben Sorten – Neon Sieben (20 C),
@@ -161,11 +180,11 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 
 ```bash
 cd arcade-casino
-npm test            # 128 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
+npm test            # 136 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
                     # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
                     # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
                     # Turmbau- und Hoops-Balance, Jukebox + Musik-Engine, Lotto, Rubbellose, Posteingang
-npm run test:e2e    # 124 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
+npm run test:e2e    # 133 Browser-Checks (Playwright/Chromium, eigener Server, ~8 Min.)
 ```
 
 Die E2E-Tests warten auf Spielzustände (`data-phase` am Spielcontainer) statt auf feste Zeiten.
