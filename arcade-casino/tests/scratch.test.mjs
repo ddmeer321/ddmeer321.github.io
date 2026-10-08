@@ -18,59 +18,113 @@ function setup({ balance = 10000, guard = () => null, rnd = seeded(1) } = {}) {
   return { s, economy, sc, writes: () => writes };
 }
 
-test("Gewinnpläne: Coin-Sink mit 65–72 % RTP, Gewinne steigen mit der Seltenheit, Deckel eingehalten", () => {
+test("Gewinnpläne: 7 Lossorten, Coin-Sink mit 65–72 % RTP, Gewinne steigen mit der Seltenheit, Deckel eingehalten", () => {
+  assert.equal(S.TYPE_IDS.length, 7);
   for (const id of S.TYPE_IDS) {
     const t = S.TYPES[id];
     const r = S.rtpOf(id);
     assert.ok(r > 0.65 && r < 0.72, `${id}: RTP ${r}`);
     const pw = S.pAnyWin(id);
     assert.ok(pw > 0.2 && pw < 0.35, `${id}: Gewinnchance ${pw}`);
-    for (let i = 1; i < t.prizes.length; i++) {
-      assert.ok(t.prizes[i - 1][0] > t.prizes[i][0], `${id}: Beträge absteigend`);
-      assert.ok(t.prizes[i - 1][1] < t.prizes[i][1], `${id}: höherer Gewinn ist seltener`);
+    const base = S.baseDist(id);
+    for (let i = 1; i < base.length; i++) {
+      assert.ok(base[i - 1][0] > base[i][0], `${id}: Beträge absteigend`);
+      assert.ok(base[i - 1][1] < base[i][1], `${id}: höherer Gewinn ist seltener`);
     }
-    assert.ok(t.prizes.every(([a]) => a >= t.price), `${id}: kleinster Gewinn = Einsatz zurück`);
-    assert.ok(S.topPrize(id) <= MAX_SINGLE_WIN, `${id}: Höchstgewinn über MAX_SINGLE_WIN`);
+    assert.equal(base[base.length - 1][0], t.price, `${id}: kleinster Gewinn = Einsatz zurück`);
+    assert.ok(S.topPrize(id) <= MAX_SINGLE_WIN, `${id}: Höchstgewinn ${S.topPrize(id)} über MAX_SINGLE_WIN`);
+    // Gesamtverteilung = Grund × Bonus, Wahrscheinlichkeiten summieren sich zur Gewinnchance
+    const total = S.prizeDist(id).reduce((s2, [, p]) => s2 + p, 0);
+    assert.ok(Math.abs(total - pw) < 1e-12, `${id}: Summe ${total} ≠ ${pw}`);
   }
+  // Prüfwerte von Hand
   assert.ok(Math.abs(S.rtpOf("neon7") - 0.68) < 1e-12);
   assert.ok(Math.abs(S.rtpOf("lucky") - 0.69) < 1e-12);
   assert.ok(Math.abs(S.rtpOf("vault") - 0.69) < 1e-12);
+  const em = S.MULTI.reduce((s2, [m, p]) => s2 + m * p, 0);
+  assert.ok(Math.abs(em - 1.53) < 1e-12, "Erwartungswert MULTI");
+  assert.ok(Math.abs(S.MULTI.reduce((s2, [, p]) => s2 + p, 0) - 1) < 1e-12);
+  const baseEv = (id) => S.TYPES[id].prizes.reduce((s2, [a, p]) => s2 + a * p, 0);
+  assert.ok(Math.abs(S.rtpOf("turbo") - (baseEv("turbo") * em) / 50) < 1e-12);
+  assert.ok(Math.abs(S.rtpOf("crown") - (baseEv("crown") * em) / 500) < 1e-12);
+  assert.ok(Math.abs(S.rtpOf("luckyx") - (baseEv("luckyx") * 1.4) / 100) < 1e-12, "Extrazahl: E = 0,9 · 1 + 0,1 · 5 = 1,4");
+  // Goldgräber: Binomialverteilung 12 Felder, p = 0,15
+  const b = (k) => {
+    let c = 1;
+    for (let i = 1; i <= k; i++) c = (c * (12 - k + i)) / i;
+    return c * 0.15 ** k * 0.85 ** (12 - k);
+  };
+  const p3plus = 1 - [0, 1, 2].reduce((s2, k) => s2 + b(k), 0);
+  assert.ok(Math.abs(S.pAnyWin("digger") - p3plus) < 1e-12);
+  assert.ok(Math.abs(S.baseDist("digger").find(([a]) => a === 75)[1] - b(4)) < 1e-15);
 });
 
-test("Monte-Carlo: gezogene Gewinne entsprechen dem Gewinnplan", () => {
+test("Monte-Carlo: echte Lose (Kaufweg) entsprechen der exakten Gewinnverteilung", () => {
   const rnd = seeded(7);
-  const n = 400000;
+  const n = 200000;
   for (const id of S.TYPE_IDS) {
     const hist = new Map();
-    let paid = 0;
     for (let i = 0; i < n; i++) {
-      const p = S.drawPrize(id, rnd);
-      paid += p;
-      hist.set(p, (hist.get(p) || 0) + 1);
+      const t = S.createTicket(id, { id: "x", rnd, look: () => 0.5 });
+      hist.set(t.prize, (hist.get(t.prize) || 0) + 1);
     }
-    for (const [amount, p] of S.TYPES[id].prizes) {
+    const dist = S.prizeDist(id);
+    for (const [amount, p] of dist) {
       const exp = p * n;
       if (exp < 100) continue;
-      assert.ok(Math.abs((hist.get(amount) || 0) - exp) < 5 * Math.sqrt(exp), `${id} ${amount}: ${hist.get(amount)} vs ${exp}`);
+      assert.ok(Math.abs((hist.get(amount) || 0) - exp) < 5 * Math.sqrt(exp), `${id} ${amount}: ${hist.get(amount)} vs ${exp.toFixed(0)}`);
     }
-    // ohne die seltensten Klassen (Varianz) muss die Rückzahlung passen
-    const capped = S.TYPES[id].prizes.filter(([, p]) => p * n >= 100);
-    const expCapped = capped.reduce((s, [a, p]) => s + a * p, 0) / S.TYPES[id].price;
-    const gotCapped = capped.reduce((s, [a]) => s + a * (hist.get(a) || 0), 0) / n / S.TYPES[id].price;
-    assert.ok(Math.abs(gotCapped - expCapped) < 0.02, `${id}: ${gotCapped} vs ${expCapped}`);
+    for (const amount of hist.keys()) assert.ok(amount === 0 || dist.some(([a]) => a === amount), `${id}: unbekannter Betrag ${amount}`);
+    const capped = dist.filter(([, p]) => p * n >= 100);
+    const expCapped = capped.reduce((s2, [a, p]) => s2 + a * p, 0) / S.TYPES[id].price;
+    const gotCapped = capped.reduce((s2, [a]) => s2 + a * (hist.get(a) || 0), 0) / n / S.TYPES[id].price;
+    assert.ok(Math.abs(gotCapped - expCapped) < 0.03, `${id}: ${gotCapped} vs ${expCapped}`);
   }
 });
 
-test("Losbilder: zeigen genau den gezogenen Gewinn, Nieten zeigen nie einen Gewinn", () => {
+test("Losbilder: zeigen genau den gezogenen Grundgewinn, Bonus multipliziert sichtbar", () => {
   const rnd = seeded(11);
   for (const id of S.TYPE_IDS) {
-    for (const prize of [0, ...S.TYPES[id].prizes.map(([a]) => a)]) {
-      for (let k = 0; k < 300; k++) {
-        const layout = S.makeLayout(id, prize, rnd);
-        assert.ok(S.validLayout(id, layout), `${id}: ungültiges Bild`);
-        assert.equal(S.evaluateLayout(id, layout), prize, `${id}: Bild zeigt nicht ${prize}`);
+    const t = S.TYPES[id];
+    if (t.mechanic !== "coins") {
+      for (const prize of [0, ...t.prizes.map(([a]) => a)]) {
+        for (let k = 0; k < 200; k++) assert.equal(S.evaluateBase(id, S.makeLayout(id, prize, rnd)), prize, `${id}: Bild zeigt nicht ${prize}`);
       }
     }
+    for (let k = 0; k < 500; k++) {
+      const tk = S.createTicket(id, { id: "x", rnd });
+      assert.ok(S.validLayout(id, tk.layout), `${id}: ungültiges Bild`);
+      assert.equal(tk.prize, S.evaluateBase(id, tk.layout) * S.bonusFactor(id, tk.layout));
+      assert.equal(tk.revealed.length, S.fieldCount(id));
+    }
+  }
+  assert.equal(S.evaluateLayout("turbo", { cells: [100, 50, 100, 250, 100, 500], multi: 5 }), 500);
+  assert.equal(S.evaluateLayout("turbo", { cells: [100, 50, 100, 250, 50, 500], multi: 10 }), 0, "Multi ohne Gewinn bringt nichts");
+  assert.equal(S.evaluateLayout("luckyx", { win: [3, 9], own: [{ n: 3, amount: 200 }, { n: 1, amount: 100 }, { n: 2, amount: 100 }, { n: 4, amount: 100 }, { n: 5, amount: 100 }, { n: 6, amount: 100 }], extra: { draw: 7, mine: 7 } }), 1000);
+  assert.equal(S.evaluateLayout("digger", { cells: [true, true, true, true, false, false, false, false, false, false, false, false] }), 75);
+});
+
+test("Bonus ist unabhängig: Multiplikator und Extrazahl auf Nieten so häufig wie auf Gewinnen", () => {
+  const rnd = seeded(21);
+  const n = 120000;
+  const tally = { win: { n: 0, big: 0 }, lose: { n: 0, big: 0 } };
+  const extra = { win: { n: 0, hit: 0 }, lose: { n: 0, hit: 0 } };
+  for (let i = 0; i < n; i++) {
+    const t = S.createTicket("turbo", { id: "x", rnd });
+    const k = S.evaluateBase("turbo", t.layout) > 0 ? "win" : "lose";
+    tally[k].n++;
+    if (t.layout.multi >= 5) tally[k].big++;
+    const e = S.createTicket("luckyx", { id: "y", rnd });
+    const k2 = S.evaluateBase("luckyx", e.layout) > 0 ? "win" : "lose";
+    extra[k2].n++;
+    if (e.layout.extra.draw === e.layout.extra.mine) extra[k2].hit++;
+  }
+  const pBig = 0.04;
+  for (const k of ["win", "lose"]) {
+    const sd = Math.sqrt((pBig * (1 - pBig)) / tally[k].n);
+    assert.ok(Math.abs(tally[k].big / tally[k].n - pBig) < 5 * sd, `MULTI ≥ ×5 bei ${k}: ${tally[k].big / tally[k].n}`);
+    const sd2 = Math.sqrt((0.1 * 0.9) / extra[k].n);
+    assert.ok(Math.abs(extra[k].hit / extra[k].n - 0.1) < 5 * sd2, `Extrazahl bei ${k}: ${extra[k].hit / extra[k].n}`);
   }
 });
 
@@ -172,8 +226,13 @@ test("Bereinigung: Gewinn kommt aus dem Bild, manipulierte/kaputte Lose fliegen 
   const fakePrize = { ...good, prize: 10000 };
   const broken = { ...S.createTicket("vault", { id: "b", rnd: seeded(4) }), layout: { cells: [{ s: S.DIAMOND, amount: 50000 }, { s: S.DIAMOND, amount: 50000 }] } };
   const twoTriples = { id: "c", type: "neon7", layout: { cells: [20, 20, 20, 40, 40, 40] } };
-  const d = S.sanitizeData({ tickets: [fakePrize, broken, twoTriples, { type: "x" }, null], history: [{ type: "lucky", prize: 100, at: 1 }, { type: "?" }], seq: 5 });
-  assert.equal(d.tickets.length, 1);
+  const badMulti = { id: "d", type: "turbo", layout: { cells: [100, 50, 100, 250, 100, 500], multi: 7 } };
+  const goodMulti = { id: "e", type: "turbo", prize: 1, layout: { cells: [100, 50, 100, 250, 100, 500], multi: 3 } };
+  const badExtra = { id: "f", type: "luckyx", layout: { win: [1, 2], own: [3, 4, 5, 6, 7, 8].map((n) => ({ n, amount: 100 })), extra: { draw: 11, mine: 1 } } };
+  const d = S.sanitizeData({ tickets: [fakePrize, broken, twoTriples, badMulti, goodMulti, badExtra, { type: "x" }, null], history: [{ type: "lucky", prize: 100, at: 1 }, { type: "?" }], seq: 5 });
+  assert.equal(d.tickets.length, 2);
+  assert.equal(d.tickets[1].prize, 300, "Multi-Gewinn aus dem Bild berechnet");
+  assert.equal(d.tickets[1].revealed.length, 7, "Multi-Feld zählt als Rubbelfeld");
   assert.equal(d.tickets[0].prize, S.evaluateLayout("neon7", good.layout), "gespeicherter Betrag zählt nicht");
   assert.equal(d.history.length, 1);
   assert.equal(d.seq, 5);

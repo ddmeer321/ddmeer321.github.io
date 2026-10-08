@@ -1153,6 +1153,7 @@ for (const width of [320, 375, 390]) {
     await page.waitForSelector(".sc-focus .sc-foil");
     assert(await page.evaluate(() => getComputedStyle(document.querySelector(".sc-world")).filter.includes("blur")), "Tisch nicht verschwommen");
     await phase(page, "scratch", "scratch");
+    await page.waitForSelector(".sc-focus[data-ready]");
     const box = await page.locator(".sc-foil").boundingBox();
     await page.evaluate(() => {
       window.__sc = { cancel: 0 };
@@ -1172,6 +1173,7 @@ for (const width of [320, 375, 390]) {
     assert(r.open === r.all, `nicht alle Felder offen: ${r.open}/${r.all}`);
   });
   await check("Rubbellose: Gewinn genau einmal einfordern bzw. Niete mit rotem Knopf ablegen", async () => {
+    await page.waitForSelector(".sc-actions[data-ready]");
     const before = await state(page);
     const t = before.games.scratch.tickets.find((x) => x.revealed.every(Boolean));
     if (t.prize > 0) {
@@ -1181,14 +1183,17 @@ for (const width of [320, 375, 390]) {
       assert(!/nochmal|neues Los|fast/i.test(await page.locator(".sc-focus").textContent()), "Kaufdruck im Verlustfall");
       await page.locator(".sc-drop").tap();
     }
-    await page.waitForFunction(() => !document.querySelector(".sc-focus"));
+    await page.waitForFunction(() => !document.querySelector(".sc-focus")).catch(async (e) => {
+      const dbg = await page.evaluate(() => ({ dis: document.querySelector(".sc-drop, .sc-claim")?.disabled, phase: document.querySelector(".game-root").dataset.phase, t: window.__neonpalast.getState().games.scratch.tickets.map((x) => [x.id, x.revealed.join("")]) }));
+      throw new Error(`${e.message.split("\n")[0]} ${JSON.stringify(dbg)}`);
+    });
     const s = await assertLedger(page);
     assert(s.balance === before.balance + t.prize, `Guthaben ${s.balance} ≠ ${before.balance} + ${t.prize}`);
     assert(s.games.scratch.tickets.length === 2 && s.stats.perGame.scratch.rounds === 1, "Los nicht genau einmal abgerechnet");
   });
   await check("Rubbellose: Neuladen mitten im Rubbeln ändert weder Bild noch Gewinn, Fortschritt bleibt", async () => {
     await page.locator(".sc-mini").first().tap();
-    await page.waitForSelector(".sc-foil");
+    await page.waitForSelector(".sc-focus[data-ready] .sc-foil");
     const box = await page.locator(".sc-foil").boundingBox();
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: box.x + 4, y: box.y + 20 }] });
     for (let i = 1; i <= 12; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: box.x + 4 + ((box.width - 8) * i) / 12, y: box.y + 20 + (i % 2) * 14 }] });
@@ -1223,7 +1228,10 @@ for (const width of [320, 375, 390]) {
 {
   const win = { id: "s1", type: "neon7", prize: 10000, layout: { cells: [100, 20, 100, 40, 100, 200] }, revealed: [false, false, false, false, false, false], boughtAt: 1, rot: 3, dx: 0, dy: 0 };
   const lose = { id: "s2", type: "vault", prize: 0, layout: { cells: Array.from({ length: 9 }, () => ({ s: "⭐", amount: 0 })) }, revealed: Array(9).fill(false), boughtAt: 2, rot: -4, dx: 0, dy: 0 };
-  const save = { v: 3, balance: 1000, stats: { wagered: 220, won: 0, bonus: 220 }, games: { scratch: { seq: 2, tickets: [win, lose], history: [] } } };
+  const multi = { id: "s3", type: "turbo", prize: 1, layout: { cells: [100, 50, 100, 250, 100, 500], multi: 5 }, revealed: Array(7).fill(false), boughtAt: 3, rot: 2, dx: 0, dy: 0 };
+  const extra = { id: "s4", type: "luckyx", prize: 1, layout: { win: [7, 30], own: [{ n: 7, amount: 200 }, { n: 1, amount: 100 }, { n: 2, amount: 500 }, { n: 3, amount: 100 }, { n: 4, amount: 1000 }, { n: 5, amount: 100 }], extra: { draw: 4, mine: 4 } }, revealed: Array(10).fill(false), boughtAt: 4, rot: -2, dx: 0, dy: 0 };
+  const coins = { id: "s5", type: "digger", prize: 1, layout: { cells: [true, false, true, false, false, true, false, false, true, false, false, false] }, revealed: Array(12).fill(false), boughtAt: 5, rot: 1, dx: 0, dy: 0 };
+  const save = { v: 3, balance: 1000, stats: { wagered: 900, won: 0, bonus: 900 }, games: { scratch: { seq: 5, tickets: [win, lose, multi, extra, coins], history: [] } } };
   const ctx = await browser.newContext(VIEWPORTS.small);
   ctx.setDefaultTimeout(10000);
   await ctx.addInitScript((s) => {
@@ -1258,7 +1266,26 @@ for (const width of [320, 375, 390]) {
     await page.locator(".sc-drop").tap();
     await page.waitForFunction(() => !document.querySelector(".sc-focus"));
     const s = await state(page);
-    assert(s.balance === 1100 && s.games.scratch.tickets.length === 0, "Niete falsch abgerechnet");
+    assert(s.balance === 1100 && !s.games.scratch.tickets.some((t) => t.id === "s2") && s.stats.perGame.scratch.rounds === 2, "Niete falsch abgerechnet");
+    assert(await noHorizontalScroll(page), "Querscrollen");
+  });
+  await check("Rubbellose: MULTI-Feld multipliziert (100 C × 5), Extrazahl verfünffacht (200 C × 5), 4 Münzen = 75 C", async () => {
+    for (const [id, expect, calc] of [["s3", 500, /100 C × 5/], ["s4", 1000, /200 C × 5/], ["s5", 75, null]]) {
+      const before = (await state(page)).balance;
+      await page.locator(`.sc-mini[data-id="${id}"]`).tap();
+      await page.locator(".sc-reveal").tap();
+      await phase(page, "scratch", ["win", "push"]);
+      const txt = await page.locator(".sc-status").textContent();
+      assert(txt.includes(expect.toLocaleString("de-DE")), `${id}: ${txt}`);
+      if (calc) {
+        assert(calc.test(txt), `${id}: Rechnung fehlt (${txt})`);
+        assert((await page.locator(".sc-field.is-multi.is-win, .sc-field.is-extra.is-win").count()) >= 1, `${id}: Bonus nicht hervorgehoben`);
+      } else assert((await page.locator(".sc-field.is-coin.is-win").count()) === 4, "Münzen nicht hervorgehoben");
+      await page.locator(".sc-claim").tap();
+      await page.waitForFunction(() => !document.querySelector(".sc-focus"));
+      const s2 = await state(page);
+      assert(s2.balance === before + expect, `${id}: Guthaben ${s2.balance} ≠ ${before} + ${expect}`);
+    }
     assert(await noHorizontalScroll(page), "Querscrollen");
   });
   await check("Keine Konsolenfehler (Rubbellose bekannt)", async () => assert(!errors.length, errors.join(" | ")));
@@ -1278,7 +1305,7 @@ for (const size of ["small", "landscape", "tablet", "wide"]) {
           const buys = [...document.querySelectorAll(`${sel} .sc-buy`)];
           const first = buys[0].getBoundingClientRect();
           const t = document.querySelector(`${sel} .sc-felt`).getBoundingClientRect();
-          return buys.length === 3 && buys.every((b) => b.getBoundingClientRect().height >= 40) && first.right <= window.innerWidth + 2 && first.bottom <= window.innerHeight + 2 && t.height >= 120;
+          return buys.length === 7 && buys.every((b) => b.getBoundingClientRect().height >= 40) && first.right <= window.innerWidth + 2 && first.bottom <= window.innerHeight + 2 && t.height >= 120;
         }
         if (sel.includes("lotto")) {
           // Lotto-Studio scrollt: Zahlenfeld muss fingertauglich sein, Kaufknopf erreichbar

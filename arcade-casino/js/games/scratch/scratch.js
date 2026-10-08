@@ -9,8 +9,12 @@ import * as S from "./tickets.js";
 
 const LOOK = {
   neon7: { badge: "7", note: "3 gleiche Beträge gewinnen" },
+  digger: { badge: "⛏️", note: "Ab 3 Münzen gewinnst du" },
   lucky: { badge: "🍀", note: "Deine Zahl = Gewinnzahl" },
+  turbo: { badge: "⚡", note: "3 gleiche × MULTI bis ×10" },
+  luckyx: { badge: "🎯", note: "Extrazahl passt → Gewinn ×5" },
   vault: { badge: "💎", note: "Finde den Diamanten" },
+  crown: { badge: "👑", note: "💎 finden × MULTI bis ×10" },
 };
 const BRUSH = 17; // Rubbel-Radius in CSS-Pixeln
 const REVEAL_AT = 0.55; // Anteil eines Feldes, ab dem es als aufgedeckt gilt
@@ -85,14 +89,26 @@ export default {
             h(
               "table",
               {},
-              h("thead", {}, h("tr", {}, h("th", {}, "Gewinn"), h("th", {}, "Chance je Los"))),
+              h("thead", {}, h("tr", {}, h("th", {}, t.mechanic === "coins" ? "Münzen · Gewinn" : t.bonus ? "Grundgewinn" : "Gewinn"), h("th", {}, "Chance je Los"))),
               h(
                 "tbody",
                 {},
-                t.prizes.map(([a, p]) => h("tr", {}, h("td.num", {}, a === t.price ? `${fmt(a)} C (Einsatz zurück)` : `${fmt(a)} C`), h("td.num", {}, oneIn(p)))),
+                S.baseDist(id).map(([a, p]) => {
+                  const coins = t.mechanic === "coins" ? `${t.pay.find(([, x]) => x === a)[0]}${a === t.pay[0][1] ? "+" : ""} 🪙 · ` : "";
+                  return h("tr", {}, h("td.num", {}, `${coins}${fmt(a)} C${a === t.price ? " (Einsatz zurück)" : ""}`), h("td.num", {}, oneIn(p)));
+                }),
                 h("tr.sc-total", {}, h("td", {}, "irgendein Gewinn"), h("td.num", {}, oneIn(S.pAnyWin(id))))
               )
             ),
+            t.bonus
+              ? h(
+                  "table.sc-bonus",
+                  {},
+                  h("thead", {}, h("tr", {}, h("th", {}, t.bonus === "multi" ? "MULTI-Feld" : "Extrazahl"), h("th", {}, "Chance je Los"))),
+                  h("tbody", {}, S.bonusDist(id).map(([f, p]) => h("tr", {}, h("td.num", {}, t.bonus === "extra" ? (f > 1 ? `passt · Gewinn ×${f}` : "passt nicht · ×1") : `×${f}`), h("td.num", {}, oneIn(p)))))
+                )
+              : null,
+            t.bonus ? h("small.sc-muted", {}, `Der Bonus wird unabhängig vom Grundgewinn gezogen und zählt nur, wenn das Los gewinnt. Höchstgewinn ${fmt(S.topPrize(id))} C.`) : null,
             h("small.sc-muted", {}, `Auszahlungsquote ${pct(S.rtpOf(id))} – Rubbellose sind ein Ausgabeposten.`)
           );
         }),
@@ -165,18 +181,29 @@ export default {
     }
 
     // ---------- Großansicht & Rubbeln ----------
+    /** Felder in Rubbel-Reihenfolge: erst die Grundfelder, dann MULTI bzw. Extrazahl. */
     function fieldsFor(t) {
       const L = t.layout;
       const def = S.TYPES[t.type];
-      if (def.mechanic === "match3") return L.cells.map((a) => ({ main: fmt(a), sub: "C", win: t.prize > 0 && a === t.prize }));
-      if (def.mechanic === "numbers") {
+      const base = S.evaluateBase(t.type, L);
+      const factor = S.bonusFactor(t.type, L);
+      let out;
+      if (def.mechanic === "match3") out = L.cells.map((a) => ({ main: fmt(a), sub: "C", win: base > 0 && a === base }));
+      else if (def.mechanic === "numbers") {
         const hit = L.own.find((o) => L.win.includes(o.n));
-        return [
+        out = [
           ...L.win.map((n) => ({ main: String(n), sub: "", win: hit?.n === n, cls: "is-winno" })),
           ...L.own.map((o) => ({ main: String(o.n), sub: `${fmt(o.amount)} C`, win: hit === o })),
         ];
+      } else if (def.mechanic === "coins") out = L.cells.map((c) => ({ main: c ? S.COIN : "🪨", sub: "", win: c && base > 0, cls: c ? "is-symbol.is-coin" : "is-symbol" }));
+      else out = L.cells.map((c) => ({ main: c.s, sub: c.s === S.DIAMOND ? `${fmt(c.amount)} C` : "", win: c.s === S.DIAMOND, cls: "is-symbol" }));
+      if (def.bonus === "multi") out.push({ main: `×${L.multi}`, sub: "MULTI", win: base > 0 && L.multi > 1, cls: "is-multi" });
+      if (def.bonus === "extra") {
+        const match = factor > 1;
+        out.push({ main: String(L.extra.draw), sub: "Extrazahl", win: base > 0 && match, cls: "is-extra" });
+        out.push({ main: String(L.extra.mine), sub: "Deine", win: base > 0 && match, cls: "is-extra" });
       }
-      return L.cells.map((c) => ({ main: c.s, sub: c.s === S.DIAMOND ? `${fmt(c.amount)} C` : "", win: c.s === S.DIAMOND, cls: "is-symbol" }));
+      return out;
     }
 
     function openTicket(id) {
@@ -190,15 +217,19 @@ export default {
         h(`div.sc-field${f.cls ? "." + f.cls : ""}`, { dataset: { i } }, h("b", {}, f.main), f.sub ? h("small", {}, f.sub) : null)
       );
       let area;
+      const nBase = def.fields;
+      const bonusCells = cells.slice(nBase);
       if (def.mechanic === "numbers") {
         area = h(
           "div.sc-area.m-numbers",
           {},
           h("div.sc-winrow", {}, h("span.sc-label", {}, "Gewinnzahlen"), cells[0], cells[1]),
           h("div.sc-label.sc-own-label", {}, "Deine Zahlen"),
-          h("div.sc-grid.g-3", {}, cells.slice(2))
+          h("div.sc-grid.g-3", {}, cells.slice(2, nBase))
         );
-      } else area = h(`div.sc-area.m-${def.mechanic}`, {}, h(`div.sc-grid.g-3`, {}, cells));
+      } else area = h(`div.sc-area.m-${def.mechanic}`, {}, h(`div.sc-grid.${def.mechanic === "coins" ? "g-4" : "g-3"}`, {}, cells.slice(0, nBase)));
+      if (def.bonus === "multi") area.append(h("div.sc-bonusrow", {}, h("span.sc-label", {}, "Multiplikator"), bonusCells[0]));
+      if (def.bonus === "extra") area.append(h("div.sc-bonusrow.is-extra", {}, h("span.sc-label", {}, `Extrazahl gleich? Gewinn ×${S.EXTRA.factor}`), bonusCells[0], bonusCells[1]));
       const foil = h("canvas.sc-foil", { "aria-hidden": "true" });
       area.append(foil);
       const status = h("div.sc-status", { role: "status", "aria-live": "polite" }, "Rubbeln mit Finger oder Maus");
@@ -268,7 +299,7 @@ export default {
         g.font = "900 11px system-ui, sans-serif";
         g.textAlign = "center";
         g.textBaseline = "middle";
-        for (const r of rects) g.fillText("★ RUBBELN ★", r.x + r.w / 2, r.y + r.h / 2);
+        for (const r of rects) g.fillText(r.w >= 96 ? "★ RUBBELN ★" : r.w >= 62 ? "RUBBELN" : "★", r.x + r.w / 2, r.y + r.h / 2);
         // bereits aufgedeckte Felder (z. B. nach dem Neuladen) wieder frei
         t.revealed.forEach((v, i) => v && clearField(i));
       }
@@ -353,6 +384,21 @@ export default {
         status.textContent = n ? `${n} von ${t.revealed.length} Feldern frei` : "Rubbeln mit Finger oder Maus";
       }
 
+      /**
+       * Ergebnis-Knopf erst nach dem Ausblenden der Folie aktivieren: Ein noch
+       * rubbelnder Finger soll nicht versehentlich „Einfordern“/„Ablegen“ treffen.
+       */
+      function armResult(btn) {
+        btn.disabled = true;
+        actions.append(btn);
+        setTimeout(() => {
+          if (dead || focus?.id !== t.id) return;
+          btn.disabled = false;
+          actions.dataset.ready = "1";
+          btn.focus({ preventScroll: true });
+        }, ctx.reducedMotion() ? 0 : 350);
+      }
+
       function finish() {
         if (!focus || focus.done) return;
         focus.done = true;
@@ -362,7 +408,12 @@ export default {
         clear(actions);
         const net = t.prize - t.price;
         if (t.prize > 0) {
-          status.replaceChildren(h("b.sc-result.is-win", {}, net > 0 ? "GEWONNEN" : "EINSATZ ZURÜCK"), h("span.num", {}, ` ${fmt(t.prize)} C`));
+          const factor = S.bonusFactor(t.type, t.layout);
+          status.replaceChildren(
+            h("b.sc-result.is-win", {}, net > 0 ? "GEWONNEN" : "EINSATZ ZURÜCK"),
+            h("span.num", {}, ` ${fmt(t.prize)} C`),
+            factor > 1 ? h("small.sc-calc.num", {}, `${fmt(t.prize / factor)} C × ${factor}`) : null
+          );
           const claim = h("button.btn.btn-gold.btn-lg.sc-claim", { type: "button" }, net > 0 ? "Gewinn einfordern" : "Einsatz einfordern");
           claim.addEventListener("click", () => {
             if (claim.disabled) return;
@@ -379,10 +430,9 @@ export default {
             }
             closeFocus(true);
           });
-          actions.append(claim);
+          armResult(claim);
           play(net > 0 ? "win.small" : "coin.clink");
           ctx.setPhase(net > 0 ? "win" : "push");
-          setTimeout(() => !dead && claim.focus(), 60);
         } else {
           status.replaceChildren(h("b.sc-result.is-lose", {}, "LEIDER KEIN GEWINN"));
           const drop = h("button.btn.btn-danger.btn-lg.sc-drop", { type: "button" }, "Los ablegen");
@@ -393,10 +443,9 @@ export default {
             play("ui.back");
             closeFocus(true);
           });
-          actions.append(drop);
+          armResult(drop);
           play("lotto.end", { vol: 0.6 });
           ctx.setPhase("lose");
-          setTimeout(() => !dead && drop.focus(), 60);
         }
       }
 
@@ -407,7 +456,12 @@ export default {
       document.addEventListener("keydown", onKey);
       window.addEventListener("resize", onResize);
       // Layout kann sich nach dem Einblenden noch setzen (Schriften, Emoji) – dann neu ausrichten
-      card.addEventListener("animationend", onResize, { once: true });
+      const settle = () => {
+        layer.dataset.ready = "1"; // Karte liegt ruhig (für Tests und Messungen)
+        onResize();
+      };
+      card.addEventListener("animationend", settle, { once: true });
+      if (ctx.reducedMotion()) settle();
       document.fonts?.ready?.then(onResize);
       const ro = typeof ResizeObserver === "function" ? new ResizeObserver(onResize) : null;
       ro?.observe(area);
@@ -450,6 +504,7 @@ export default {
           {},
           h("p", {}, "Kauf links im Losverkauf ein Los – es landet auf deinem Tisch. Tipp ein Los an, um es nach vorn zu holen, und rubbel die Felder mit Finger oder Maus frei. „Alles aufdecken“ deckt sofort alles auf."),
           S.TYPE_IDS.map((id) => h("p", {}, h("b", {}, `${S.TYPES[id].name} (${fmt(S.TYPES[id].price)} C): `), `${S.TYPES[id].rule}. Höchstgewinn ${fmt(S.topPrize(id))} C, irgendein Gewinn ${oneIn(S.pAnyWin(id))}, Auszahlungsquote ${pct(S.rtpOf(id))}.`)),
+          h("p", {}, "MULTI-Feld (×1 bis ×10) und Extrazahl (passt = Gewinn ×5) werden unabhängig vom Grundgewinn gezogen und zählen nur, wenn das Los gewinnt – ein ×10 auf einer Niete ist kein „Beinahe-Gewinn“, sondern genauso häufig wie auf Gewinnlosen."),
           h("p", {}, "Das Ergebnis jedes Loses wird beim Kauf einmal ausgelost und gespeichert. Rubbeln, Weglegen oder Neuladen ändern nichts daran. Nieten sind zufällige Nieten – es werden keine „Beinahe-Gewinne“ eingebaut."),
           h("p", {}, `Gewinne forderst du selbst ein. Höchstens ${S.MAX_ON_TABLE} Lose liegen gleichzeitig auf dem Tisch.`)
         ),
