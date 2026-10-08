@@ -138,5 +138,11 @@ export function buildMarket(card, runs = MC_RUNS) {
 /** Auszahlung (Rückzahlung inkl. Einsatz). type: "win" | "place". */
 export function payout(type, horse, stake, odds, order) {
   const hit = type === "win" ? order[0] === horse : order[0] === horse || order[1] === horse;
-  return hit ? Math.floor(stake * odds) : 0;
+  // Runden, NICHT abrunden. Quoten haben eine Nachkommastelle und Einsaetze
+  // sind Vielfache von 10, Quote x Einsatz ist also immer ganzzahlig -- aber
+  // in Gleitkomma knapp daneben: 2.3 * 50 ergibt 114.99999999999999, und
+  // Math.floor machte daraus 114 statt 115. Das traf 103 der 2334 moeglichen
+  // Quote-Einsatz-Kombinationen. Math.floor zahlte also zu wenig; runden kann
+  // hier nie zu viel zahlen, weil das exakte Ergebnis ganzzahlig ist.
+  return hit ? Math.round(stake * odds) : 0;
 }

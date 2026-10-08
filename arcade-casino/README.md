@@ -158,7 +158,7 @@ Dialoge, Partikel, Speicher). Rückgabe: `destroy()`, optional `finalize()` und 
 
 ```bash
 cd arcade-casino
-npm test            # 126 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
+npm test            # 127 Unit-Tests (node --test): Wirtschaft, Limits, Migration v1→v3, Pause/Auszeit,
                     # Gewinnstufen, Challenges, Blackjack-Regeln + Simulation, Roulette, Slots,
                     # Plinko-Physik/RTP, Münzgreifer, Münzkaskade, Pferderennen, Lichtwirbel,
                     # Turmbau- und Hoops-Balance, Jukebox + Musik-Engine, Lotto, Rubbellose, Posteingang
