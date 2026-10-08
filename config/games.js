@@ -17,6 +17,7 @@ export const PUBLIC_GAME_CONFIGS = [
   "games/tic-tac-toe/config.json",
   "games/cursor-clicker/config.json",
   "games/reaction/config.json",
+  "games/arcade-casino/config.json",
 ];
 
 async function fetchGameConfig(path) {
