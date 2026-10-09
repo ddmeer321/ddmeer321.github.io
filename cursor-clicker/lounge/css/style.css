@@ -175,3 +175,23 @@ main{max-width:1380px;margin:auto;padding:22px clamp(16px,4vw,56px) 60px}
 .import-aktionen{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 12px}
 .import-aktionen .btn{flex:1 1 auto;min-width:0;min-height:44px}
 #import-stand{margin:0;font-size:14px}
+
+/* Impressum und Datenschutz muessen von jeder Seite erreichbar sein
+   (§ 5 DDG, Art. 12 DSGVO) -- auch aus der Lounge heraus. */
+.lounge-rechtliches {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+.lounge-rechtliches a {
+  color: inherit;
+  text-decoration: none;
+}
+.lounge-rechtliches a:hover,
+.lounge-rechtliches a:focus-visible {
+  text-decoration: underline;
+  opacity: 1;
+}

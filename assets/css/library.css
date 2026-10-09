@@ -647,3 +647,15 @@ body.in-game .lib-footer { display: none; }
   .game-card-art[data-laedt],
   .platzhalter-zeile { animation: none; }
 }
+
+/* Der Copyright-Hinweis steht bewusst eingeschraenkt: fremde Bibliotheken,
+   Neon Bot Arena aus einem anderen Repo und KI-erzeugte Bilder gehoeren
+   nicht uns bzw. sind gar nicht schutzfaehig. Eine pauschale Behauptung
+   waere bequemer, aber falsch. */
+.lib-copyright {
+  margin: 6px 0 0;
+  max-width: 46ch;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  opacity: 0.72;
+}
