@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="de" style="visibility:hidden">
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leuchtwerk — Bundesamt für kurzzeitige Illumination</title>
+<style>
+:root{color-scheme:dark;--bg:#101211;--panel:#181b19;--line:#30362f;--ink:#edf0e7;--muted:#929b8d;--lime:#c9f779}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,sans-serif}body:before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 45% 35%,#c9f70908,transparent 65%)}main{max-width:1280px;margin:auto;padding:30px 44px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:25px}.brand{font-size:23px;font-weight:800;letter-spacing:-1px}.brand span{color:var(--lime)}.mono{font:11px ui-monospace,monospace;letter-spacing:1.3px;text-transform:uppercase}.status{color:var(--lime)}.status:before{content:'●';margin-right:9px}.intro{margin:50px 0 32px}.eyebrow{color:var(--lime)}h1{font-size:clamp(35px,5vw,62px);letter-spacing:-2.8px;font-weight:500;margin:13px 0}p{color:var(--muted);line-height:1.7}.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}.panelhead{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;color:var(--muted)}.stage{min-height:370px;display:flex;flex-direction:column;align-items:center;justify-content:center;background-image:radial-gradient(#46503c55 1px,transparent 1px);background-size:22px 22px}.ring{padding:24px;border:1px solid #454e3b;border-radius:50%;box-shadow:0 0 0 15px #ffffff02,0 0 0 16px #ffffff04}#trigger{width:156px;height:156px;border-radius:50%;border:1px solid #65734d;background:linear-gradient(145deg,#424d34,#242d1d);color:var(--lime);box-shadow:inset 0 3px 3px #ffffff18,0 10px 25px #0006;cursor:pointer;transition:background .12s,box-shadow .12s,color .12s;font-size:39px}#trigger:focus-visible{outline:3px solid white;outline-offset:8px}#trigger:hover{border-color:var(--lime)}#trigger:active{transform:translateY(2px)}#trigger:disabled{cursor:wait}#trigger.lit{background:var(--lime);color:#293219;box-shadow:0 0 45px #c9f77a99,0 0 100px #c9f77a44,inset 0 3px 6px #ffffff88}.caption{margin:35px 12px 0;color:var(--muted);text-align:center}.bottom{padding:17px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}.steps{padding:12px 24px}.step{display:flex;gap:16px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line)}.step:last-child{border:0}.number{height:30px;width:30px;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;color:var(--muted);font:12px monospace}.step b{font-weight:500;font-size:14px}.step small{display:block;color:var(--muted);margin-top:4px;font-size:11px}.step .state{margin-left:auto;color:#798270;font:11px monospace}.step.active .number{background:var(--lime);color:#101211}.step.active .state,.step.done .state{color:var(--lime)}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:18px}.metric{padding:23px}.metric strong{display:block;font-size:29px;font-weight:500;letter-spacing:-1px;margin:12px 0 5px}.metric small{color:var(--muted)}.logpanel{margin-top:18px}#log{height:165px;overflow:auto;padding:15px 24px;font:12px/1.9 ui-monospace,monospace;color:var(--muted)}.entry{display:flex;gap:20px}.entry time{color:#606c58;white-space:nowrap}.entry span{overflow-wrap:anywhere}.entry:last-child span{color:var(--lime)}footer{display:flex;justify-content:space-between;color:#75806b;padding:25px 0;font-size:11px}@media(max-width:780px){main{padding:22px 18px}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr;gap:12px}header .mono{font-size:8px}h1{letter-spacing:-1.5px}.intro{margin-top:34px}.stage{min-height:330px}footer{gap:20px}.entry{gap:10px}}
+
+.operations{margin-top:18px;padding:22px;display:flex;align-items:end;gap:16px;flex-wrap:wrap}.operations label{display:block;color:var(--muted);margin-bottom:9px}.operations button,.operations select{border:1px solid #48533d;background:#22281d;color:var(--ink);border-radius:7px;padding:11px;font:12px system-ui;min-height:40px}.operations button{cursor:pointer}.operations button:disabled{opacity:.35;cursor:default}.counters{display:flex;gap:18px;color:var(--muted);font:12px monospace;padding:12px 0}.counters b{color:var(--lime)}.architecture{margin-top:18px;padding:20px 24px}.architecture summary{cursor:pointer;color:var(--lime);font-size:14px}.architecture-body{max-width:920px}.architecture p{font-size:13px}.step.failed .state{color:#ff9b8a}.step.failed .number{border-color:#ff9b8a}#trigger{transition:transform .1s,border-color .1s}button:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--lime);outline-offset:4px}
+</style>
+<main>
+<header><div class="brand">leuchtwerk<span>®</span></div><a href="../index.html" style="color:var(--muted);font-size:12px">← Testübersicht</a><div class="mono status">System überqualifiziert</div></header>
+<section class="intro"><div class="mono eyebrow">Bundesamt für kurzzeitige Illumination / Abteilung 01</div><h1>Ein Knopf. Ein Großprojekt.</h1><p>Ein echter Worker, ein transaktionaler Ablauf und bestätigte Nachrichten. Für 800 Millisekunden Licht.</p></section>
+<div class="grid"><section class="panel"><div class="panelhead mono"><span>01 / Bedienzentrum</span><span>PROTOKOLL V1</span></div><div class="stage"><div class="ring"><button id="trigger" aria-label="Kurzzeitige Beleuchtung beantragen">⏻</button></div><div class="caption mono" id="caption" role="status">Drücken, um Beleuchtung zu beantragen</div></div><div class="bottom"><span>Animationsdauer: 800 ms Soll</span><span id="phase">● BEREIT</span></div></section>
+<section class="panel"><div class="panelhead mono"><span>02 / Transaktionsablauf</span><span>6 Phasen</span></div><div class="steps" id="steps"></div></section></div>
+<section class="metrics">
+<div class="panel metric"><span class="mono">Bestätigte Commits</span><strong id="count">0</strong><small>Autoritativer Worker-Zähler · diese Sitzung</small></div>
+<div class="panel metric"><span class="mono">Letzter Auftrag</span><strong id="latency">—</strong><small>Gemessen mit performance.now()</small></div>
+<div class="panel metric"><span class="mono">Renderabschluss</span><strong id="renderTime">—</strong><small>Animation bis Abschlussmeldung · Soll 800 ms</small></div>
+<div class="panel metric"><span class="mono">Warteschlange</span><strong id="queued">0 / 4</strong><small>FIFO · maximal ein aktiver Auftrag</small></div></section>
+<section class="panel operations"><div><label for="fault" class="mono">Fehlerlabor · nächster Auftrag</label><select id="fault"><option value="none">Normalbetrieb</option><option value="drop">Prepare-Antwort einmal verlieren</option><option value="commit-drop">Commit-Antwort einmal verlieren</option><option value="reject">Reservierung ablehnen</option></select></div><button id="cancel" disabled>Abbrechen & Queue leeren</button><button id="export">Trace exportieren</button><div class="counters"><span>Retries <b id="retries">0</b></span><span>Fehler <b id="failed">0</b></span></div></section>
+<details class="panel architecture"><summary>Warum diese Komplexität technisch Sinn ergibt</summary><div class="architecture-body"><p><b>UI → FIFO → RPC → Worker → Reservierung → Animation → Commit → Journal.</b> Mehrfachklicks werden nacheinander abgearbeitet. Die Warteschlange ist auf vier wartende Aufträge begrenzt.</p><p>Ein Blob-Web-Worker besitzt den Transaktionszustand. Korrelations-IDs ordnen Antworten zu. Bei Timeout wird dieselbe Nachricht höchstens zweimal erneut gesendet; ein begrenzter Antwortcache verhindert die erneute Ausführung. Das Fehlerlabor verwirft eine Antwort erst <em>nach</em> der Verarbeitung.</p><p>Eine 5-Sekunden-Lease und eine Versionsprüfung schützen die Reservierung. Bei Abbruch wird die Animation gestoppt und die Reservierung freigegeben. Der Commit ist innerhalb eines Worker-Nachrichtenhandlers atomar. UI und Worker bilden jedoch keine gemeinsame ACID-Transaktion: Bereits sichtbares Licht lässt sich nicht rückgängig machen.</p><p>Die Animation läuft über die Web Animations API. 800 ms sind die Soll-Dauer, keine Echtzeitgarantie. Beim Verlassen des sichtbaren Tabs werden aktive Animationen und wartende Aufträge abgebrochen. Während eines bereits gestarteten Commits wird dessen Ergebnis noch abgeglichen.</p><p>Die Lichtlogik läuft lokal in diesem Tab. Die vorgeschaltete Zugriffsprüfung verwendet die bestehende Anmeldung der Spielebibliothek. Worker-Transaktionen und Zähler starten nach Neuladen neu. Das begrenzte Journal wird nach Möglichkeit in localStorage gespeichert und lässt sich als JSON exportieren; es ist ein Diagnoseprotokoll, kein manipulationssicheres Audit-Archiv. Es gibt absichtlich keine automatische Wiederholung von Lichtsignalen nach einem Neustart.</p><div class="mono" id="storage">Journal wird initialisiert</div></div></details>
+<section class="panel logpanel"><div class="panelhead mono"><span>03 / Revisionsprotokoll</span><span id="events">0 Ereignisse</span></div><div id="log" aria-label="Technisches Ereignisprotokoll"></div></section>
+<footer><span>LEUCHTWERK ENTERPRISE · SINGLE BUTTON EDITION</span><span>Lichtlogik lokal · Anmeldung über die Spielebibliothek</span></footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../supabase-client.js"></script>
+<script src="../../test-gate.js?v=1"></script>
+<script>
+function startLeuchtwerk() {
+'use strict';
+const $ = id => document.getElementById(id);
+const uid = () => crypto.randomUUID();
+const config = Object.freeze({duration:800,timeout:450,retries:2,capacity:4});
+const stages = [
+  ['Command Gateway','Schema-Prüfung · begrenzte FIFO-Warteschlange'],
+  ['Worker RPC','Korrelations-ID · Timeout · idempotenter Retry'],
+  ['Prepare','Exklusive Reservierung mit 5-s-Lease'],
+  ['Rendering','Web Animations API · monotone Zeitmessung'],
+  ['Commit','Versionsprüfung · atomarer Worker-Zustandswechsel'],
+  ['Projektion','Event-Journal · lokale Diagnose · Metriken']
+];
+$('steps').innerHTML = stages.map(([title,sub],i)=>`<div class="step" id="step-${i}"><span class="number">0${i+1}</span><div><b>${title}</b><small>${sub}</small></div><span class="state">WARTET</span></div>`).join('');
+function stage(i,state){const el=$('step-'+i);el.className='step '+state;el.querySelector('.state').textContent={waiting:'WARTET',active:'AKTIV',done:'OK',failed:'FEHLER'}[state]}
+
+// The worker is a real separate execution context, not a simulated server.
+// State survives retries, but deliberately does not survive a page reload.
+function workerMain(){
+  const requests=new Map(), transactions=new Map();
+  let active=null, committed=0;
+  const failure=message=>{throw Error(message)};
+  function expire(){if(active && transactions.get(active).expires<=Date.now()){
+    const tx=transactions.get(active);tx.state='expired';tx.version++;active=null;
+  }}
+  function execute(method,p){
+    expire();
+    if(method==='hello')return {protocol:1,committed};
+    if(method==='prepare'){
+      if(typeof p.tx!=='string'||!Number.isInteger(p.duration)||p.duration<100||p.duration>2000)failure('Ungültiges Auftragsschema');
+      const existing=transactions.get(p.tx);
+      if(existing)return {...existing};
+      if(p.reject)failure('Testfehler: Policy hat die Reservierung abgelehnt');
+      if(active)failure('Ressource bereits reserviert');
+      // Bounded retention is safe here: the client permits at most one active tx.
+      while(transactions.size>=128)transactions.delete(transactions.keys().next().value);
+      const tx={id:p.tx,state:'prepared',version:1,expires:Date.now()+5000};
+      transactions.set(p.tx,tx);active=p.tx;return {...tx};
+    }
+    const tx=transactions.get(p.tx);
+    if(!tx)failure('Transaktion unbekannt');
+    if(method==='status')return {...tx,committed};
+    if(method==='abort'){
+      if(tx.state==='prepared'){tx.state='aborted';tx.version++;if(active===p.tx)active=null}
+      return {...tx,committed};
+    }
+    if(method==='commit'){
+      if(tx.state==='committed')return {...tx,committed};
+      if(tx.state!=='prepared'||p.version!==tx.version)failure('Versionskonflikt oder Lease abgelaufen');
+      // One worker message turn is the atomic boundary; no awaits in this mutation.
+      tx.state='committed';tx.version++;committed++;active=null;
+      return {...tx,committed};
+    }
+    failure('Unbekannte RPC-Methode');
+  }
+  self.onmessage=({data:m})=>{
+    if(m?.protocol!==1||typeof m.id!=='string')return;
+    const fingerprint=JSON.stringify([m.method,m.params]);
+    if(requests.has(m.id)){
+      const cached=requests.get(m.id);
+      self.postMessage(cached.fingerprint===fingerprint?{...cached.response,replayed:true}:{id:m.id,ok:false,error:'Korrelations-ID mit anderem Inhalt wiederverwendet'});
+      return;
+    }
+    let response;
+    try{response={id:m.id,ok:true,result:execute(m.method,m.params)}}
+    catch(error){response={id:m.id,ok:false,error:error.message}}
+    requests.set(m.id,{fingerprint,response});
+    if(requests.size>256)requests.delete(requests.keys().next().value);
+    // Fault injection loses the response AFTER processing, exercising deduplication.
+    if(!m.dropReply)self.postMessage(response);
+  };
+}
+
+class Journal{
+  records=[]; sequence=0; persistent=true;
+  append(type,tx,detail){
+    const event=Object.freeze({sequence:++this.sequence,at:new Date().toISOString(),type,tx,detail});
+    this.records.push(event);if(this.records.length>160)this.records.shift();
+    const row=document.createElement('div');row.className='entry';
+    const time=document.createElement('time');time.textContent=event.at.slice(11,23)+'Z';
+    const text=document.createElement('span');text.textContent=`${tx?tx.slice(0,8):'system'} / ${type} / ${detail}`;
+    row.append(time,text);$('log').append(row);
+    while($('log').children.length>100)$('log').firstChild.remove();
+    $('log').scrollTop=$('log').scrollHeight;$('events').textContent=this.sequence+' Ereignisse';
+    // Persistence is diagnostic only. Never replay a physical side effect on reload.
+    try{localStorage.setItem('leuchtwerk.last-session.v2',JSON.stringify(this.records))}
+    catch{this.persistent=false}
+    $('storage').textContent=this.persistent?'Journal: lokal gespeichert':'Journal: nur im Arbeitsspeicher';
+  }
+}
+class TimeoutError extends Error{}
+class RpcClient{
+  pending=new Map(); retries=0; dead=false;
+  constructor(journal){
+    this.journal=journal;
+    const url=URL.createObjectURL(new Blob(['('+workerMain.toString()+')()'],{type:'text/javascript'}));
+    this.worker=new Worker(url);URL.revokeObjectURL(url);
+    this.worker.onmessage=({data})=>{
+      const entry=this.pending.get(data.id);if(!entry)return;
+      clearTimeout(entry.timer);this.pending.delete(data.id);
+      if(data.replayed)this.journal.append('RPC_REPLAY',entry.tx,'Antwort aus Idempotenz-Cache; keine zweite Ausführung');
+      data.ok?entry.resolve(data.result):entry.reject(new Error(data.error));
+    };
+    this.worker.onerror=()=>this.fail();
+    this.worker.onmessageerror=()=>this.fail();
+  }
+  fail(){this.dead=true;for(const entry of this.pending.values()){clearTimeout(entry.timer);entry.reject(new Error('Worker nicht erreichbar'))}this.pending.clear()}
+  async call(method,params={},dropReply=false){
+    const id=uid();
+    for(let attempt=0;attempt<=config.retries;attempt++){
+      if(this.dead)throw Error('Worker ausgefallen; Seite neu laden');
+      try{return await new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>{this.pending.delete(id);reject(new TimeoutError('RPC-Timeout: '+method))},config.timeout);
+        this.pending.set(id,{resolve,reject,timer,tx:params.tx});
+        try{this.worker.postMessage({protocol:1,id,method,params,dropReply:dropReply&&attempt===0})}
+        catch(error){clearTimeout(timer);this.pending.delete(id);reject(error)}
+      })}catch(error){
+        if(!(error instanceof TimeoutError)||attempt===config.retries)throw error;
+        $('retries').textContent=++this.retries;
+        this.journal.append('RPC_RETRY',params.tx,`${method}: Versuch ${attempt+2}, gleiche Korrelations-ID`);
+        await new Promise(resolve=>setTimeout(resolve,60*2**attempt));
+      }
+    }
+  }
+}
+class TransactionState{
+  state='queued';
+  constructor(id,journal){this.id=id;this.journal=journal}
+  move(next){
+    const transitions={queued:['preparing','compensating'],preparing:['prepared','compensating'],prepared:['rendering','compensating'],rendering:['committing','compensating'],committing:['completed','compensating'],compensating:['failed'],completed:[],failed:[]};
+    if(!transitions[this.state].includes(next))throw Error(`Ungültiger Übergang ${this.state} → ${next}`);
+    this.journal.append('STATE',this.id,`${this.state} → ${next}`);this.state=next;
+  }
+}
+class Renderer{
+  animation=null;
+  async pulse(signal){
+    if(document.hidden)throw Error('Seite ist nicht sichtbar');
+    signal.throwIfAborted();
+    const start=performance.now();
+    const animation=$('trigger').animate([
+      {background:'#c9f779',color:'#293219',boxShadow:'0 0 45px #c9f77999,0 0 100px #c9f77944'},
+      {background:'#c9f779',color:'#293219',boxShadow:'0 0 45px #c9f77999,0 0 100px #c9f77944'}
+    ],{duration:config.duration,fill:'none'});
+    this.animation=animation;
+    const abort=()=>animation.cancel();signal.addEventListener('abort',abort,{once:true});
+    try{await animation.finished;signal.throwIfAborted();return performance.now()-start}
+    finally{signal.removeEventListener('abort',abort);animation.cancel();this.animation=null}
+  }
+  off(){this.animation?.cancel()}
+}
+class CommandQueue{
+  items=[];running=false;
+  constructor(handler,journal){this.handler=handler;this.journal=journal}
+  enqueue(command){
+    if(this.items.length>=config.capacity){this.journal.append('BACKPRESSURE',command.id,'Warteschlange voll; Auftrag abgewiesen');return false}
+    this.items.push(command);this.journal.append('ENQUEUED',command.id,'Auftrag angenommen');this.update();void this.drain();return true;
+  }
+  update(){$('queued').textContent=this.items.length+' / '+config.capacity}
+  clear(){for(const command of this.items)this.journal.append('CANCELLED',command.id,'Wartender Auftrag verworfen');this.items=[];this.update()}
+  async drain(){
+    if(this.running)return;this.running=true;
+    try{while(this.items.length){const command=this.items.shift();this.update();await this.handler(command)}}
+    finally{this.running=false}
+  }
+}
+class Application{
+  controller=null;failed=0;activeStage=0;
+  constructor(rpc,journal){this.rpc=rpc;this.journal=journal;this.renderer=new Renderer();this.queue=new CommandQueue(command=>this.execute(command),journal)}
+  submit(){
+    if(document.hidden||this.rpc.dead)return;
+    const mode=$('fault').value;
+    if(this.queue.enqueue(Object.freeze({id:uid(),mode,duration:config.duration})))$('fault').value='none';
+  }
+  cancel(){this.queue.clear();this.controller?.abort(new Error('Durch Benutzer abgebrochen'));this.renderer.off()}
+  async execute(command){
+    const tx=command.id,state=new TransactionState(tx,this.journal),start=performance.now();
+    const controller=new AbortController();this.controller=controller;
+    const next=i=>{if(i>0)stage(i-1,'done');this.activeStage=i;stage(i,'active')};
+    stages.forEach((_,i)=>stage(i,'waiting'));
+    $('cancel').disabled=false;$('phase').textContent='● IN BEARBEITUNG';
+    try{
+      next(0);if(command.duration!==config.duration)throw Error('Schema-Verletzung');
+      state.move('preparing');next(1);
+      const reservation=await this.rpc.call('prepare',{tx,duration:command.duration,reject:command.mode==='reject'},command.mode==='drop');
+      next(2);controller.signal.throwIfAborted();
+      if(reservation.state!=='prepared')throw Error('Keine gültige Reservierung');
+      state.move('prepared');this.journal.append('LEASE',tx,`Version ${reservation.version}; Ablauf ${new Date(reservation.expires).toISOString()}`);
+      next(3);state.move('rendering');$('caption').textContent='800 ms Licht. Mit bestätigter Reservierung.';$('phase').textContent='● LEUCHTET';
+      const elapsed=await this.renderer.pulse(controller.signal);
+      $('renderTime').textContent=elapsed.toFixed(1)+' ms';
+      next(4);state.move('committing');
+      // Cancellation stops being accepted at commit: the visible effect is finished.
+      $('cancel').disabled=true;
+      const receipt=await this.rpc.call('commit',{tx,version:reservation.version},command.mode==='commit-drop');
+      next(5);state.move('completed');$('count').textContent=receipt.committed;
+      this.journal.append('COMMITTED',tx,`Version ${receipt.version}; Renderabschluss ${elapsed.toFixed(1)} ms`);
+      stage(5,'done');$('caption').textContent='Commit bestätigt. Der Knopf ist wieder dunkel.';
+    }catch(error){
+      stage(this.activeStage,'failed');state.move('compensating');this.renderer.off();
+      // This is a saga: a visible flash cannot be undone. Compensation releases
+      // the reservation; it does not claim atomicity between DOM and worker.
+      try{const result=await this.rpc.call('abort',{tx});
+        if(result.state==='committed'){$('count').textContent=result.committed;this.journal.append('RECONCILED',tx,'Commit war bereits erfolgt; bestätigten Zähler übernommen')}
+        else this.journal.append('COMPENSATED',tx,'Reservierung: '+result.state);
+      }catch(cleanup){this.journal.append('CLEANUP',tx,cleanup.message+'; offene Reservierung verfällt nach 5 s')}
+      state.move('failed');$('failed').textContent=++this.failed;
+      this.journal.append('FAILED',tx,error.message);$('caption').textContent=error.message;
+    }finally{
+      this.renderer.off();this.controller=null;$('cancel').disabled=true;
+      $('latency').textContent=(performance.now()-start).toFixed(0)+' ms';
+      $('phase').textContent=this.rpc.dead?'● WORKER-FEHLER':'● BEREIT';
+    }
+  }
+}
+const journal=new Journal();let application;
+async function boot(){
+  $('trigger').disabled=true;
+  try{
+    const rpc=new RpcClient(journal);const hello=await rpc.call('hello');
+    if(hello.protocol!==1)throw Error('Protokollversion nicht unterstützt');
+    application=new Application(rpc,journal);$('trigger').disabled=false;
+    $('trigger').addEventListener('click',()=>application.submit());
+    $('cancel').addEventListener('click',()=>application.cancel());
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)application.cancel()});
+    journal.append('READY',null,'Worker-Handshake v1 bestätigt. Keine künstlichen Prüflatenzen.');
+  }catch(error){$('caption').textContent='Initialisierung fehlgeschlagen: '+error.message;$('phase').textContent='● NICHT VERFÜGBAR';journal.append('BOOT_FAILED',null,error.message)}
+}
+$('export').addEventListener('click',()=>{
+  const url=URL.createObjectURL(new Blob([JSON.stringify({schema:2,config,events:journal.records},null,2)],{type:'application/json'}));
+  const link=document.createElement('a');link.href=url;link.download='leuchtwerk-trace.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+void boot();
+}
+// The existing gate reveals the document for both allow and deny.
+// Start only when it has revealed the original application DOM.
+(function waitForTestGate() {
+  let started = false;
+  const observer = new MutationObserver(check);
+  function check() {
+    if (document.documentElement.style.visibility !== 'visible') return;
+    observer.disconnect();
+    if (!started && document.getElementById('trigger')) {
+      started = true;
+      startLeuchtwerk();
+    }
+  }
+  observer.observe(document.documentElement, {attributes:true, attributeFilter:['style']});
+  check();
+})();
+
+</script>
+</html>
