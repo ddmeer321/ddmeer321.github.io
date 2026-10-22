@@ -1,0 +1,110 @@
+/* DeepScheitern Landing. Eigene Datei; library.css bleibt unberuehrt. */
+:root {
+  --d-bg: #050507;
+  --d-surface: #0d0d14;
+  --d-line: #1d1b2b;
+  --d-ink: #f2f0f8;
+  --d-muted: #9b93b5;
+  --d-cyan: #22e4d4;
+  --d-pink: #ff2d95;
+  --d-violet: #8b5cf6;
+  --d-nav: 64px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; min-width: 280px; background: var(--d-bg); color: var(--d-ink);
+  font-family: "Baloo 2", Poppins, ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6; overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+.d-shell { max-width: 1180px; margin: 0 auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+
+/* Navigation */
+.d-nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; height: var(--d-nav);
+  display: flex; align-items: center; gap: 24px;
+  background: rgba(5,5,7,.72); backdrop-filter: blur(14px); border-bottom: 1px solid var(--d-line); }
+.d-nav-inner { display: flex; align-items: center; gap: 24px; width: 100%; }
+.d-logo { height: 30px; width: auto; cursor: pointer; }
+.d-nav-links { margin-left: auto; display: flex; gap: 22px; font-size: .92rem; color: var(--d-muted); }
+.d-nav-links a { position: relative; padding: 4px 0; transition: color .2s ease; }
+.d-nav-links a:hover, .d-nav-links a:focus-visible { color: var(--d-ink); }
+.d-nav-links a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, var(--d-cyan), var(--d-pink)); transition: right .25s ease; }
+.d-nav-links a:hover::after { right: 0; }
+@media (max-width: 720px) { .d-nav-links { display: none; } }
+
+/* Hero */
+.d-hero { position: relative; min-height: min(760px, calc(100svh - var(--d-nav)));
+  display: grid; place-items: center; text-align: center; }
+#d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* Leseschleier: ohne ihn laeuft die Spirale quer durch die Ueberschrift. */
+.d-hero::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 58% 46% at 50% 44%, rgba(5,5,7,.92) 0%, rgba(5,5,7,.78) 42%, rgba(5,5,7,0) 78%),
+    linear-gradient(to bottom, rgba(5,5,7,0) 62%, rgba(5,5,7,.75) 86%, var(--d-bg) 100%); }
+.d-hero-text { position: relative; z-index: 2; display: grid; gap: 20px; justify-items: center;
+  padding-block: 56px; pointer-events: none; }
+.d-hero-text > * { pointer-events: auto; }
+.d-title { margin: 0; font-size: clamp(2.1rem, 7vw, 4.4rem); font-weight: 800;
+  letter-spacing: -.03em; line-height: 1.04; text-wrap: balance; }
+.d-title .grad { background: linear-gradient(100deg, var(--d-pink), var(--d-cyan));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.d-sub { margin: 0; max-width: 52ch; color: var(--d-muted); font-size: clamp(.98rem, 2vw, 1.1rem); }
+.d-cta { display: inline-flex; align-items: center; gap: 10px; padding: 13px 26px; border-radius: 999px;
+  border: 1px solid var(--d-line); background: var(--d-surface); font-weight: 700; font-size: .98rem;
+  position: relative; transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+.d-cta:hover, .d-cta:focus-visible { transform: translateY(-2px); border-color: transparent;
+  box-shadow: 0 0 0 1px var(--d-violet), 0 10px 34px rgba(139,92,246,.3); }
+.d-scrollhint { position: absolute; bottom: 20px; left: 50%; translate: -50% 0; z-index: 2;
+  color: var(--d-muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+
+/* Abschnitte */
+.d-section { padding-block: clamp(64px, 11vw, 120px); position: relative; z-index: 2; }
+.d-eyebrow { font-size: .74rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--d-cyan); margin: 0 0 10px; }
+.d-h2 { margin: 0 0 14px; font-size: clamp(1.6rem, 4vw, 2.5rem); font-weight: 800;
+  letter-spacing: -.02em; text-wrap: balance; }
+.d-lead { margin: 0 0 40px; max-width: 58ch; color: var(--d-muted); }
+
+/* Produktkarten */
+.d-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+.d-card { position: relative; display: grid; gap: 10px; align-content: start; padding: 26px;
+  border-radius: 20px; border: 1px solid var(--d-line); background: var(--d-surface);
+  transform-style: preserve-3d; will-change: transform;
+  transition: border-color .25s ease, box-shadow .25s ease; }
+.d-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: 0;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(139,92,246,.17), transparent 60%);
+  transition: opacity .25s ease; pointer-events: none; }
+.d-card:hover { border-color: #332c4d; box-shadow: 0 18px 46px rgba(0,0,0,.5); }
+.d-card:hover::before { opacity: 1; }
+.d-card h3 { margin: 0; font-size: 1.28rem; letter-spacing: -.01em; }
+.d-card p { margin: 0; color: var(--d-muted); font-size: .94rem; }
+.d-card .d-go { font-weight: 700; color: var(--d-pink); font-size: .94rem; }
+.d-badge { justify-self: start; font-size: .68rem; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; padding: 5px 11px; border-radius: 999px; }
+.d-badge.online { background: rgba(34,228,212,.15); color: var(--d-cyan); }
+.d-badge.arbeit { background: rgba(255,45,149,.14); color: var(--d-pink); }
+.d-badge.konzept { background: rgba(155,147,181,.13); color: var(--d-muted); }
+
+/* Fuss */
+.d-footer { border-top: 1px solid var(--d-line); padding-block: 30px 44px;
+  display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center;
+  color: var(--d-muted); font-size: .88rem; position: relative; z-index: 2; }
+.d-footer a:hover { color: var(--d-ink); }
+.d-egg { position: fixed; left: 50%; bottom: 26px; translate: -50% 0; z-index: 40;
+  padding: 11px 20px; border-radius: 999px; border: 1px solid var(--d-violet);
+  background: rgba(13,13,20,.94); font-size: .9rem; font-weight: 700; }
+:focus-visible { outline: 2px solid var(--d-cyan); outline-offset: 3px; }
+
+/* Ohne JS und bei reduzierter Bewegung muss alles trotzdem lesbar sein. */
+.reveal { opacity: 0; transform: translateY(26px); }
+.no-anim .reveal, .anim-ready .reveal { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .d-card, .d-cta, .d-nav-links a::after { transition: none; }
+}
