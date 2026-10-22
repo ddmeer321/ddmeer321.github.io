@@ -1,0 +1,112 @@
+/* DeepScheitern-Startseite. Bewusst dunkel und neon, als Gegenstueck zum
+   freundlichen Cremeton von DeepPlay. Eigene Datei, damit library.css
+   unberuehrt bleibt und die Spieleseite davon nichts mitbekommt. */
+:root {
+  --ds-bg: #0b0a12;
+  --ds-surface: #15131f;
+  --ds-line: #2a2440;
+  --ds-ink: #f0edf8;
+  --ds-muted: #a79bc4;
+  --ds-cyan: #22e4d4;
+  --ds-pink: #ff2d95;
+  --ds-violet: #8b5cf6;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 280px;
+  font-family: "Baloo 2", Poppins, ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
+  color: var(--ds-ink);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(139, 92, 246, 0.22), transparent 28rem),
+    radial-gradient(circle at 85% 12%, rgba(255, 45, 149, 0.18), transparent 26rem),
+    radial-gradient(circle at 50% 100%, rgba(34, 228, 212, 0.12), transparent 30rem),
+    var(--ds-bg);
+}
+
+a { color: inherit; }
+
+.ds-wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 64px;
+}
+
+.ds-hero { text-align: center; display: grid; gap: 18px; justify-items: center; }
+
+.ds-logo { width: min(440px, 88%); height: auto; }
+
+.ds-claim {
+  margin: 0;
+  font-size: clamp(1.35rem, 4.5vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  max-width: 20ch;
+}
+
+.ds-lede { margin: 0; color: var(--ds-muted); max-width: 54ch; }
+
+.ds-grid {
+  margin-top: 44px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.ds-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 24px;
+  border-radius: 18px;
+  border: 1px solid var(--ds-line);
+  background: var(--ds-surface);
+  text-decoration: none;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+a.ds-card:hover,
+a.ds-card:focus-visible { border-color: var(--ds-violet); transform: translateY(-3px); }
+
+.ds-card h2 { margin: 0; font-size: 1.3rem; letter-spacing: -0.01em; }
+.ds-card p { margin: 0; color: var(--ds-muted); font-size: 0.95rem; }
+
+.ds-badge {
+  justify-self: start;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+.ds-badge.live { background: rgba(34, 228, 212, 0.16); color: var(--ds-cyan); }
+.ds-badge.bald { background: rgba(167, 155, 196, 0.14); color: var(--ds-muted); }
+
+.ds-go { font-weight: 700; color: var(--ds-pink); }
+
+.ds-footer {
+  margin-top: 52px;
+  padding-top: 22px;
+  border-top: 1px solid var(--ds-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  justify-content: center;
+  color: var(--ds-muted);
+  font-size: 0.88rem;
+}
+
+:focus-visible { outline: 2px solid var(--ds-cyan); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-card { transition: none; }
+}
