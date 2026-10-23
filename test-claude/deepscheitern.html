@@ -10,10 +10,36 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" />
     <link rel="stylesheet" href="../assets/css/deepscheitern.css?v=1" />
     <title>DeepScheitern</title>
+    <!-- Sofort, damit die Seite nicht kurz ohne Ladebildschirm aufblitzt.
+         Ohne JS wird die Klasse nie gesetzt und der Schirm bleibt weg. -->
+    <script>document.documentElement.classList.add("laedt");</script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
     <script src="../assets/js/test-gate.js?v=1"></script>
   </head>
   <body>
+    <div class="ladebildschirm" id="lade" aria-hidden="true">
+      <div class="schirm">
+            <div class="leiste"><i></i><i></i><i></i><span>deepscheitern — bash</span></div>
+            <div class="ausgabe" id="ausgabe"><span class="z"><span class="matt">$</span> ./deepscheitern --start</span>
+            <span class="z"><span class="ok">[  OK  ] Schriftarten geladen</span></span>
+            <span class="z"><span class="ok">[  OK  ] Dunkelmodus erkannt</span></span>
+            <span class="z"><span class="ok">[  OK  ] Kaffee gefunden</span></span>
+            <span class="z"><span class="warn">[ WARN ] Zeitplan nicht gefunden</span></span>
+            <span class="z"><span class="info">[ INFO ] nehme "irgendwann"</span></span>
+            <span class="z"><span class="ok">[  OK  ] 3 Projekte geladen</span></span>
+            <span class="z"><span class="warn">[ WARN ] davon 1 wirklich fertig</span></span>
+            <span class="z"><span class="fehl">[ FEHL ] &#39;selbstzweifel&#39; läuft noch</span></span>
+            <span class="z"><span class="info">[ INFO ] Beenden nicht möglich</span></span>
+            <span class="z"><span class="ok">[  OK  ] Trotzdem weitergemacht</span></span>
+            <span class="z"><span class="warn">[ WARN ] Doku nicht auffindbar</span></span>
+            <span class="z"><span class="info">[ INFO ] Der Code ist die Doku</span></span>
+            <span class="z"><span class="fehl">[ FEHL ] Zu wenig geschlafen</span></span>
+            <span class="z"><span class="ok">[  OK  ] Bereit. Mehr oder weniger.</span></span>
+            <span class="eingabe"><span class="z"><span class="matt">$</span></span><span class="cursor" aria-hidden="true"></span></span></div>
+          </div>
+      <p class="lade-hinweis">Klicken zum Überspringen</p>
+    </div>
+
     <header class="nav">
       <a href="#oben"><b>DeepScheitern®</b></a>
       <nav aria-label="Hauptnavigation">
@@ -23,33 +49,6 @@
     </header>
 
     <main id="oben">
-      <!-- 1 — Der Start, als liefe die Seite in einem Terminal hoch -->
-      <section class="boot huelle" aria-label="Startmeldungen">
-        <div class="schirm">
-          <div class="leiste"><i></i><i></i><i></i><span>deepscheitern — bash</span></div>
-          <div class="ausgabe" id="ausgabe"><span class="z"><span class="matt">$</span> ./deepscheitern --start</span>
-          <span class="z"><span class="ok">[  OK  ] Schriftarten geladen</span></span>
-          <span class="z"><span class="ok">[  OK  ] Dunkelmodus erkannt</span></span>
-          <span class="z"><span class="ok">[  OK  ] Kaffee gefunden</span></span>
-          <span class="z"><span class="warn">[ WARN ] Zeitplan nicht gefunden</span></span>
-          <span class="z"><span class="info">[ INFO ] nehme "irgendwann"</span></span>
-          <span class="z"><span class="ok">[  OK  ] 3 Projekte geladen</span></span>
-          <span class="z"><span class="warn">[ WARN ] davon 1 wirklich fertig</span></span>
-          <span class="z"><span class="fehl">[ FEHL ] &#39;selbstzweifel&#39; läuft noch</span></span>
-          <span class="z"><span class="info">[ INFO ] Beenden nicht möglich</span></span>
-          <span class="z"><span class="ok">[  OK  ] Trotzdem weitergemacht</span></span>
-          <span class="z"><span class="warn">[ WARN ] Doku nicht auffindbar</span></span>
-          <span class="z"><span class="info">[ INFO ] Der Code ist die Doku</span></span>
-          <span class="z"><span class="fehl">[ FEHL ] Zu wenig geschlafen</span></span>
-          <span class="z"><span class="ok">[  OK  ] Bereit. Mehr oder weniger.</span></span>
-          <span class="eingabe"><span class="z"><span class="matt">$</span></span><span class="cursor" aria-hidden="true"></span></span></div>
-        </div>
-        <div class="unterleiste">
-          <a class="weiter" href="#ueber">Weiterlesen <span aria-hidden="true">↓</span></a>
-          <button class="ueberspringen" id="ueberspringen" type="button">Überspringen</button>
-        </div>
-      </section>
-
       <!-- 2 — Hero -->
       <section class="hero huelle anim" id="ueber">
         <p class="kapitel">Kapitel 01 — Worum es geht</p>

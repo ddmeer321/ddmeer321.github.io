@@ -39,10 +39,24 @@ a { color: inherit; text-decoration: none; }
 .nav nav a:hover, .nav nav a:focus-visible { color: var(--gruen); }
 
 /* ---------- 1. Terminalstart ---------- */
-.boot {
-  min-height: 100svh; display: grid; align-content: center;
-  grid-template-columns: minmax(0, 1fr); padding: 96px 0 72px;
+/* Der Ladebildschirm liegt ueber allem und verschwindet, wenn der Start
+   durch ist. Standard ist unsichtbar: ohne JS wird .laedt nie gesetzt,
+   dann erscheint er gar nicht erst und blockiert nichts. */
+.ladebildschirm {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; align-content: center; justify-content: center;
+  padding: var(--rand); background: var(--bg);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .55s ease, visibility .55s;
 }
+.laedt .ladebildschirm { opacity: 1; visibility: visible; pointer-events: auto; }
+/* Solange er oben liegt, darf dahinter nicht gescrollt werden. */
+.laedt { overflow: hidden; }
+.lade-hinweis {
+  margin: 22px 0 0; font-family: var(--mono); font-size: .62rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--fg2);
+}
+.fertig .lade-hinweis { visibility: hidden; }
 .schirm {
   background: var(--flaeche); border: 1px solid rgba(43, 212, 125, .22);
   border-radius: 12px; padding: clamp(18px, 3.6vw, 36px);
@@ -120,27 +134,7 @@ a { color: inherit; text-decoration: none; }
 .tippt .cursor { opacity: 0; animation: none; }
 .tippt.fertig .cursor { opacity: 1; animation: blinken 1.05s steps(1) infinite; }
 
-.unterleiste {
-  margin-top: 26px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
-}
-.ueberspringen {
-  padding: 0; border: 0; background: none; cursor: pointer;
-  font-family: var(--mono); font-size: .64rem; letter-spacing: .16em;
-  text-transform: uppercase; color: var(--fg2);
-}
-.ueberspringen:hover, .ueberspringen:focus-visible { color: var(--gruen); }
-.fertig .ueberspringen { display: none; }
 
-/* Immer nur eines von beiden ist da. Blendete man das andere nur aus,
-   behielte es seinen Platz und der sichtbare Knopf staende eingerueckt. */
-.weiter {
-  display: none; align-items: center; gap: 10px;
-  font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
-  text-transform: uppercase; color: var(--fg2);
-}
-.fertig .weiter, :root:not(.tippt) .weiter { display: inline-flex; }
-.weiter span { animation: sacken 1.8s ease-in-out infinite; }
-@keyframes sacken { 50% { transform: translateY(4px); } }
 
 /* ---------- Einblenden beim Scrollen ----------
    Nur unter .jsan: ohne JS bleibt alles sichtbar statt unsichtbar. */
@@ -248,8 +242,7 @@ a.karte:hover .hin, a.karte:focus-visible .hin { letter-spacing: .22em; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .tippt .ausgabe .z { width: calc(var(--n) * 1ch); animation: none; }
-  .cursor, .weiter span { animation: none; }
+  .cursor { animation: none; }
   .jsan .anim { opacity: 1; transform: none; transition: none; }
   .tippt .ausgabe .z { border-right-color: transparent; }
-  .weiter { opacity: 1; }
 }
