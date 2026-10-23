@@ -272,6 +272,24 @@ a.karte:hover .hin, a.karte:focus-visible .hin { letter-spacing: .22em; }
   box-shadow: 0 0 0 1px rgba(43, 212, 125, .22), 0 14px 46px -20px rgba(43, 212, 125, .7);
 }
 
+/* ---------- Musikseite ---------- */
+.titel-gross {
+  margin: 0; font-weight: 700; line-height: .9; letter-spacing: -.04em;
+  font-size: clamp(2.4rem, 11vw, 7rem); text-transform: uppercase;
+}
+.titel-gross em { font-style: normal; color: var(--gruen); }
+.hoeren {
+  border-top: 1px solid var(--linie);
+  padding: clamp(54px, 9vh, 100px) 0 clamp(70px, 12vh, 130px);
+}
+/* Sichtbar als "hier fehlt noch etwas" markiert, damit es niemand fuer
+   fertigen Text haelt. Die Seite steht hinter dem Testschutz. */
+.platzhalter {
+  border-left: 2px solid var(--bernstein); padding-left: 16px;
+  color: var(--bernstein);
+}
+.kapitel a:hover, .kapitel a:focus-visible { color: var(--gruen); }
+
 /* ---------- Fuss ---------- */
 .fuss {
   border-top: 1px solid var(--linie); padding: 26px 0 40px;
