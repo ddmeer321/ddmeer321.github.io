@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Spielebibliothek",
-  "short_name": "Spiele",
+  "name": "DeepPlay",
+  "short_name": "DeepPlay",
   "description": "Kleine Browserspiele von ddmeer321 — auch ohne Netz.",
   "start_url": "/",
   "scope": "/",

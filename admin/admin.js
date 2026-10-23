@@ -101,7 +101,7 @@
     var myProfile = profileRes.data;
 
     if (!myProfile || myProfile.role !== "owner") {
-      els.noAccessText.textContent = "Diese Seite ist nur für Owner der Spielebibliothek zugänglich.";
+      els.noAccessText.textContent = "Diese Seite ist nur für Owner von DeepPlay zugänglich.";
       showState("no-access");
       return;
     }
