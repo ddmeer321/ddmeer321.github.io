@@ -17,6 +17,8 @@ const URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ORIGINS = new Set([
   "https://ddmeer321.github.io",
+  "https://deepscheitern.de",
+  "https://www.deepscheitern.de",
   "http://127.0.0.1:8899", "http://localhost:8899",
   "http://127.0.0.1:8915", "http://localhost:8915",
   "http://127.0.0.1:8916", "http://localhost:8916",

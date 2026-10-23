@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="DeepScheitern — Wir scheitern tief. Professionell. Ein Experimentierfeld für Spiele, Software und digitale Ideen." />
+    <meta name="theme-color" content="#04070a" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" />
+    <link rel="stylesheet" href="../assets/css/deepscheitern.css?v=1" />
+    <title>DeepScheitern</title>
+    <!-- Sofort, damit die Seite nicht kurz ohne Ladebildschirm aufblitzt.
+         Ohne JS wird die Klasse nie gesetzt und der Schirm bleibt weg. -->
+    <script>document.documentElement.classList.add("laedt");</script>
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
+    <script src="../assets/js/test-gate.js?v=1"></script>
+  </head>
+  <body>
+    <div class="ladebildschirm" id="lade" aria-hidden="true">
+      <div class="schirm">
+            <div class="leiste"><i></i><i></i><i></i><span>deepscheitern — bash</span></div>
+            <div class="ausgabe" id="ausgabe"><span class="z"><span class="matt">$</span> ./deepscheitern --start</span>
+            <span class="z"><span class="ok">[  OK  ] Schriftarten geladen</span></span>
+            <span class="z"><span class="ok">[  OK  ] Dunkelmodus erkannt</span></span>
+            <span class="z"><span class="ok">[  OK  ] Kaffee gefunden</span></span>
+            <span class="z"><span class="warn">[ WARN ] Zeitplan nicht gefunden</span></span>
+            <span class="z"><span class="info">[ INFO ] nehme "irgendwann"</span></span>
+            <span class="z"><span class="ok">[  OK  ] 3 Projekte geladen</span></span>
+            <span class="z"><span class="warn">[ WARN ] davon 1 wirklich fertig</span></span>
+            <span class="z"><span class="fehl">[ FEHL ] &#39;selbstzweifel&#39; läuft noch</span></span>
+            <span class="z"><span class="info">[ INFO ] Beenden nicht möglich</span></span>
+            <span class="z"><span class="ok">[  OK  ] Trotzdem weitergemacht</span></span>
+            <span class="z"><span class="warn">[ WARN ] Doku nicht auffindbar</span></span>
+            <span class="z"><span class="info">[ INFO ] Der Code ist die Doku</span></span>
+            <span class="z"><span class="fehl">[ FEHL ] Zu wenig geschlafen</span></span>
+            <span class="z"><span class="ok">[  OK  ] Bereit. Mehr oder weniger.</span></span>
+            <span class="eingabe"><span class="z"><span class="matt">$</span></span><span class="cursor" aria-hidden="true"></span></span></div>
+          </div>
+      <p class="lade-hinweis">Klicken zum Überspringen</p>
+    </div>
+
+    <header class="nav">
+      <a href="#oben"><b>DeepScheitern®</b></a>
+      <nav aria-label="Hauptnavigation">
+        <a href="#ueber">Über</a>
+        <a href="#projekte">Projekte</a>
+      </nav>
+    </header>
+
+    <main id="oben">
+      <!-- 2 — Hero -->
+      <section class="hero huelle anim" id="ueber">
+        <div class="hero-raster">
+          <div>
+            <p class="kapitel">Kapitel 01 — Worum es geht</p>
+            <h1 class="marke-gross">
+              <img src="../assets/img/deepscheitern-logo-dunkel.webp"
+                   width="720" height="535" alt="DeepScheitern" decoding="async" />
+            </h1>
+            <p class="spruch">Wir scheitern tief. Professionell.</p>
+          </div>
+          <div>
+            <p class="fliess">DeepScheitern ist ein <strong>Experimentierfeld</strong> für Spiele,
+              Software und digitale Ideen. Hier landet, was gebaut wurde, weil es
+              interessant war — nicht, weil jemand dafür bezahlt hat.</p>
+            <p class="fliess">Manches davon läuft. Manches ist auf halbem Weg stehen geblieben,
+              weil unterwegs etwas Spannenderes dazwischenkam. <strong>Beides bleibt
+              stehen</strong>, auch das Halbfertige — denn ein Projekt, das nie
+              scheitert, ist meistens eins, bei dem nichts riskiert wurde.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2b — Zahlen -->
+      <section class="zahlen huelle anim" aria-label="In Zahlen">
+        <div class="zahl"><b>3</b><span>Projekte</span></div>
+        <div class="zahl"><b>1</b><span>davon wirklich fertig</span></div>
+        <div class="zahl"><b>0</b><span>eingehaltene Deadlines</span></div>
+        <div class="zahl"><b>∞</b><span>Neuanfänge</span></div>
+      </section>
+
+      <!-- 2c — Arbeitsweise -->
+      <section class="weise huelle anim" id="weise">
+        <p class="kapitel">Kapitel 02 — Wie hier gearbeitet wird</p>
+        <h2 class="titel2">Erst bauen, dann merken.</h2>
+        <div class="punkte">
+          <div class="punkt">
+            <span class="nr">01</span>
+            <h3>Anfangen</h3>
+            <p>Eine Idee muss nicht gut sein, um gebaut zu werden. Sie muss nur
+              interessant genug sein, um anzufangen.</p>
+          </div>
+          <div class="punkt">
+            <span class="nr">02</span>
+            <h3>Scheitern</h3>
+            <p>Die meisten Versuche landen nie hier. Und die, die es tun, sehen
+              selten so aus wie geplant.</p>
+          </div>
+          <div class="punkt">
+            <span class="nr">03</span>
+            <h3>Stehen lassen</h3>
+            <p>Halbfertiges wird nicht gelöscht. Es ist meistens der ehrlichste
+              Teil der Sammlung.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 — Projekte -->
+      <section class="projekte huelle anim" id="projekte">
+        <p class="kapitel">Kapitel 03 — Projekte</p>
+        <h2 class="titel2">Play. Fail. Repeat.</h2>
+        <div class="liste">
+          <a class="karte" href="../index.html">
+            <span class="nr">01</span>
+            <h3>DeepPlay</h3>
+            <p>Eine Sammlung kleiner Browserspiele. Ohne Installation, ohne Konto, ohne Netz spielbar.</p>
+            <span class="hin">Browser-Spiele →</span>
+          </a>
+          <a class="karte" href="../neon-bot-arena.html">
+            <span class="nr">02</span>
+            <h3>Neon Bot Arena</h3>
+            <p>Bots prügeln sich in einer Arena. Chaos ist kein Bug, es ist ein Feature.</p>
+            <span class="hin">Spielen →</span>
+          </a>
+          <a class="karte" href="deepscheitern-musik.html">
+            <span class="nr">03</span>
+            <h3>DeepScheitern Musik</h3>
+            <p>Der Teil, der nicht gespielt, sondern gehört wird. Scheitern, aber mit Takt.</p>
+            <span class="hin">Reinhören →</span>
+          </a>
+          <div class="karte">
+            <span class="nr">04</span>
+            <h3>DeepService</h3>
+            <p>Support-Werkzeug, das garantiert nichts garantiert. Noch im Bau.</p>
+            <span class="hin aus">Noch nicht öffentlich</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 — Schluss -->
+      <section class="schluss huelle anim">
+        <p class="kapitel">Kapitel 04 — Ende</p>
+        <h2 class="titel2">Immer noch da?</h2>
+        <p class="fliess">Dann schau dir das Ganze gerne nochmal an. Es ändert sich
+          nichts — aber das hat hier noch nie jemanden aufgehalten.</p>
+        <button class="neustart" id="neustart" type="button">
+          <span aria-hidden="true">$</span> ./deepscheitern --restart
+        </button>
+      </section>
+
+      <footer class="fuss huelle">
+        <a href="/impressum.html">Impressum</a>
+        <a href="/datenschutz.html">Datenschutz</a>
+        <span>© 2026</span>
+      </footer>
+    </main>
+
+    <script src="../assets/js/deepscheitern-boot.js?v=1"></script>
+  </body>
+</html>

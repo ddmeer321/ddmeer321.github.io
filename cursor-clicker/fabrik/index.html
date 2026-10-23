@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b0d14">
   <title>Cursor Clicker · Deine Fabrik</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%239c84ff' d='M6 3v25l7-8 6 11 5-3-6-10h11z'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
   <div id="factory-loading" role="status" style="position:fixed;inset:0;z-index:999;background:#0b0d14;display:grid;place-content:center;font:18px system-ui;color:#eee">Deine Fabrik wird geladen …</div>
@@ -54,7 +54,7 @@
     <section id="employees" class="panel" aria-label="Mitarbeiter" hidden><div class="section-heading"><div><p class="eyebrow">DEIN KLICK-TEAM</p><h2>Jeder Helfer zählt.</h2><p>Sammle Mitarbeiter und besetze deine drei Arbeitsplätze. Jede Kopie kann einmal eingesetzt werden.</p></div><label class="search-label">Suchen<input id="search" type="search" placeholder="Mitarbeiter suchen …"></label></div><div id="employee-grid" class="employee-grid"></div></section>
     <section id="boxes" class="panel" aria-label="Mitarbeiter-Boxen" hidden><div class="section-heading"><div><p class="eyebrow">EIN NEUES TEAMMITGLIED WARTET</p><h2>Eine Box. Ein neuer Klick-Kumpel.</h2><p>Hier ziehst du ausschließlich Mitarbeiter. Bezahlt wird mit den Coins von Cursor Clicker.</p></div></div><div id="box-grid" class="box-grid"></div></section>
     <section id="potions" class="panel" aria-label="Tränke" hidden><div class="section-heading"><div><p class="eyebrow">KLEINE FLASCHE, MEHR KLICKS</p><h2>Gib deinem Team einen Schub.</h2><p>Wähle einen Trank und einen eingesetzten Mitarbeiter. Der Effekt endet automatisch.</p></div></div><div id="potion-grid" class="potion-grid"></div></section>
-    <footer><span><strong>Cursor Clicker</strong> / Fabrik</span><span>Gemeinsamer Spielstand · Coins, Mitarbeiter und Tränke werden automatisch gespeichert.</span></footer>
+    <footer><span><strong>Cursor Clicker</strong> / Fabrik</span><span>Gemeinsamer Spielstand · Coins, Mitarbeiter und Tränke werden automatisch gespeichert.</span><nav aria-label="Rechtliche Informationen"><a href="/datenschutz.html">Datenschutz</a> · <a href="/impressum.html">Impressum</a></nav></footer>
   </main>
   <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><p id="dialog-kicker" class="eyebrow"></p><button id="dialog-close" type="button" aria-label="Schließen">×</button></div><h2 id="dialog-title"></h2><div id="dialog-body"></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>

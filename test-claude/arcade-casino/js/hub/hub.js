@@ -67,7 +67,13 @@ export function createHub(root, { onOpen, onFixture, renderPerks, onStats, onSet
       "p.hall-note",
       {},
       "Neonpalast verwendet ausschließlich virtuelles Spielgeld ohne realen Wert. Es gibt keine Käufe, keine Auszahlungen und keine Gewinne in echtem Geld. ",
-      h("a", { href: "../index.html" }, "Zur Spielebibliothek")
+      h("a", { href: "../index.html" }, "Zur Spielebibliothek"),
+      " · ",
+      // Absolute Pfade: die Halle liegt im oeffentlichen Spiel eine Ebene tief,
+      // im Testbereich zwei -- die Rechtsseiten stehen aber immer im Wurzelverzeichnis.
+      h("a", { href: "/datenschutz.html" }, "Datenschutz"),
+      " · ",
+      h("a", { href: "/impressum.html" }, "Impressum")
     )
   );
   root.append(hall);

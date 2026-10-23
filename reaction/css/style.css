@@ -44,6 +44,11 @@ body {
    steht das oberste Element der Seite. env() wirkt nur zusammen mit
    viewport-fit=cover im <meta viewport>. */
 .topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
   width: min(440px, calc(100% - 32px));
   margin: 0 auto;
   padding-top: max(10px, env(safe-area-inset-top));
@@ -225,3 +230,21 @@ html[data-phase="los"],    html[data-phase="los"] body    { background: var(--gr
 .loeschen[hidden] { display: none; }
 
 .hinweis { margin: 0; color: var(--muted); font-size: 0.86rem; }
+
+/* Impressum und Datenschutz muessen von jeder Seite erreichbar sein
+   (§ 5 DDG, Art. 12 DSGVO). Sie stehen in der topline, weil die als
+   einzige ausserhalb der Bildschirme liegt und nie vom Spiel verdeckt wird. */
+.rechtsnav {
+  display: flex;
+  gap: 12px;
+}
+.rechtsnav a {
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+.rechtsnav a:hover,
+.rechtsnav a:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+}
