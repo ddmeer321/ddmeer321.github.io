@@ -11,7 +11,7 @@
       '<div style="max-width:420px;width:100%;text-align:center;padding:32px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#181c26;">' +
       '<h1 style="margin:0 0 12px;font-size:1.5rem;">Kein Zugriff</h1>' +
       '<p style="margin:0 0 20px;color:#9aa0b4;line-height:1.5;">' + message + "</p>" +
-      '<a href="/index.html" style="display:inline-flex;padding:10px 20px;border-radius:8px;background:#6d8bff;color:#0b0d12;font-weight:700;text-decoration:none;">Zur Spielebibliothek</a>' +
+      '<a href="/index.html" style="display:inline-flex;padding:10px 20px;border-radius:8px;background:#6d8bff;color:#0b0d12;font-weight:700;text-decoration:none;">Zu DeepPlay</a>' +
       "</div>";
     document.body.appendChild(overlay);
     document.documentElement.style.visibility = "visible";
@@ -37,7 +37,7 @@
     var sessionRes = await sb.auth.getSession();
     var session = sessionRes.data && sessionRes.data.session;
     if (!session) {
-      denyAccess("Dieser Testbereich ist nur für Tester, Admins und Owner der Spielebibliothek zugänglich. Bitte melde dich zuerst an.");
+      denyAccess("Dieser Testbereich ist nur für Tester, Admins und Owner von DeepPlay zugänglich. Bitte melde dich zuerst an.");
       return;
     }
     var profileRes = await sb.from("profiles").select("role").eq("id", session.user.id).maybeSingle();
@@ -46,6 +46,6 @@
       reveal(role);
       return;
     }
-    denyAccess("Dieser Testbereich ist nur für Tester, Admins und Owner der Spielebibliothek zugänglich.");
+    denyAccess("Dieser Testbereich ist nur für Tester, Admins und Owner von DeepPlay zugänglich.");
   })();
 })();

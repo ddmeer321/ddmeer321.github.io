@@ -181,7 +181,7 @@ function cloudInfo() {
   if (cloudBoot.signedIn) {
     return { active: false, title: "Cloud-Speicherung nicht aktiv", detail: "Deine Anmeldung ist abgelaufen oder die Cloud-Speicherung ist in deinem Profil ausgeschaltet. Der Spielstand bleibt in diesem Browser.", loginHref: "../login.html" };
   }
-  return { active: false, title: "Nur auf diesem Gerät", detail: "Melde dich in der Spielebibliothek an, um deinen Spielstand in deinem Konto zu sichern und auf anderen Geräten weiterzuspielen.", loginHref: "../login.html" };
+  return { active: false, title: "Nur auf diesem Gerät", detail: "Melde dich bei DeepPlay an, um deinen Spielstand in deinem Konto zu sichern und auf anderen Geräten weiterzuspielen.", loginHref: "../login.html" };
 }
 
 function blockReason() {
