@@ -159,6 +159,12 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--mono); font-size: .68rem; letter-spacing: .22em;
   text-transform: uppercase; color: var(--gruen-matt); margin: 0 0 22px;
 }
+/* Das Logo traegt den Schriftzug bereits; eine zweite getippte
+   Schlagzeile daneben waere derselbe Name zweimal. Breite in vw statt
+   in clamp mit kleinem Faktor, sonst wird es auf dem Handy winzig. */
+.marke-gross { margin: 0; line-height: 0; }
+.marke-gross img { width: min(520px, 86vw); height: auto; display: block; }
+
 .titan {
   margin: 0; font-weight: 700; line-height: .88; letter-spacing: -.04em;
   font-size: clamp(2.6rem, 13vw, 10rem); text-transform: uppercase;
