@@ -1,0 +1,294 @@
+/* DeepScheitern - Terminalstart, Hero, Projekte.
+   Kein WebGL, normales Scrollen. Die Tipp-Animation laeuft in CSS: der Text
+   steht vollstaendig im Dokument und wird nur schrittweise freigelegt.
+   Faellt JS aus, ist sofort alles da und die Seite bleibt lesbar. */
+:root {
+  --bg: #04070a;
+  --flaeche: #0a1014;
+  --fg: #f2f4f5;
+  --fg2: #8b9499;
+  --gruen: #2bd47d;
+  --gruen-matt: #1d8f58;
+  --bernstein: #e0a33c;
+  --pink: #ff2d95;
+  --linie: rgba(242, 244, 245, .13);
+  --display: "Space Grotesk", "Archivo", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { font-family: var(--display); min-width: 300px; overflow-x: hidden;
+  -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+
+.huelle { width: min(1080px, 100% - 2 * var(--rand)); margin-inline: auto; }
+:root { --rand: max(22px, env(safe-area-inset-left, 0px)); }
+
+/* ---------- Kopf ---------- */
+.nav {
+  position: fixed; inset: 0 0 auto; z-index: 30; display: flex;
+  align-items: center; justify-content: space-between; gap: 18px;
+  padding: 18px var(--rand); font-family: var(--mono); font-size: .72rem;
+  letter-spacing: .18em; text-transform: uppercase;
+  background: linear-gradient(to bottom, var(--bg) 40%, transparent);
+}
+.nav b { font-weight: 700; letter-spacing: .2em; }
+.nav nav { display: flex; gap: 20px; color: var(--fg2); }
+.nav nav a:hover, .nav nav a:focus-visible { color: var(--gruen); }
+
+/* ---------- 1. Terminalstart ---------- */
+/* Der Ladebildschirm liegt ueber allem und verschwindet, wenn der Start
+   durch ist. Standard ist unsichtbar: ohne JS wird .laedt nie gesetzt,
+   dann erscheint er gar nicht erst und blockiert nichts. */
+.ladebildschirm {
+  position: fixed; inset: 0; z-index: 100;
+  /* Die Spur muss volle Breite haben. Mit justify-content: center wurde
+     sie inhaltsbreit, und das width: min(46rem, 100%) des Kastens bezog
+     sich dann auf genau diese schmale Spur -- er blieb klein. */
+  display: grid; align-content: center; justify-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--rand); background: var(--bg);
+  /* Passt der Kasten nicht in die Hoehe, muss man wenigstens im
+     Overlay scrollen koennen -- die Seite dahinter ist gesperrt. */
+  overflow: auto;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .55s ease, visibility .55s;
+}
+.laedt .ladebildschirm { opacity: 1; visibility: visible; pointer-events: auto; }
+/* Solange er oben liegt, darf dahinter nicht gescrollt werden. */
+.laedt { overflow: hidden; }
+.lade-hinweis {
+  margin: 22px 0 0; font-family: var(--mono); font-size: .62rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--fg2);
+}
+.fertig .lade-hinweis { visibility: hidden; }
+.schirm {
+  background: var(--flaeche); border: 1px solid rgba(43, 212, 125, .22);
+  border-radius: 12px; padding: clamp(18px, 3.6vw, 36px);
+  /* width statt max-width: der Ladebildschirm zentriert per
+     justify-content, dadurch schrumpfte der Kasten auf die Breite seines
+     Textes (rund 465px) statt die erlaubte Breite zu nutzen. */
+  width: min(46rem, 100%);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 30px 90px -40px rgba(43, 212, 125, .35);
+  position: relative; overflow: hidden;
+}
+/* Leichte Zeilenstruktur, wie auf einem Roehrenschirm. */
+.schirm::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(to bottom,
+    rgba(255,255,255,.028) 0 1px, transparent 1px 3px);
+}
+.leiste {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  font-family: var(--mono); font-size: .64rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--fg2);
+}
+.leiste i { width: 9px; height: 9px; border-radius: 50%; background: #2a3338; }
+.leiste i:first-child { background: var(--pink); }
+.leiste i:nth-child(2) { background: var(--bernstein); }
+.leiste i:nth-child(3) { background: var(--gruen); }
+.leiste span { margin-left: auto; }
+
+/* Bewusst kein <pre>: darin zaehlen die Umbrueche zwischen den Zeilen-
+   Elementen als echte Leerzeilen. Die Zeilen selbst haben white-space: pre. */
+.ausgabe {
+  margin: 0; font-family: var(--mono); line-height: 1.6;
+  font-size: clamp(.8rem, 3.6vw, 1.5rem); color: var(--gruen);
+  text-shadow: 0 0 14px rgba(43, 212, 125, .28);
+}
+.ausgabe .z {
+  display: block; white-space: pre; overflow: hidden;
+  width: auto;
+}
+.ausgabe .ok { color: var(--gruen); }
+.ausgabe .warn { color: var(--bernstein); }
+.ausgabe .fehl { color: var(--pink); }
+.ausgabe .matt, .ausgabe .info { color: var(--gruen-matt); }
+
+/* Tippen: die Breite waechst in Zeichenschritten. Nur wenn JS die
+   Zeichenzahl und die Verzoegerung gesetzt hat - sonst steht alles sofort. */
+.tippt .ausgabe .z {
+  width: 0;
+  /* Der Rahmen ist der mitlaufende Cursor. content-box, weil er sonst bei
+     border-box von der Zeilenbreite abgezogen wuerde und das letzte halbe
+     Zeichen abschneidet. */
+  box-sizing: content-box;
+  border-right: .5ch solid transparent;
+  /* --ms setzt das Skript, damit Dauer und Startverzoegerung aus derselben
+     Zahl kommen. Standen sie getrennt, liefen sie auseinander und die
+     Zeilen ueberlappten sich. */
+  animation:
+    tippen calc(var(--n) * var(--ms, 12ms)) steps(var(--n)) var(--d, 0ms) forwards,
+    cursoran 1ms linear var(--d, 0ms) forwards,
+    cursoraus 1ms linear calc(var(--d, 0ms) + var(--n) * var(--ms, 12ms)) forwards;
+}
+@keyframes cursoran { to { border-right-color: var(--gruen); } }
+@keyframes cursoraus { to { border-right-color: transparent; } }
+@keyframes tippen { to { width: calc(var(--n) * 1ch); } }
+/* Uebersprungen: sofort alles zeigen. */
+.tippt.fertig .ausgabe .z { width: auto; animation: none; }
+
+/* Eingabezeile: der Cursor steht hinter dem Prompt, nicht darunter. */
+.eingabe { display: block; }
+.eingabe .z { display: inline-block; vertical-align: baseline; }
+
+.cursor {
+  display: inline-block; width: 1ch; height: 1.1em; vertical-align: -.18em;
+  background: var(--gruen); animation: blinken 1.05s steps(1) infinite;
+}
+@keyframes blinken { 50% { opacity: 0; } }
+.tippt .cursor { opacity: 0; animation: none; }
+.tippt.fertig .cursor { opacity: 1; animation: blinken 1.05s steps(1) infinite; }
+
+
+
+/* ---------- Einblenden beim Scrollen ----------
+   Nur unter .jsan: ohne JS bleibt alles sichtbar statt unsichtbar. */
+.jsan .anim { opacity: 0; transform: translateY(16px); }
+.jsan .anim.sichtbar {
+  opacity: 1; transform: none;
+  transition: opacity .7s ease, transform .7s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* ---------- 2. Hero ---------- */
+/* Die Kopfzeile liegt fest oben; ohne Abstand verdeckt sie beim
+   Ankersprung die Kapitelzeile des Ziels. */
+.hero, .projekte, .weise { scroll-margin-top: 86px; }
+/* Zwei Spalten, sobald Platz ist: vorher lebte die ganze Seite in der
+   linken Bildhaelfte und die rechte blieb leer. */
+.hero-raster {
+  display: grid; align-items: center;
+  gap: clamp(26px, 4vw, 60px);
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+}
+.hero-raster .fliess:first-child { margin-top: 0; }
+.hero { padding: clamp(80px, 16vh, 170px) 0 clamp(60px, 10vh, 120px); }
+.kapitel {
+  font-family: var(--mono); font-size: .68rem; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--gruen-matt); margin: 0 0 22px;
+}
+/* Das Logo traegt den Schriftzug bereits; eine zweite getippte
+   Schlagzeile daneben waere derselbe Name zweimal. Breite in vw statt
+   in clamp mit kleinem Faktor, sonst wird es auf dem Handy winzig. */
+.marke-gross { margin: 0; line-height: 0; }
+.marke-gross img { width: min(520px, 86vw); height: auto; display: block; }
+
+.titan {
+  margin: 0; font-weight: 700; line-height: .88; letter-spacing: -.04em;
+  font-size: clamp(2.6rem, 13vw, 10rem); text-transform: uppercase;
+}
+.titan em { font-style: normal; color: var(--fg2); }
+.spruch {
+  margin: 26px 0 0; font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .2em; text-transform: uppercase; color: var(--gruen);
+}
+.fliess {
+  margin: 40px 0 0; max-width: 54ch; color: var(--fg2);
+  font-size: clamp(1rem, 2.4vw, 1.18rem); line-height: 1.7;
+}
+.fliess strong { color: var(--fg); font-weight: 500; }
+
+/* ---------- Zahlen ---------- */
+.zahlen {
+  display: grid; gap: 26px 34px;
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  padding: clamp(40px, 7vh, 70px) 0;
+  border-top: 1px solid var(--linie); border-bottom: 1px solid var(--linie);
+}
+.zahl b {
+  display: block; font-size: clamp(2.2rem, 6vw, 3.4rem); font-weight: 700;
+  letter-spacing: -.04em; line-height: 1; color: var(--gruen);
+}
+.zahl span {
+  display: block; margin-top: 10px; font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--fg2);
+}
+
+/* ---------- Arbeitsweise ---------- */
+.weise { padding: clamp(60px, 11vh, 120px) 0 clamp(20px, 4vh, 44px); }
+.punkte {
+  display: grid; gap: 34px;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  margin-top: 40px;
+}
+.punkt { display: grid; gap: 10px; align-content: start; }
+.punkt h3 { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; }
+.punkt p { margin: 0; color: var(--fg2); font-size: .96rem; line-height: 1.65; }
+
+/* ---------- 3. Projekte ---------- */
+.projekte { padding: clamp(54px, 9vh, 100px) 0 clamp(70px, 12vh, 130px); }
+.titel2 {
+  margin: 0 0 8px; font-size: clamp(1.7rem, 5.5vw, 3rem); font-weight: 700;
+  letter-spacing: -.03em;
+}
+.liste {
+  display: grid; gap: 2px 30px; margin-top: 38px; min-width: 0;
+  /* min(..., 100%) statt nur 240px: sonst sieht auto-fit bei schmalen
+     Schirmen Platz fuer Spalten, den es nicht gibt. */
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+}
+.karte {
+  display: grid; gap: 10px; padding: 30px 0 28px;
+  border-top: 1px solid var(--linie); min-width: 0;
+  transition: border-color .25s ease;
+}
+a.karte:hover, a.karte:focus-visible { border-color: var(--gruen); }
+.nr {
+  font-family: var(--mono); font-size: .68rem; letter-spacing: .18em;
+  color: var(--gruen-matt);
+}
+.karte h3 { margin: 0; font-size: clamp(1.3rem, 4.4vw, 1.9rem); font-weight: 700;
+  letter-spacing: -.02em; }
+.karte p { margin: 0; color: var(--fg2); font-size: 1rem; line-height: 1.6; }
+.hin {
+  font-family: var(--mono); font-size: .66rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--gruen);
+}
+.hin.aus { color: var(--fg2); }
+a.karte:hover .hin, a.karte:focus-visible .hin { letter-spacing: .22em; }
+.hin { transition: letter-spacing .25s ease; }
+
+/* ---------- 4. Schluss ---------- */
+.schluss {
+  border-top: 1px solid var(--linie);
+  padding: clamp(58px, 10vh, 110px) 0 clamp(66px, 12vh, 120px);
+}
+/* Der Knopf zitiert die erste Zeile des Terminals: das Ende zeigt auf den
+   Anfang zurueck. */
+.neustart {
+  margin-top: 36px; display: inline-flex; align-items: center; gap: .7ch;
+  padding: 15px 24px; border: 1px solid rgba(43, 212, 125, .32);
+  border-radius: 8px; background: var(--flaeche); color: var(--gruen);
+  cursor: pointer; font-family: var(--mono);
+  font-size: clamp(.72rem, 2.7vw, .9rem); letter-spacing: .04em;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.neustart span { color: var(--gruen-matt); }
+.neustart:hover, .neustart:focus-visible {
+  border-color: var(--gruen);
+  box-shadow: 0 0 0 1px rgba(43, 212, 125, .22), 0 14px 46px -20px rgba(43, 212, 125, .7);
+}
+
+/* ---------- Fuss ---------- */
+.fuss {
+  border-top: 1px solid var(--linie); padding: 26px 0 40px;
+  display: flex; flex-wrap: wrap; gap: 8px 22px;
+  font-family: var(--mono); font-size: .66rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--fg2);
+}
+.fuss a:hover, .fuss a:focus-visible { color: var(--gruen); }
+.fuss span:last-child { margin-left: auto; }
+
+::selection { background: var(--gruen); color: #04070a; }
+:focus-visible { outline: 2px solid var(--gruen); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .tippt .ausgabe .z { width: calc(var(--n) * 1ch); animation: none; }
+  .cursor { animation: none; }
+  .jsan .anim { opacity: 1; transform: none; transition: none; }
+  .tippt .ausgabe .z { border-right-color: transparent; }
+}
