@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="DeepScheitern baut Browser-Spiele und kleine Werkzeuge. Eine Reise durch das, was laeuft und das, was nicht." />
     <meta name="theme-color" content="#050507" />
-    <link rel="stylesheet" href="../assets/css/deepscheitern-landing.css?v=3" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="../assets/css/deepscheitern-landing.css?v=4" />
     <title>DeepScheitern</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
   </head>
@@ -14,111 +17,119 @@
 
     <canvas id="d-canvas" aria-hidden="true"></canvas>
 
-    <header class="d-nav">
-      <a href="#start" aria-label="Startseite">
-        <img id="d-logo" class="d-logo" src="../assets/img/deepscheitern-logo-dunkel.webp?v=1"
-             width="720" height="554" alt="DeepScheitern" />
-      </a>
-      <nav class="d-nav-links" aria-label="Hauptnavigation">
+    <div class="d-rahmen" aria-hidden="true"></div>
+
+    <a href="#start" aria-label="Startseite"><img id="d-logo" class="d-logo"
+       src="../assets/img/deepscheitern-logo-dunkel.webp?v=1" width="720" height="554" alt="DeepScheitern" /></a>
+
+    <div class="d-steuer">
+      <nav class="d-pille" aria-label="Hauptnavigation">
         <a href="#deepplay">Produkte</a>
-        <a href="#ueber">Über uns</a>
+        <span class="trenn" aria-hidden="true"></span>
         <a href="#kontakt">Kontakt</a>
       </nav>
-    </header>
+      <div class="d-blaetter" id="d-blaetter" hidden>
+        <button type="button" data-schritt="-1" aria-label="Vorherige Station">&lt;&lt;</button>
+        <span class="wo" id="d-wo" aria-live="polite">01 · Start</span>
+        <button type="button" data-schritt="1" aria-label="Nächste Station">&gt;&gt;</button>
+      </div>
+    </div>
+
+    <nav class="d-index" id="d-index" aria-label="Stationen">
+      <span class="d-index-titel">Wo willst du hin?</span>
+    </nav>
 
     <main>
-      <section class="d-station" id="start" data-ring="0" data-farbe="#8b5cf6">
+      <section class="d-station" id="start" data-label="Start" data-ring="0" data-farbe="#8b5cf6">
         <div class="d-inner">
           <h1 class="d-h1">Think Deep.<br /><span class="grad">Build Different.</span></h1>
           <p class="d-text">Browser-Spiele und kleine Werkzeuge. Scroll dich durch.</p>
         </div>
       </section>
 
-      <section class="d-station" id="deepplay" data-ring="1" data-farbe="#22e4d4">
+      <section class="d-station" id="deepplay" data-label="DeepPlay" data-ring="1" data-farbe="#22e4d4">
         <div class="d-inner">
-          <span class="d-status s-online">Online</span>
+          <p class="d-meta"><b class="s-online">Online</b></p>
           <h2 class="d-h2">DeepPlay</h2>
           <p class="d-text">Neon Bot Arena, Snake, Tic-Tac-Toe, Cursor Clicker und Reaction. Ohne Installation, direkt im Browser.</p>
           <a class="d-link" href="../index.html">Zu den Spielen</a>
         </div>
       </section>
 
-      <section class="d-station" id="deepservice" data-ring="2" data-farbe="#ff2d95">
+      <section class="d-station" id="deepservice" data-label="DeepService" data-ring="2" data-farbe="#ff2d95">
         <div class="d-inner">
-          <span class="d-status s-arbeit">In Arbeit</span>
+          <p class="d-meta"><b class="s-arbeit">In Arbeit</b></p>
           <h2 class="d-h2">DeepService</h2>
           <p class="d-text">Ein Satire-Kundendienst mit 100 Trillionen Möglichkeiten, dir nicht zu helfen. Läuft bisher nur lokal.</p>
         </div>
       </section>
 
-      <section class="d-station" id="deepai" data-ring="3" data-farbe="#8b5cf6">
+      <section class="d-station" id="deepai" data-label="DeepAI" data-ring="3" data-farbe="#8b5cf6">
         <div class="d-inner">
-          <span class="d-status s-konzept">Konzept</span>
+          <p class="d-meta"><b class="s-konzept">Konzept</b></p>
           <h2 class="d-h2">DeepAI</h2>
           <p class="d-text">Noch nichts gebaut. Steht hier, weil der Name zu gut ist, um ihn jemand anderem zu überlassen.</p>
         </div>
       </section>
 
-      <section class="d-station" id="deepdev" data-ring="4" data-farbe="#8b5cf6">
+      <section class="d-station" id="deepdev" data-label="DeepDev" data-ring="4" data-farbe="#8b5cf6">
         <div class="d-inner">
-          <span class="d-status s-konzept">Konzept</span>
+          <p class="d-meta"><b class="s-konzept">Konzept</b></p>
           <h2 class="d-h2">DeepDev</h2>
           <p class="d-text">Werkzeuge, die beim Bauen der anderen Sachen abfallen. Bisher liegen sie verstreut herum.</p>
         </div>
       </section>
 
-      <section class="d-station" id="deepcloud" data-ring="5" data-farbe="#8b5cf6">
+      <section class="d-station" id="deepcloud" data-label="DeepCloud" data-ring="5" data-farbe="#8b5cf6">
         <div class="d-inner">
-          <span class="d-status s-konzept">Konzept</span>
+          <p class="d-meta"><b class="s-konzept">Konzept</b></p>
           <h2 class="d-h2">DeepCloud</h2>
           <p class="d-text">Alles läuft auf GitHub Pages und einem kostenlosen Dienst. Das als Cloud zu bezeichnen wäre gelogen.</p>
         </div>
       </section>
 
-      <section class="d-station" id="deepsecurity" data-ring="6" data-farbe="#8b5cf6">
+      <section class="d-station" id="deepsecurity" data-label="DeepSecurity" data-ring="6" data-farbe="#8b5cf6">
         <div class="d-inner">
-          <span class="d-status s-konzept">Konzept</span>
+          <p class="d-meta"><b class="s-konzept">Konzept</b></p>
           <h2 class="d-h2">DeepSecurity</h2>
           <p class="d-text">Bisher ein Sicherheitscheck für die eigene Seite. Kein Produkt, nur Sorgfalt.</p>
         </div>
       </section>
 
-      <section class="d-station" id="geheim" data-ring="7" data-farbe="#c4b5fd" hidden>
+      <section class="d-station" id="geheim" data-label="DeepNichts" data-ring="7" data-farbe="#c4b5fd" hidden>
         <div class="d-inner">
-          <span class="d-status s-geheim">Geheim</span>
+          <p class="d-meta"><b class="s-geheim">Geheim</b></p>
           <h2 class="d-h2">DeepNichts</h2>
           <p class="d-text">Tut nichts, kann nichts, kostet nichts. Das einzige Produkt, das exakt hält, was sein Name verspricht.</p>
         </div>
       </section>
 
-      <section class="d-station" id="ueber" data-ring="8" data-farbe="#22e4d4">
+      <section class="d-station" id="ueber" data-label="Über uns" data-ring="8" data-farbe="#22e4d4">
         <div class="d-inner">
-          <span class="d-kicker">Über uns</span>
+          <p class="d-meta">Über uns</p>
           <h2 class="d-h2">Ein Mensch,<br /><span class="grad">viele Fehlversuche.</span></h2>
           <p class="d-text">DeepScheitern ist kein Unternehmen, sondern ein Name für die Sachen, die ich baue. Der Name ist die ehrlichste Produktbeschreibung, die mir eingefallen ist.</p>
         </div>
       </section>
 
-      <section class="d-station" id="kontakt" data-ring="9" data-farbe="#ff2d95">
+      <section class="d-station" id="kontakt" data-label="Kontakt" data-ring="9" data-farbe="#ff2d95">
         <div class="d-inner">
-          <span class="d-kicker">Kontakt</span>
+          <p class="d-meta">Kontakt</p>
           <h2 class="d-h2">Ende des Korridors.</h2>
           <p class="d-text">Die Kontaktdaten stehen im Impressum.</p>
         </div>
       </section>
     </main>
 
-    <div class="d-hint" id="d-hint" aria-hidden="true">Scrollen</div>
-
-    <footer class="d-foot">
-      <span>© DeepScheitern 2026</span>
+    <div class="d-foot">
       <a href="/impressum.html">Impressum</a>
       <a href="/datenschutz.html">Datenschutz</a>
-    </footer>
+      <span>© 2026</span>
+    </div>
 
     <script type="importmap">
       { "imports": { "three": "../assets/vendor/three.module.js" } }
     </script>
-    <script type="module" src="../assets/js/deepscheitern-landing.js?v=3"></script>
+    <script type="module" src="../assets/js/deepscheitern-landing.js?v=4"></script>
   </body>
 </html>

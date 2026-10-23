@@ -50,7 +50,10 @@ function baueWelt(stationen) {
 
   stationen.forEach((st, i) => {
     const z = -i * ABSTAND;
-    const farbe = new THREE.Color(st.farbe || 0x3b3358);
+    // Eine Akzentfarbe fuer alles. Drei Neonfarben nebeneinander wirken
+    // nach Jahrmarkt; eine wirkt nach Absicht. Pink ist spaeter allein der
+    // Marker fuer "hier bist du".
+    const farbe = new THREE.Color(0x22e4d4);
     const mat = new THREE.MeshBasicMaterial({ color: farbe.clone().multiplyScalar(0.28) });
     const ring = new THREE.Mesh(ringGeo, mat);
     ring.position.z = z;
@@ -59,7 +62,7 @@ function baueWelt(stationen) {
 
     if (i < stationen.length - 1) {
       for (let k = 1; k <= ZWISCHEN; k++) {
-        const f = new THREE.Mesh(fuellGeo, new THREE.MeshBasicMaterial({ color: 0x15122a }));
+        const f = new THREE.Mesh(fuellGeo, new THREE.MeshBasicMaterial({ color: 0x0d2026 }));
         f.position.z = z - (ABSTAND / (ZWISCHEN + 1)) * k;
         f.rotation.z = k * 0.3;
         scene.add(f);
@@ -69,7 +72,7 @@ function baueWelt(stationen) {
 
   // Boden: eine ruhige Flaeche, die das Neon auffaengt, kein Spiegelkabinett.
   const bodenGeo = new THREE.PlaneGeometry(60, stationen.length * ABSTAND + 60);
-  const boden = new THREE.Mesh(bodenGeo, new THREE.MeshBasicMaterial({ color: 0x06050b, fog: true }));
+  const boden = new THREE.Mesh(bodenGeo, new THREE.MeshBasicMaterial({ color: 0x04080a, fog: true }));
   boden.rotation.x = -Math.PI / 2;
   boden.position.set(0, -4.3, -(stationen.length * ABSTAND) / 2);
   scene.add(boden);
@@ -86,13 +89,13 @@ function baueWelt(stationen) {
   const staubGeo = new THREE.BufferGeometry();
   staubGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   const staub = new THREE.Points(staubGeo,
-    new THREE.PointsMaterial({ color: 0x6b5f9c, size: 0.055, sizeAttenuation: true, transparent: true, opacity: 0.75 }));
+    new THREE.PointsMaterial({ color: 0x4f8f92, size: 0.055, sizeAttenuation: true, transparent: true, opacity: 0.75 }));
   scene.add(staub);
 
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   // Zurueckhaltend: das Leuchten soll die Ringe betonen, nicht das Bild fluten.
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), schwach ? 0.3 : 0.45, 0.75, 0.42);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), schwach ? 0.26 : 0.38, 0.8, 0.5);
   composer.addPass(bloom);
   // Der Composer rechnet linear; ohne Rueckrechnung nach sRGB wird das Bild
   // sichtbar zu dunkel. Diese three-Fassung hat dafuer noch keinen OutputPass.
@@ -143,13 +146,15 @@ function baueWelt(stationen) {
       // leuchten. Hell wird der Ring, auf den man zufaehrt.
       const naehe = clamp01(1 - Math.abs(d - 9) / 13);
       const hinten = d < 2 ? clamp01((d + 6) / 8) : 1;
-      const kraft = (0.2 + naehe * naehe * 1.15) * hinten;
+      // Der aktuelle Ring hebt sich durch Helligkeit ab, nicht durch einen
+      // zweiten Farbton. Pink lebt nur in der Bedienung, nicht in der Szene.
+      const kraft = (0.14 + naehe * naehe * 0.78) * hinten;
       r.mat.color.copy(r.farbe).multiplyScalar(kraft);
       r.mesh.rotation.z = r.index * 0.4 + t * 0.12 + stoerung * Math.sin(r.index * 3.3 + t * 30) * 0.6;
       r.mesh.scale.setScalar(1 + stoerung * Math.sin(r.index * 1.7) * 0.12);
     }
     staub.rotation.z = t * 0.015;
-    bloom.strength = (schwach ? 0.3 : 0.45) + stoerung * 0.7;
+    bloom.strength = (schwach ? 0.26 : 0.38) + stoerung * 0.7;
     composer.render();
   }
 
@@ -172,8 +177,33 @@ function baueWelt(stationen) {
 }
 
 /* ====================== Scrollen ====================== */
+function baueIndex(stationen) {
+  const index = document.getElementById("d-index");
+  if (!index) return;
+  stationen.forEach((st, i) => {
+    if (st.el.hasAttribute("hidden")) return;
+    const a = document.createElement("a");
+    a.href = "#" + st.el.id;
+    a.dataset.nr = String(i);
+    a.textContent = st.el.dataset.label || st.el.id;
+    index.appendChild(a);
+  });
+}
+
 function initScroll(stationen) {
-  const hinweis = document.getElementById("d-hint");
+  const index = document.getElementById("d-index");
+  const blaetter = document.getElementById("d-blaetter");
+  const wo = document.getElementById("d-wo");
+  blaetter?.removeAttribute("hidden");
+
+  function springeZu(i) {
+    const ziel = stationen[Math.max(0, Math.min(stationen.length - 1, i))];
+    ziel?.el.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  }
+  blaetter?.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+    springeZu(Math.round(aktuell) + Number(b.dataset.schritt));
+  }));
+  let aktuell = 0;
   // Die Mitte des Bildschirms entscheidet, zwischen welchen Stationen man
   // steht. Daraus wird eine Kommazahl, die exakt der Ringposition entspricht.
   function stationsZahl() {
@@ -190,15 +220,18 @@ function initScroll(stationen) {
   }
 
   function auf() {
-    welt?.setze(stationsZahl());
-    hinweis?.classList.toggle("weg", scrollY > innerHeight * 0.4);
-    // Navigation hebt hervor, wo man ist.
-    const mitte = scrollY + innerHeight / 2;
-    stationen.forEach((st) => {
-      const el = st.el;
-      const drin = el.offsetTop <= mitte && el.offsetTop + el.offsetHeight > mitte;
-      document.querySelector(`.d-nav-links a[href="#${el.id}"]`)?.classList.toggle("is-here", drin);
-    });
+    const n = stationsZahl();
+    aktuell = n;
+    welt?.setze(n);
+    const i = Math.round(n);
+    const el = stationen[i]?.el;
+    if (wo && el) {
+      const name = el.dataset.label || el.id;
+      wo.textContent = String(i + 1).padStart(2, "0") + " · " + name;
+    }
+    index?.querySelectorAll("a").forEach((a) => a.classList.toggle("is-here", Number(a.dataset.nr) === i));
+    document.querySelectorAll(".d-pille a").forEach((a) =>
+      a.classList.toggle("is-here", a.getAttribute("href") === "#" + el?.id));
   }
   addEventListener("scroll", auf, { passive: true });
   addEventListener("resize", auf);
@@ -314,7 +347,7 @@ function start() {
     try { welt = baueWelt(stationen); } catch (e) { console.warn("Welt nicht gebaut:", e?.message); }
   }
   if (!welt) root.classList.add("no-3d");
-  else { try { initScroll(stationen); } catch { /* Scrollen ist Zugabe */ } }
+  try { baueIndex(stationen); initScroll(stationen); } catch (e) { console.warn(e?.message); }
 
   try { initEggs(); } catch { /* Deko */ }
 }
