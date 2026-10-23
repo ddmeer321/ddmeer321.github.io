@@ -21,9 +21,12 @@ export const PUBLIC_GAME_CONFIGS = [
 ];
 
 async function fetchGameConfig(path) {
-  // Gegen document.baseURI auflösen, damit die Pfade auch von Unterseiten aus
-  // stimmen und nicht vom aktuellen Verzeichnis abhängen.
-  const url = new URL(path, document.baseURI);
+  // Gegen den Seiten-Root auflösen, nicht gegen document.baseURI: schema.js
+  // prüft diese Pfade ausdrücklich als "relativ zum Seiten-Root". Mit
+  // baseURI haben sie sich an der Tiefe der aufrufenden Seite orientiert --
+  // seit die Übersicht unter /deepplay/ liegt, zeigten sie damit auf
+  // /deepplay/games/... und die Spieleliste wäre leer geblieben.
+  const url = new URL(path, new URL("/", location.href));
   const response = await fetch(url, { cache: "no-cache" });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json();

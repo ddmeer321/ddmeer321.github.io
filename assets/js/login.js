@@ -422,8 +422,8 @@
         refresh_token: loginRes.data.session.refresh_token,
       });
       setMessage("register-message", "Konto erstellt!", true);
-      if (ergebnis) zurErgebnisseite(ergebnis, "index.html", null);
-      else window.location.href = "index.html";
+      if (ergebnis) zurErgebnisseite(ergebnis, "/deepplay/", null);
+      else window.location.href = "/deepplay/";
     } finally {
       regSubmitBtn.disabled = false;
     }
@@ -572,7 +572,7 @@
         access_token: res.data.session.access_token,
         refresh_token: res.data.session.refresh_token,
       });
-      window.location.href = "index.html";
+      window.location.href = "/deepplay/";
     } finally {
       submitBtn.disabled = false;
     }
@@ -607,7 +607,7 @@
       return;
     }
     setMessage("reset-message", "Passwort gespeichert! Du wirst weitergeleitet …", true);
-    setTimeout(function () { window.location.href = "index.html"; }, 1500);
+    setTimeout(function () { window.location.href = "/deepplay/"; }, 1500);
   });
 
   var recoveryMode = !!window.__recoveryFlow;
@@ -628,6 +628,6 @@
     }
     if (recoveryMode || !session || suppressAutoRedirect) return;
     if (event !== "INITIAL_SESSION" && event !== "SIGNED_IN") return;
-    window.location.href = "index.html";
+    window.location.href = "/deepplay/";
   });
 })();

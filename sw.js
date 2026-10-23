@@ -20,7 +20,7 @@
 //   config/*.js              (als ES-Modul importiert, ohne Version)
 //   games/*/config.json      (per Pfad geladen, ohne Version)
 
-const VERSION = "v3";
+const VERSION = "v4";
 const ABSCHALTEN = false;
 const CACHE = "spielebibliothek-" + VERSION;
 

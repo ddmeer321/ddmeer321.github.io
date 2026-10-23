@@ -48,7 +48,9 @@ function createArt(game) {
 
   if (game.thumbnail) {
     const img = document.createElement("img");
-    img.src = game.thumbnail;
+    // Fuehrender Schraegstrich: die Pfade sind laut schema.js relativ zum
+    // Seiten-Root. Ohne ihn zeigen sie ab /deepplay/ ins Leere.
+    img.src = "/" + game.thumbnail;
     img.alt = game.thumbnailAlt || "";
     img.loading = "lazy";
     art.appendChild(img);
@@ -119,7 +121,9 @@ function createBody(game) {
 function createCard(game) {
   const card = document.createElement("a");
   card.className = "game-card";
-  card.href = game.entry; // von schema.js als sicherer relativer Pfad geprüft
+  // Siehe oben: wurzel-relativ. schema.js garantiert dabei, dass hier kein
+  // fuehrender Schraegstrich, kein ".." und kein Schema wie javascript: steht.
+  card.href = "/" + game.entry;
   card.dataset.gameId = game.id;
   card.appendChild(createArt(game));
   card.appendChild(createBody(game));
