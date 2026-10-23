@@ -17,6 +17,8 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const ALLOWED_ROLES = new Set(["tester", "admin", "owner"]);
 const ALLOWED_ORIGINS = [
   "https://ddmeer321.github.io",
+  "https://deepscheitern.de",
+  "https://www.deepscheitern.de",
   "http://127.0.0.1:8915",
   "http://localhost:8915",
 ];

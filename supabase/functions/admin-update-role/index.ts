@@ -6,6 +6,8 @@ const VALID_ROLES = ["user", "tester", "admin", "owner"];
 
 const ALLOWED_ORIGINS = [
   "https://ddmeer321.github.io",
+  "https://deepscheitern.de",
+  "https://www.deepscheitern.de",
   "http://127.0.0.1:8899",
   "http://localhost:8899",
 ];
