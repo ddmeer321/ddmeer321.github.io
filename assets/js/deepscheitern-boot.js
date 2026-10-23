@@ -15,6 +15,9 @@
   var sparsam = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var zeilen = ausgabe.querySelectorAll(".z");
   var MS_ZEICHEN = 9, PAUSE = 45;
+  // Dieselbe Zahl treibt die CSS-Dauer, sonst laufen Dauer und
+  // Startverzoegerung auseinander und die Zeilen ueberlappen sich.
+  wurzel.style.setProperty("--ms", MS_ZEICHEN + "ms");
   var uhr = null;
 
   var summe = 0;
@@ -61,6 +64,22 @@
 
   starteTippen();
   if (knopf) knopf.addEventListener("click", fertig);
+
+  // Abschnitte blenden beim Scrollen ein. .jsan erst hier setzen: faellt
+  // das Skript aus, bleibt alles sichtbar statt dauerhaft unsichtbar.
+  var teile = document.querySelectorAll(".anim");
+  if (teile.length && "IntersectionObserver" in window) {
+    wurzel.classList.add("jsan");
+    var auge = new IntersectionObserver(function (eintraege) {
+      for (var k = 0; k < eintraege.length; k++) {
+        if (eintraege[k].isIntersecting) {
+          eintraege[k].target.classList.add("sichtbar");
+          auge.unobserve(eintraege[k].target);
+        }
+      }
+    }, { rootMargin: "0px 0px -12% 0px" });
+    for (var m = 0; m < teile.length; m++) auge.observe(teile[m]);
+  }
 
   // Der Neustart laedt die Seite NICHT neu -- das gibt nur ein kurzes
   // Weissblitzen und man sieht den Wechsel gar nicht. Stattdessen faehrt

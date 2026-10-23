@@ -46,6 +46,9 @@ a { color: inherit; text-decoration: none; }
 .schirm {
   background: var(--flaeche); border: 1px solid rgba(43, 212, 125, .22);
   border-radius: 12px; padding: clamp(18px, 3.6vw, 36px);
+  /* Die laengste Zeile hat 35 Zeichen. Ueber die volle Breite stuende
+     der Kasten auf dem Desktop zu zwei Dritteln leer. */
+  max-width: 42rem;
   box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 30px 90px -40px rgba(43, 212, 125, .35);
   position: relative; overflow: hidden;
 }
@@ -85,8 +88,22 @@ a { color: inherit; text-decoration: none; }
 /* Tippen: die Breite waechst in Zeichenschritten. Nur wenn JS die
    Zeichenzahl und die Verzoegerung gesetzt hat - sonst steht alles sofort. */
 .tippt .ausgabe .z {
-  width: 0; animation: tippen calc(var(--n) * 14ms) steps(var(--n)) var(--d, 0ms) forwards;
+  width: 0;
+  /* Der Rahmen ist der mitlaufende Cursor. content-box, weil er sonst bei
+     border-box von der Zeilenbreite abgezogen wuerde und das letzte halbe
+     Zeichen abschneidet. */
+  box-sizing: content-box;
+  border-right: .5ch solid transparent;
+  /* --ms setzt das Skript, damit Dauer und Startverzoegerung aus derselben
+     Zahl kommen. Standen sie getrennt, liefen sie auseinander und die
+     Zeilen ueberlappten sich. */
+  animation:
+    tippen calc(var(--n) * var(--ms, 12ms)) steps(var(--n)) var(--d, 0ms) forwards,
+    cursoran 1ms linear var(--d, 0ms) forwards,
+    cursoraus 1ms linear calc(var(--d, 0ms) + var(--n) * var(--ms, 12ms)) forwards;
 }
+@keyframes cursoran { to { border-right-color: var(--gruen); } }
+@keyframes cursoraus { to { border-right-color: transparent; } }
 @keyframes tippen { to { width: calc(var(--n) * 1ch); } }
 /* Uebersprungen: sofort alles zeigen. */
 .tippt.fertig .ausgabe .z { width: auto; animation: none; }
@@ -112,17 +129,26 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase; color: var(--fg2);
 }
 .ueberspringen:hover, .ueberspringen:focus-visible { color: var(--gruen); }
-.fertig .ueberspringen { visibility: hidden; }
+.fertig .ueberspringen { display: none; }
 
+/* Immer nur eines von beiden ist da. Blendete man das andere nur aus,
+   behielte es seinen Platz und der sichtbare Knopf staende eingerueckt. */
 .weiter {
-  display: inline-flex; align-items: center; gap: 10px;
+  display: none; align-items: center; gap: 10px;
   font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
   text-transform: uppercase; color: var(--fg2);
-  opacity: 0; transition: opacity .5s ease .2s;
 }
-.fertig .weiter, :root:not(.tippt) .weiter { opacity: 1; }
+.fertig .weiter, :root:not(.tippt) .weiter { display: inline-flex; }
 .weiter span { animation: sacken 1.8s ease-in-out infinite; }
 @keyframes sacken { 50% { transform: translateY(4px); } }
+
+/* ---------- Einblenden beim Scrollen ----------
+   Nur unter .jsan: ohne JS bleibt alles sichtbar statt unsichtbar. */
+.jsan .anim { opacity: 0; transform: translateY(16px); }
+.jsan .anim.sichtbar {
+  opacity: 1; transform: none;
+  transition: opacity .7s ease, transform .7s cubic-bezier(.16, 1, .3, 1);
+}
 
 /* ---------- 2. Hero ---------- */
 /* Die Kopfzeile liegt fest oben; ohne Abstand verdeckt sie beim
@@ -164,6 +190,10 @@ a { color: inherit; text-decoration: none; }
   transition: border-color .25s ease;
 }
 a.karte:hover, a.karte:focus-visible { border-color: var(--gruen); }
+.nr {
+  font-family: var(--mono); font-size: .68rem; letter-spacing: .18em;
+  color: var(--gruen-matt);
+}
 .karte h3 { margin: 0; font-size: clamp(1.3rem, 4.4vw, 1.9rem); font-weight: 700;
   letter-spacing: -.02em; }
 .karte p { margin: 0; color: var(--fg2); font-size: 1rem; line-height: 1.6; }
@@ -172,7 +202,7 @@ a.karte:hover, a.karte:focus-visible { border-color: var(--gruen); }
   text-transform: uppercase; color: var(--gruen);
 }
 .hin.aus { color: var(--fg2); }
-a.karte:hover .hin { letter-spacing: .22em; }
+a.karte:hover .hin, a.karte:focus-visible .hin { letter-spacing: .22em; }
 .hin { transition: letter-spacing .25s ease; }
 
 /* ---------- 4. Schluss ---------- */
@@ -206,11 +236,14 @@ a.karte:hover .hin { letter-spacing: .22em; }
 .fuss a:hover, .fuss a:focus-visible { color: var(--gruen); }
 .fuss span:last-child { margin-left: auto; }
 
+::selection { background: var(--gruen); color: #04070a; }
 :focus-visible { outline: 2px solid var(--gruen); outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .tippt .ausgabe .z { width: calc(var(--n) * 1ch); animation: none; }
   .cursor, .weiter span { animation: none; }
+  .jsan .anim { opacity: 1; transform: none; transition: none; }
+  .tippt .ausgabe .z { border-right-color: transparent; }
   .weiter { opacity: 1; }
 }
