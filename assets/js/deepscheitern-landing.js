@@ -167,16 +167,158 @@ function baueWelt() {
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 400);
 
   /* ---- 1. Die Skulptur: ein verdrehtes Emblem aus fluessigem Chrom ---- */
+  /* ---- Fluessigchrom ----
+     Der Knoten ist reines Metall: er zeigt nur, was er spiegelt. Verbiegt
+     man seine Oberflaeche, wandern die Spiegelungen mit -- genau das liest
+     sich als fliessendes Chrom. Hoehenfeld im Vertex-Shader, Normale aus
+     dessen Gradient, damit das Licht der Verformung folgt.
+     Dieselbe Welle dient spaeter als Zerfallsmuster, damit Fliessen und
+     Aufloesen zusammenpassen. */
+  const uZeit = { value: 0 };
+  const uFliess = { value: 0.04 };
+  const uAufl = { value: 0 };
+
+  const WELLE = `
+uniform float uZeit;
+uniform float uFliess;
+uniform float uAufl;
+// Summe weniger Sinuswellen statt echtem Rauschen: billiger, und die
+// Reflexe bleiben lang gezogen, was fuer Metall besser aussieht.
+float welle(vec3 p) {
+  float s = sin(p.x * 2.3 + uZeit * 1.10) * 0.50;
+  s += sin(p.y * 3.1 - uZeit * 0.80) * 0.35;
+  s += sin(p.z * 2.7 + uZeit * 1.40) * 0.30;
+  s += sin((p.x + p.y) * 4.1 - uZeit * 1.70) * 0.18;
+  s += sin((p.y - p.z) * 5.3 + uZeit * 2.10) * 0.12;
+  return s;
+}
+// Zerfallsmuster OHNE Zeit: die Schwelle wandert hindurch, statt dass das
+// Muster selbst zappelt. Mit der zeitabhaengigen Welle loesten sich
+// Teilchen mehrfach aus und die Haut flimmerte, statt zu erodieren.
+float muster(vec3 p) {
+  float s = sin(p.x * 2.1) * 0.50;
+  s += sin(p.y * 2.9 + 1.3) * 0.35;
+  s += sin(p.z * 2.5 + 2.7) * 0.30;
+  s += sin((p.x + p.y) * 3.9 + 0.6) * 0.18;
+  s += sin((p.y - p.z) * 5.1 + 2.1) * 0.12;
+  return s;
+}
+`;
+
   const chrom = new THREE.MeshStandardMaterial({
     color: 0xc9ccd1, metalness: 1, roughness: 0.08, envMapIntensity: 1.35,
   });
+  chrom.onBeforeCompile = (shader) => {
+    shader.uniforms.uZeit = uZeit;
+    shader.uniforms.uFliess = uFliess;
+    shader.uniforms.uAufl = uAufl;
+
+    shader.vertexShader = WELLE + "varying vec3 vOrt;\n" + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <beginnormal_vertex>",
+      `#include <beginnormal_vertex>
+      vOrt = position;
+      {
+        // Vorwaertsdifferenzen: drei zusaetzliche Auswertungen statt sechs.
+        float h = welle(position);
+        float e = 0.12;
+        vec3 g = vec3(welle(position + vec3(e, 0.0, 0.0)) - h,
+                      welle(position + vec3(0.0, e, 0.0)) - h,
+                      welle(position + vec3(0.0, 0.0, e)) - h) / e;
+        // Nur der Anteil in der Tangentialebene kippt die Normale.
+        vec3 gt = g - dot(g, objectNormal) * objectNormal;
+        objectNormal = normalize(objectNormal - gt * uFliess);
+      }`);
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <begin_vertex>",
+      `#include <begin_vertex>
+      transformed += normal * (welle(position) * uFliess);`);
+
+    // Zerfall: die Oberflaeche bricht fleckig weg statt gleichmaessig
+    // auszublenden -- dieselbe Welle, darum passt das Muster zum Fluss.
+    shader.fragmentShader = WELLE + "varying vec3 vOrt;\n" + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <clipping_planes_fragment>",
+      `if (uAufl > 0.0 && muster(vOrt) * 0.42 + 0.5 < uAufl * 1.15) discard;
+      #include <clipping_planes_fragment>`);
+  };
   const skulptur = new THREE.Group();
   const knoten = new THREE.Mesh(new THREE.TorusKnotGeometry(1.5, 0.42, schwach ? 180 : 420, schwach ? 24 : 48, 2, 3), chrom);
   skulptur.add(knoten);
   const reif = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.045, 12, 180),
-    new THREE.MeshStandardMaterial({ color: 0x8a8f96, metalness: 1, roughness: 0.2, envMapIntensity: 1.1 }));
+    new THREE.MeshStandardMaterial({ color: 0x8a8f96, metalness: 1, roughness: 0.2, envMapIntensity: 1.1,
+      transparent: true, opacity: 1 }));
   reif.rotation.x = Math.PI / 2.6;
   skulptur.add(reif);
+
+  /* ---- Partikelaufloesung ----
+     Die Teilchen sitzen auf derselben Flaeche wie die Haut und lesen
+     dieselbe Welle. Dadurch startet jedes genau dann, wenn sein Stueck
+     Oberflaeche weggeschnitten wird -- der Koerper zerfaellt, statt dass
+     zwei getrennte Effekte uebereinanderliegen. */
+  const pAnz = schwach ? 80 : 160, pRing = schwach ? 9 : 16;
+  const probe = new THREE.TorusKnotGeometry(1.5, 0.42, pAnz, pRing, 2, 3);
+  const pPos = probe.attributes.position, pNor = probe.attributes.normal;
+  const anzahl = pPos.count;
+  const richtung = new Float32Array(anzahl * 3);
+  const weite = new Float32Array(anzahl);
+  for (let i = 0; i < anzahl; i++) {
+    // Driftrichtung: die Oberflaechennormale, zufaellig aufgefaechert,
+    // damit die Wolke nicht wie eine saubere Kugelschale auseinandergeht.
+    let vx = pNor.getX(i) + (Math.random() - 0.5) * 0.9;
+    let vy = pNor.getY(i) + (Math.random() - 0.5) * 0.9;
+    let vz = pNor.getZ(i) + (Math.random() - 0.5) * 0.9;
+    const l = Math.hypot(vx, vy, vz) || 1;
+    richtung[i * 3] = vx / l; richtung[i * 3 + 1] = vy / l; richtung[i * 3 + 2] = vz / l;
+    weite[i] = 1.2 + Math.random() * 2.6;
+  }
+  const staubGeo2 = new THREE.BufferGeometry();
+  staubGeo2.setAttribute("position", pPos.clone());
+  staubGeo2.setAttribute("aRichtung", new THREE.BufferAttribute(richtung, 3));
+  staubGeo2.setAttribute("aWeite", new THREE.BufferAttribute(weite, 1));
+  probe.dispose();
+
+  const uSkala = { value: 450 };
+  const funken = new THREE.Points(staubGeo2, new THREE.ShaderMaterial({
+    uniforms: { uZeit, uFliess, uAufl, uSkala },
+    // Normales statt additives Blending: ueberlagerte Funken summierten
+    // sich sonst ueber die Bloom-Schwelle und der Bloom wusch das ganze
+    // Bild weiss. Chromsplitter leuchten ohnehin nicht von selbst.
+    transparent: true, depthWrite: false, blending: THREE.NormalBlending,
+    vertexShader: WELLE + `
+      uniform float uSkala;
+      attribute vec3 aRichtung;
+      attribute float aWeite;
+      varying float vStaerke;
+      void main() {
+        // Gleiche Schwelle wie der Zerfall der Haut: das Teilchen loest
+        // sich genau dann, wenn sein Stueck Oberflaeche verschwindet.
+        float h = muster(position) * 0.42 + 0.5;
+        float f = clamp((uAufl * 1.15 - h) / 0.55, 0.0, 1.0);
+        vec3 p = position + aRichtung * (f * f * aWeite);
+        p.y -= f * f * 2.2;
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_Position = projectionMatrix * mv;
+        vStaerke = smoothstep(0.0, 0.10, f) * (1.0 - smoothstep(0.65, 1.0, f));
+        // Die Punktgroesse teilt durch die Tiefe. Ein Teilchen, das dicht
+        // an der Kamera vorbeizieht, wuerde dadurch tausende Pixel gross
+        // und den ganzen Schirm zuschmieren. Also nah ausblenden und die
+        // Groesse zusaetzlich deckeln.
+        float tiefe = -mv.z;
+        vStaerke *= smoothstep(0.4, 1.8, tiefe);
+        gl_PointSize = clamp((0.18 * vStaerke + 0.004) * (uSkala / max(0.8, tiefe)), 0.0, 10.0);
+      }`,
+    fragmentShader: `
+      varying float vStaerke;
+      void main() {
+        vec2 d = gl_PointCoord - 0.5;
+        float r = dot(d, d);
+        if (r > 0.25) discard;
+        gl_FragColor = vec4(vec3(0.88, 0.92, 0.95), (1.0 - r * 4.0) * vStaerke);
+      }`,
+  }));
+  funken.frustumCulled = false;
+  skulptur.add(funken);
   scene.add(skulptur);
 
   /* ---- 2. Die Spirale: wenige, grosse Milchglastafeln auf einer Helix ---- */
@@ -248,9 +390,19 @@ function baueWelt() {
   }
   const staubGeo = new THREE.BufferGeometry();
   staubGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  const staub = new THREE.Points(staubGeo, new THREE.PointsMaterial({
+  const staubMat = new THREE.PointsMaterial({
     color: 0x9aa0a8, size: 0.045, sizeAttenuation: true, transparent: true, opacity: 0.6, depthWrite: false,
-  }));
+  });
+  // Die Staubwolke wird jeden Frame auf die Kamera gezogen, ein Punkt kann
+  // also beliebig nah an ihr landen. sizeAttenuation teilt durch die Tiefe --
+  // bei Tiefe nahe null wird aus dem Punkt ein bildschirmfuellendes graues
+  // Quadrat. Deshalb die Punktgroesse deckeln.
+  staubMat.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace(
+      "if ( isPerspective ) gl_PointSize *= ( scale / - mvPosition.z );",
+      "if ( isPerspective ) gl_PointSize *= ( scale / - mvPosition.z );\n\t\tgl_PointSize = min( gl_PointSize, 5.0 );");
+  };
+  const staub = new THREE.Points(staubGeo, staubMat);
   scene.add(staub);
 
   /* ---- Licht ---- */
@@ -313,6 +465,7 @@ function baueWelt() {
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
     bloom.resolution.set(w, h);
+    uSkala.value = h * 0.5;
     camera.aspect = w / h;
     // Bei festem senkrechtem Blickwinkel schneidet ein hochkantes Handy die
     // Tafeln seitlich ab -- das waagerechte Sichtfeld ist dort viel enger.
@@ -340,6 +493,19 @@ function baueWelt() {
     const e = fenster(P, 0.86, 1);
 
     // Skulptur: dreht immer, weicht beim Anflug zur Seite und kehrt zum Schluss zurueck.
+    uZeit.value = t;
+    // Grundrauschen immer, stark fliessend nur, wenn die Skulptur
+    // Hauptdarsteller ist: in der Eroeffnung und auf dem Rueckweg.
+    uFliess.value = 0.035 + 0.11 * (glatt(a) * (1 - glatt(b)) + glatt(e));
+    // Zerfall frueher als der Abstieg: ab P 0.21 ist die Skulptur bereits
+    // ueber den oberen Bildrand gewandert, dort saehe sie niemand mehr
+    // zerfallen. Eigenes, frueheres Fenster. Rueckbau beim Heimkommen.
+    uAufl.value = glatt(fenster(P, 0.19, 0.238)) * (1 - glatt(e));
+    knoten.visible = uAufl.value < 0.999;
+    funken.visible = uAufl.value > 0.001 && uAufl.value < 0.999;
+    reif.material.opacity = 1 - uAufl.value;
+    reif.visible = reif.material.opacity > 0.01;
+
     skulptur.rotation.y = t * 0.19;
     skulptur.rotation.x = Math.sin(t * 0.13) * 0.22;
     skulptur.position.set(mix(0, -16, glatt(b)) + mix(0, 16, glatt(e)), mix(0, 5, glatt(b)) - mix(0, 5, glatt(e)), 0);
@@ -359,16 +525,23 @@ function baueWelt() {
     if (P < 0.30) {
       // Heranfahren an die Skulptur, dann hinab zum Fuss der Spirale.
       const naeher = mix(16, 5.6, glatt(a));
-      const ab = glatt(b);
+      // Zwei Takte statt einem: erst zurueckziehen (damit man die Skulptur
+      // ueberhaupt ganz sieht, wenn sie zerbricht), dann abtauchen. Vorher
+      // steckte die Kamera beim Zerfall noch mitten in ihr drin.
+      const zurueck = glatt(klemm(b * 2.5));
+      const ab = glatt(klemm((b - 0.4) / 0.6));
       // Der Abstieg laeuft aussen an der Helix entlang statt mitten
       // hindurch: die Spirale steht dann rechts, die Textspalte links
       // bleibt frei.
-      x = mix(Math.sin(t * 0.1) * 0.5, 23, ab) + maus.x * 0.9;
-      y = mix(1.2, 0.2, glatt(a)) * (1 - ab) + mix(0, spirale.position.y + 2, ab) + maus.y * 0.6;
-      z = mix(naeher, 12, ab);
-      zielX = mix(0, 9, ab);
+      x = mix(mix(Math.sin(t * 0.1) * 0.5, 2.5, zurueck), 23, ab) + maus.x * 0.9;
+      y = mix(mix(1.2, 0.2, glatt(a)) * (1 - zurueck) + 1.0 * zurueck,
+              spirale.position.y + 2, ab) + maus.y * 0.6;
+      z = mix(mix(naeher, 13, zurueck), 12, ab);
+      // Blickpunkt links neben die Skulptur: sie rutscht dadurch in die
+      // rechte Bildhaelfte und laesst die Textspalte links frei.
+      zielX = mix(mix(0, -3, zurueck), 9, ab);
       zielZ = mix(0, 4, ab);
-      zielY = mix(0, spirale.position.y + 5, ab);
+      zielY = mix(mix(0, 0.5, zurueck), spirale.position.y + 5, ab);
     } else if (P < 0.66) {
       // Mitten durch die Helix: die Kamera folgt derselben Schraube,
       // aber auf kleinerem Radius, damit die Tafeln aussen vorbeiziehen.
