@@ -17,6 +17,16 @@ const root = document.documentElement;
 const sat = (v) => Math.min(1, Math.max(0, v));
 const mix = (a, b, t) => a + (b - a) * t;
 const glatt = (t) => t * t * (3 - 2 * t);
+const klemm = (t) => Math.min(1, Math.max(0, t));
+// Rastender Fortschritt: zweimal geglaettet bleibt der Wert nahe jeder
+// ganzen Zahl laenger stehen -- die Kamera haelt an jeder Tafel an,
+// statt gleichmaessig durchzufahren.
+function rasten(u) {
+  const i = Math.floor(u);
+  const f = klemm(u - i);
+  const g = glatt(glatt(f));
+  return { pos: i + g, naehe: 1 - 4 * g * (1 - g), tafel: g < 0.5 ? i : i + 1 };
+}
 // Abschnittsweise Abbildung: ergibt 0..1 innerhalb eines Fortschrittsfensters.
 const fenster = (p, a, b) => sat((p - a) / (b - a));
 
@@ -47,51 +57,93 @@ function umgebung(renderer) {
   return tex;
 }
 
-/* =================== Tafelinhalte =================== */
-// Die Tafeln tragen echte Keyarts aus dem Repo. Wo es keines gibt, wird eine
-// Textur gezeichnet -- kein wiederholter Platzhalter.
+/* =================== Tafelinhalte ===================
+   Wenige, grosse Tafeln -- je eine Sache. Keine Spielbilder: die Tafel zeigt
+   das Produkt, nicht dessen Werbung. Jede ist anklickbar. */
 const TAFELN = [
-  { bild: "../assets/img/neon-bot-arena-keyart-v2.webp", titel: "CHAOS IS A FEATURE", quer: true },
-  { bild: "../assets/img/arcade-casino-keyart.webp", titel: "PLAY. FAIL. REPEAT.", quer: true },
-  { text: "SUPPORT WITHOUT\nSOLUTIONS", ton: "#ff2d95" },
-  { bild: "../assets/img/snake-keyart.webp", titel: "ONE MORE TRY", quer: false },
-  { bild: "../assets/img/cursor-clicker-keyart.webp", titel: "BUILT TO EXPERIMENT", quer: true },
-  { text: "PROFESSIONALLY\nFAILED", ton: "#38ff9c" },
-  { bild: "../assets/img/reaction-keyart.webp", titel: "FASTER THAN YOU", quer: false },
-  { bild: "../assets/img/tic-tac-toe-keyart.webp", titel: "SOLVED. STILL FUN.", quer: false },
-  { text: "100 TRILLIONEN\nNICHTLOESUNGEN", ton: "#888888" },
-  { bild: "../assets/img/neon-bot-arena-scene.png", titel: "NEON BOT ARENA", quer: true },
-  { text: "WIR SCHEITERN\nTIEF", ton: "#f5f5f5" },
-  { bild: "../assets/img/arcade-casino-keyart.webp", titel: "NEONPALAST", quer: false },
+  { marke: "Kapitel 01", titel: "DEEP\nPLAY",     unter: "Spielen. Scheitern. Wiederholen.", ziel: "../index.html",           quer: true  },
+  { marke: "Kapitel 02", titel: "DEEP\nSERVICE",  unter: "Support, der nichts garantiert.",  ziel: null,                       quer: false },
+  { marke: "Kapitel 03", titel: "NEON BOT\nARENA", unter: "Chaos ist kein Bug.",              ziel: "../neon-bot-arena.html",   quer: true  },
+  { marke: "Kapitel 04", titel: "DEEP\nLABS",     unter: "Gebaut, um zu experimentieren.",   ziel: null,                       quer: false },
+  { marke: "Kapitel 05", titel: "DEEP\nAI",       unter: "Noch nichts gebaut.",              ziel: null,                       quer: true  },
+  { marke: "Kapitel 06", titel: "PROFESSIONALLY\nFAILED",  unter: "Wir scheitern tief.",     ziel: null,                       quer: false },
 ];
 
-function textTextur(eintrag) {
+// Die Beschriftung liegt als eigene, scharfe Ebene vor dem Milchglas --
+// durch das Glas gerechnet waere sie mit verwaschen.
+function schriftTextur(eintrag, quer) {
   const c = document.createElement("canvas");
-  c.width = 1024; c.height = 640;
+  c.width = quer ? 1280 : 900;
+  c.height = quer ? 760 : 1180;
   const g = c.getContext("2d");
-  g.fillStyle = "#0b0b0b"; g.fillRect(0, 0, c.width, c.height);
-  // Feines Raster: gibt der Flaeche Material, ohne bunt zu werden.
-  g.strokeStyle = "rgba(245,245,245,.05)"; g.lineWidth = 1;
-  for (let x = 0; x < c.width; x += 48) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.stroke(); }
-  for (let y = 0; y < c.height; y += 48) { g.beginPath(); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke(); }
-  g.fillStyle = eintrag.ton;
-  g.font = "700 86px 'Space Grotesk', system-ui, sans-serif";
-  g.textBaseline = "top";
-  eintrag.text.split("\n").forEach((z, i) => g.fillText(z, 64, 180 + i * 96));
-  g.fillStyle = "rgba(245,245,245,.35)";
-  g.font = "500 26px 'IBM Plex Mono', monospace";
-  g.fillText("DEEPSCHEITERN®", 64, 520);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
+  g.clearRect(0, 0, c.width, c.height);
+  const mitte = c.width / 2;
 
-function bildTextur(eintrag, lader, beschriften) {
-  const t = lader.load(eintrag.bild, () => beschriften());
+  // Der ganze Textblock wird als Einheit vertikal zentriert und in
+  // Einheiten der kurzen Kante bemessen. So sieht Hoch- wie Querformat
+  // gleich aus, statt im Hochformat auseinanderzufallen.
+  const u = Math.min(c.width, c.height);
+  const gross = Math.round(u * (quer ? 0.155 : 0.135));
+  const klein = Math.round(u * 0.036);
+  const zeilen = eintrag.titel.split("\n");
+  const hoehe = klein * 1.9 + zeilen.length * gross * 1.04
+              + klein * 2.0 + (eintrag.ziel ? klein * 1.7 : 0);
+  let y = c.height / 2 - hoehe / 2 + klein;
+
+  g.textAlign = "center";
+  g.fillStyle = "rgba(245,245,245,.72)";
+  g.font = `500 ${Math.round(klein * 0.78)}px 'IBM Plex Mono', monospace`;
+  g.fillText(eintrag.marke.toUpperCase(), mitte, y);
+  y += klein * 1.9;
+
+  // Lange Woerter wie PROFESSIONALLY laufen sonst ueber den Tafelrand.
+  let passend = gross;
+  const platz = c.width * 0.86;
+  for (let n = 0; n < 12; n++) {
+    g.font = `500 ${passend}px 'Space Grotesk', system-ui, sans-serif`;
+    const breit = Math.max(...zeilen.map((z) => g.measureText(z).width));
+    if (breit <= platz) break;
+    passend = Math.round(passend * (platz / breit));
+  }
+  g.font = `500 ${passend}px 'Space Grotesk', system-ui, sans-serif`;
+  g.shadowColor = "rgba(255,255,255,.45)";
+  g.shadowBlur = passend * 0.3;
+  g.fillStyle = "#ffffff";
+  zeilen.forEach((z, i) => g.fillText(z, mitte, y + gross * 0.82 + i * gross * 1.04));
+  g.shadowBlur = 0;
+  y += zeilen.length * gross * 1.04 + klein * 1.4;
+
+  g.fillStyle = "rgba(245,245,245,.7)";
+  g.font = `400 ${Math.round(klein * 0.84)}px 'IBM Plex Mono', monospace`;
+  g.fillText(eintrag.unter, mitte, y);
+
+  if (eintrag.ziel) {
+    y += klein * 1.7;
+    g.fillStyle = "rgba(56,255,156,.92)";
+    g.font = `500 ${Math.round(klein * 0.74)}px 'IBM Plex Mono', monospace`;
+    g.fillText("ANKLICKEN \u2192", mitte, y);
+  }
+  const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
   return t;
 }
+
+// Gerundetes Rechteck als Flaeche -- three bringt dafuer nichts mit.
+function rundesRechteck(b, h, r) {
+  const f = new THREE.Shape();
+  f.moveTo(-b / 2 + r, -h / 2);
+  f.lineTo(b / 2 - r, -h / 2);
+  f.absarc(b / 2 - r, -h / 2 + r, r, -Math.PI / 2, 0, false);
+  f.lineTo(b / 2, h / 2 - r);
+  f.absarc(b / 2 - r, h / 2 - r, r, 0, Math.PI / 2, false);
+  f.lineTo(-b / 2 + r, h / 2);
+  f.absarc(-b / 2 + r, h / 2 - r, r, Math.PI / 2, Math.PI, false);
+  f.lineTo(-b / 2, -h / 2 + r);
+  f.absarc(-b / 2 + r, -h / 2 + r, r, Math.PI, Math.PI * 1.5, false);
+  return f;
+}
+
 
 /* =================== Die Welt =================== */
 function baueWelt() {
@@ -127,49 +179,57 @@ function baueWelt() {
   skulptur.add(reif);
   scene.add(skulptur);
 
-  /* ---- 2. Die Spirale: echte Helix aus schwebenden Tafeln ---- */
-  // x = r·cos(w), y = steigung·w, z = r·sin(w). Die Kamera faehrt spaeter
-  // mitten hindurch, deshalb zeigt jede Tafel zur Achse statt nach aussen.
-  const RADIUS = 11;
-  const STEIGUNG = 1.75;       // Hoehengewinn je Bogenmass
-  const ANZAHL = schwach ? 30 : 54;
-  const SCHRITT = 0.56;        // Winkelabstand zweier Tafeln
+  /* ---- 2. Die Spirale: wenige, grosse Milchglastafeln auf einer Helix ---- */
+  // x = r·cos(w), y = steigung·w, z = r·sin(w). Weit auseinander, damit man
+  // an jeder einzeln vorbeikommt statt durch einen Schwarm zu fliegen.
+  const RADIUS = 14.0;
+  const STEIGUNG = 5.4;
+  const SCHRITT = 0.95;
+  const ANZAHL = TAFELN.length;
   const spirale = new THREE.Group();
-  const lader = new THREE.TextureLoader();
   const tafeln = [];
-  const rahmenMat = new THREE.MeshStandardMaterial({ color: 0x15171a, metalness: 1, roughness: 0.22, envMapIntensity: 1.2 });
 
   for (let i = 0; i < ANZAHL; i++) {
-    const eintrag = TAFELN[i % TAFELN.length];
+    const e = TAFELN[i];
     const w = i * SCHRITT;
-    const quer = eintrag.quer !== false;
-    // Masse leicht variieren, damit keine zwei Tafeln gleich aussehen.
-    const jitter = 0.86 + ((i * 37) % 23) / 60;
-    const bb = (quer ? 5.6 : 3.4) * jitter;
-    const hh = (quer ? 3.3 : 4.8) * jitter;
+    const bb = e.quer ? 8.6 : 5.6;
+    const hh = e.quer ? 5.1 : 7.6;
 
-    const tex = eintrag.bild
-      ? bildTextur(eintrag, lader, () => {})
-      : textTextur(eintrag);
-    const flaeche = new THREE.Mesh(new THREE.PlaneGeometry(bb, hh),
-      new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
-    const rahmen = new THREE.Mesh(new THREE.BoxGeometry(bb + 0.16, hh + 0.16, 0.1), rahmenMat);
-    rahmen.position.z = -0.06;
+    const form = rundesRechteck(bb, hh, Math.min(bb, hh) * 0.075);
+    // Echtes Milchglas: man sieht die Szene hindurch, verschwommen und
+    // gedaempft. transmission + roughness macht genau das.
+    const glas = new THREE.Mesh(new THREE.ShapeGeometry(form, 24), new THREE.MeshPhysicalMaterial({
+      color: 0x7d8a90, metalness: 0, roughness: 0.46, transmission: 0.9,
+      thickness: 0.7, ior: 1.3, transparent: true, opacity: 1,
+      side: THREE.DoubleSide, envMapIntensity: 1.1,
+    }));
+
+    // Die helle Kante: dieselbe Form als Linie, leicht nach vorn gesetzt.
+    const kante = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(form.getPoints(90)),
+      new THREE.LineBasicMaterial({ color: 0xeafcff, transparent: true, opacity: 1 }));
+    kante.position.z = 0.012;
+
+    const schrift = new THREE.Mesh(new THREE.PlaneGeometry(bb * 0.92, hh * 0.92),
+      new THREE.MeshBasicMaterial({ map: schriftTextur(e, e.quer), transparent: true, toneMapped: false, depthWrite: false }));
+    schrift.position.z = 0.02;
 
     const tafel = new THREE.Group();
-    tafel.add(rahmen, flaeche);
+    tafel.add(glas, kante, schrift);
     tafel.position.set(Math.cos(w) * RADIUS, STEIGUNG * w, Math.sin(w) * RADIUS);
-    // Zur Mittelachse drehen, damit der Inhalt lesbar bleibt.
-    tafel.lookAt(0, STEIGUNG * w, 0);
-    tafel.rotation.z += (((i * 53) % 17) - 8) * 0.004;
+    // Nicht lookAt: die Tafel haengt in einer verschobenen Gruppe, ein
+    // Weltziel laesst sie fast senkrecht nach oben schauen und der
+    // Up-Vektor kippt sie auf den Kopf. Die Drehung um Y ist exakt.
+    tafel.rotation.y = -w - Math.PI / 2;
+    tafel.userData = { ziel: e.ziel, kante, glas, schrift, nr: i, leuchten: 0 };
     spirale.add(tafel);
-    tafeln.push({ g: tafel, w });
+    tafeln.push(tafel);
   }
+  const spiraleY = (i) => STEIGUNG * i * SCHRITT;
   const SP_HOCH = STEIGUNG * (ANZAHL - 1) * SCHRITT;
-  // Die Spirale liegt vollstaendig UNTER der Skulptur. Sonst steht die
-  // Kamera schon in der Eroeffnung mitten zwischen den Tafeln, und die
-  // geforderte Dunkelheit am Anfang gibt es nicht.
-  spirale.position.y = -SP_HOCH - 16;
+  // Die Spirale liegt vollstaendig UNTER der Skulptur, sonst steht die Kamera
+  // schon in der Eroeffnung mittendrin.
+  spirale.position.y = -SP_HOCH - 26;
   scene.add(spirale);
 
   /* ---- 3. Staub ---- */
@@ -190,8 +250,8 @@ function baueWelt() {
   /* ---- Licht ---- */
   scene.add(new THREE.AmbientLight(0x303236, 0.6));
   const key = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(4, 9, 6); scene.add(key);
-  const pink = new THREE.PointLight(0xff2d95, 26, 34); scene.add(pink);
-  const gruen = new THREE.PointLight(0x38ff9c, 18, 30); scene.add(gruen);
+  const pink = new THREE.PointLight(0xff2d95, 2.2, 40); scene.add(pink);
+  const gruen = new THREE.PointLight(0x38ff9c, 1.8, 38); scene.add(gruen);
 
   /* ---- Nachbearbeitung ---- */
   const composer = new EffectComposer(renderer);
@@ -205,6 +265,42 @@ function baueWelt() {
   let t = 0, sichtbar = true, zuletzt = 0;
   const maus = { x: 0, y: 0 }, soll = { x: 0, y: 0 };
   const blick = new THREE.Vector3();
+
+  /* ---- Anhalten und Anklicken ---- */
+  const strahl = new THREE.Raycaster();
+  const zeigerNdc = new THREE.Vector2(-2, -2);
+  let unterZeiger = null;
+  // Die Tafel, vor der die Kamera gerade zum Stehen kommt. Sie leuchtet
+  // auch ohne Zeiger, damit sichtbar ist: hier kann man anhalten.
+  let angepeilt = null;
+  const zeigerEl = document.getElementById("zeiger");
+
+  function pruefeZeiger() {
+    if (zeigerNdc.x < -1.5) return;
+    strahl.setFromCamera(zeigerNdc, camera);
+    const treffer = strahl.intersectObjects(tafeln, true);
+    // Nur Tafeln mit Ziel sind anklickbar; die uebrigen leuchten nicht auf.
+    let gefunden = null;
+    for (const tr of treffer) {
+      let o = tr.object;
+      while (o && !o.userData?.kante) o = o.parent;
+      if (o) { gefunden = o; break; }
+    }
+    if (gefunden !== unterZeiger) {
+      unterZeiger = gefunden;
+      const klickbar = Boolean(gefunden?.userData.ziel);
+      zeigerEl?.classList.toggle("weit", klickbar);
+      canvas.style.cursor = klickbar ? "pointer" : "";
+    }
+  }
+
+  addEventListener("pointermove", (ev) => {
+    zeigerNdc.set((ev.clientX / innerWidth) * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1);
+  }, { passive: true });
+  canvas.addEventListener("click", () => {
+    const ziel = unterZeiger?.userData.ziel;
+    if (ziel) location.href = ziel;
+  });
 
   function groesse() {
     const w = innerWidth, h = innerHeight;
@@ -241,35 +337,59 @@ function baueWelt() {
     // die Tafeln kippen sichtbar weg.
     let x, y, z, zielY;
     let zielX = 0, zielZ = 0;
+    angepeilt = null;
     if (P < 0.30) {
       // Heranfahren an die Skulptur, dann hinab zum Fuss der Spirale.
       const naeher = mix(16, 5.6, glatt(a));
-      x = Math.sin(t * 0.1) * 0.5 + maus.x * 0.9;
-      y = mix(1.2, 0.2, glatt(a)) * (1 - glatt(b)) + mix(0, spirale.position.y + 1.5, glatt(b)) + maus.y * 0.6;
-      z = mix(naeher, 5.2, glatt(b));
-      zielY = mix(0, spirale.position.y + 4, glatt(b));
+      const ab = glatt(b);
+      // Der Abstieg laeuft aussen an der Helix entlang statt mitten
+      // hindurch: die Spirale steht dann rechts, die Textspalte links
+      // bleibt frei.
+      x = mix(Math.sin(t * 0.1) * 0.5, 23, ab) + maus.x * 0.9;
+      y = mix(1.2, 0.2, glatt(a)) * (1 - ab) + mix(0, spirale.position.y + 2, ab) + maus.y * 0.6;
+      z = mix(naeher, 12, ab);
+      zielX = mix(0, 9, ab);
+      zielZ = mix(0, 4, ab);
+      zielY = mix(0, spirale.position.y + 5, ab);
     } else if (P < 0.66) {
       // Mitten durch die Helix: die Kamera folgt derselben Schraube,
       // aber auf kleinerem Radius, damit die Tafeln aussen vorbeiziehen.
-      const w = c * (ANZAHL - 1) * SCHRITT;
-      const r = 4.6;
-      x = Math.cos(w) * r + maus.x * 0.7;
-      z = Math.sin(w) * r + maus.y * 0.4;
+      const ras = rasten(c * (ANZAHL - 1));
+      const w = ras.pos * SCHRITT;
+      const r = 1.6;
+      // Die Helix selbst dreht sich langsam weiter. Die Kamerabahn muss in
+      // derselben Drehung liegen, sonst laufen Tafeln und Kamera auseinander
+      // und die angepeilte Tafel wandert aus dem Bild.
+      const dreh = -spirale.rotation.y;
+      x = Math.cos(w + dreh) * r + maus.x * 0.7;
+      z = Math.sin(w + dreh) * r + maus.y * 0.4;
       y = spirale.position.y + STEIGUNG * w + 0.4;
-      // Blickpunkt ein Stueck weiter auf derselben Schraube.
-      const vor = w + 1.15;
-      zielX = Math.cos(vor) * r;
-      zielZ = Math.sin(vor) * r;
-      zielY = spirale.position.y + STEIGUNG * vor + 0.4;
+      // Der Blick geht immer radial nach aussen auf die Helix -- dort
+      // haengen die Tafeln. Zwischen zwei Tafeln schwenkt er mit, an einer
+      // Station liegt er exakt auf ihrer Mitte. Nie ins Leere.
+      const ni = Math.min(ANZAHL - 1, Math.max(0, ras.tafel));
+      const nah = tafeln[ni];
+      const k = glatt(ras.naehe);
+      const nw = mix(w, ni * SCHRITT, k) + dreh;
+      zielX = Math.cos(nw) * RADIUS;
+      zielZ = Math.sin(nw) * RADIUS;
+      zielY = mix(spirale.position.y + STEIGUNG * w,
+                  spirale.position.y + nah.position.y, k);
+      angepeilt = k > 0.55 ? nah : null;
     } else {
       // Heraus aus der Spirale, offener Raum fuer die Projekttafeln,
       // danach zurueck in die Dunkelheit zur Skulptur.
       const raus = glatt(d);
       const heim = glatt(e);
-      x = mix(mix(3.4, 10, raus), 0, heim) + maus.x * 0.8;
-      y = mix(spirale.position.y + SP_HOCH + 1, spirale.position.y + SP_HOCH + 6, raus) * (1 - heim) + maus.y * 0.5;
-      z = mix(mix(0, 16, raus), 14, heim);
-      zielY = y - mix(0, 2, heim);
+      x = mix(mix(2.2, 8, raus), 0, heim) + maus.x * 0.8;
+      // Deutlich ueber die oberste Tafel steigen: sonst haengt sie mitten
+      // in den Textspalten dieses Abschnitts.
+      y = mix(spirale.position.y + SP_HOCH + 10, spirale.position.y + SP_HOCH + 23, raus) * (1 - heim)
+          + maus.y * 0.5;
+      z = mix(mix(5, 20, raus), 14, heim);
+      // Leicht nach oben blicken: so sinkt die Helix unter den Bildrand
+      // und keine Tafel liegt in den Textspalten dieses Abschnitts.
+      zielY = y + mix(2, 4, raus) * (1 - heim);
     }
     camera.position.set(x, y, z);
     blick.set(mix(zielX, skulptur.position.x, glatt(e)), zielY, zielZ);
@@ -277,8 +397,8 @@ function baueWelt() {
     camera.rotation.z += Math.sin(t * 0.21) * 0.012;
 
     // Akzentlichter wandern mit, sonst bleiben sie am Anfang zurueck.
-    pink.position.set(Math.cos(t * 0.4) * 9, camera.position.y + 3, Math.sin(t * 0.4) * 9);
-    gruen.position.set(Math.cos(t * 0.4 + 2.4) * 10, camera.position.y - 4, Math.sin(t * 0.4 + 2.4) * 10);
+    pink.position.set(Math.cos(t * 0.4) * 3.2, camera.position.y + 2.5, Math.sin(t * 0.4) * 3.2);
+    gruen.position.set(Math.cos(t * 0.4 + 2.4) * 3.6, camera.position.y - 3, Math.sin(t * 0.4 + 2.4) * 3.6);
     staub.position.y = camera.position.y;
   }
 
@@ -294,6 +414,22 @@ function baueWelt() {
     maus.x += (soll.x - maus.x) * (1 - Math.pow(0.05, dt));
     maus.y += (soll.y - maus.y) * (1 - Math.pow(0.05, dt));
     fahre();
+    pruefeZeiger();
+    // Die Tafel unter dem Zeiger haelt an: ihr Schweben friert ein, die Kante
+    // leuchtet auf. Die uebrigen atmen weiter.
+    for (const tafel of tafeln) {
+      const d = tafel.userData;
+      const anvisiert = tafel === unterZeiger || tafel === angepeilt;
+      d.leuchten += ((anvisiert ? 1 : 0) - d.leuchten) * (1 - Math.pow(0.004, dt));
+      d.kante.material.opacity = 0.7 + d.leuchten * 0.3;
+      d.kante.material.color.setHex(d.ziel && anvisiert ? 0x38ff9c : 0xdffbff);
+      d.glas.material.roughness = 0.46 - d.leuchten * 0.16;
+      if (!anvisiert) {
+        // Sanftes Schweben, je Tafel leicht versetzt.
+        tafel.position.y = spiraleY(d.nr) + Math.sin(t * 0.5 + d.nr * 1.7) * 0.22;
+        tafel.rotation.z = Math.sin(t * 0.33 + d.nr) * 0.012;
+      }
+    }
     composer.render();
   }
 
