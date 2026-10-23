@@ -1,112 +1,195 @@
-/* DeepScheitern-Startseite. Bewusst dunkel und neon, als Gegenstueck zum
-   freundlichen Cremeton von DeepPlay. Eigene Datei, damit library.css
-   unberuehrt bleibt und die Spieleseite davon nichts mitbekommt. */
+/* DeepScheitern - Terminalstart, Hero, Projekte.
+   Kein WebGL, normales Scrollen. Die Tipp-Animation laeuft in CSS: der Text
+   steht vollstaendig im Dokument und wird nur schrittweise freigelegt.
+   Faellt JS aus, ist sofort alles da und die Seite bleibt lesbar. */
 :root {
-  --ds-bg: #0b0a12;
-  --ds-surface: #15131f;
-  --ds-line: #2a2440;
-  --ds-ink: #f0edf8;
-  --ds-muted: #a79bc4;
-  --ds-cyan: #22e4d4;
-  --ds-pink: #ff2d95;
-  --ds-violet: #8b5cf6;
+  --bg: #04070a;
+  --flaeche: #0a1014;
+  --fg: #f2f4f5;
+  --fg2: #8b9499;
+  --gruen: #2bd47d;
+  --gruen-matt: #1d8f58;
+  --bernstein: #e0a33c;
+  --pink: #ff2d95;
+  --linie: rgba(242, 244, 245, .13);
+  --display: "Space Grotesk", "Archivo", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
   color-scheme: dark;
 }
-
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { font-family: var(--display); min-width: 300px; overflow-x: hidden;
+  -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
 
-body {
-  margin: 0;
-  min-width: 280px;
-  font-family: "Baloo 2", Poppins, ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  line-height: 1.6;
-  color: var(--ds-ink);
-  background:
-    radial-gradient(circle at 15% 0%, rgba(139, 92, 246, 0.22), transparent 28rem),
-    radial-gradient(circle at 85% 12%, rgba(255, 45, 149, 0.18), transparent 26rem),
-    radial-gradient(circle at 50% 100%, rgba(34, 228, 212, 0.12), transparent 30rem),
-    var(--ds-bg);
+.huelle { width: min(1080px, 100% - 2 * var(--rand)); margin-inline: auto; }
+:root { --rand: max(22px, env(safe-area-inset-left, 0px)); }
+
+/* ---------- Kopf ---------- */
+.nav {
+  position: fixed; inset: 0 0 auto; z-index: 30; display: flex;
+  align-items: center; justify-content: space-between; gap: 18px;
+  padding: 18px var(--rand); font-family: var(--mono); font-size: .72rem;
+  letter-spacing: .18em; text-transform: uppercase;
+  background: linear-gradient(to bottom, var(--bg) 40%, transparent);
 }
+.nav b { font-weight: 700; letter-spacing: .2em; }
+.nav nav { display: flex; gap: 20px; color: var(--fg2); }
+.nav nav a:hover, .nav nav a:focus-visible { color: var(--gruen); }
 
-a { color: inherit; }
-
-.ds-wrap {
-  max-width: 980px;
-  margin: 0 auto;
-  padding-left: max(20px, env(safe-area-inset-left, 0px));
-  padding-right: max(20px, env(safe-area-inset-right, 0px));
-  padding-block: 40px 64px;
+/* ---------- 1. Terminalstart ---------- */
+.boot {
+  min-height: 100svh; display: grid; align-content: center;
+  grid-template-columns: minmax(0, 1fr); padding: 96px 0 72px;
 }
-
-.ds-hero { text-align: center; display: grid; gap: 18px; justify-items: center; }
-
-.ds-logo { width: min(440px, 88%); height: auto; }
-
-.ds-claim {
-  margin: 0;
-  font-size: clamp(1.35rem, 4.5vw, 2rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-  max-width: 20ch;
+.schirm {
+  background: var(--flaeche); border: 1px solid rgba(43, 212, 125, .22);
+  border-radius: 10px; padding: clamp(16px, 3.5vw, 30px);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 30px 90px -40px rgba(43, 212, 125, .35);
+  position: relative; overflow: hidden;
 }
-
-.ds-lede { margin: 0; color: var(--ds-muted); max-width: 54ch; }
-
-.ds-grid {
-  margin-top: 44px;
-  display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+/* Leichte Zeilenstruktur, wie auf einem Roehrenschirm. */
+.schirm::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(to bottom,
+    rgba(255,255,255,.028) 0 1px, transparent 1px 3px);
 }
-
-.ds-card {
-  display: grid;
-  gap: 10px;
-  align-content: start;
-  padding: 24px;
-  border-radius: 18px;
-  border: 1px solid var(--ds-line);
-  background: var(--ds-surface);
-  text-decoration: none;
-  transition: border-color 0.18s ease, transform 0.18s ease;
+.leiste {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  font-family: var(--mono); font-size: .64rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--fg2);
 }
+.leiste i { width: 9px; height: 9px; border-radius: 50%; background: #2a3338; }
+.leiste i:first-child { background: var(--pink); }
+.leiste i:nth-child(2) { background: var(--bernstein); }
+.leiste i:nth-child(3) { background: var(--gruen); }
+.leiste span { margin-left: auto; }
 
-a.ds-card:hover,
-a.ds-card:focus-visible { border-color: var(--ds-violet); transform: translateY(-3px); }
-
-.ds-card h2 { margin: 0; font-size: 1.3rem; letter-spacing: -0.01em; }
-.ds-card p { margin: 0; color: var(--ds-muted); font-size: 0.95rem; }
-
-.ds-badge {
-  justify-self: start;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  padding: 5px 11px;
-  border-radius: 999px;
+/* Bewusst kein <pre>: darin zaehlen die Umbrueche zwischen den Zeilen-
+   Elementen als echte Leerzeilen. Die Zeilen selbst haben white-space: pre. */
+.ausgabe {
+  margin: 0; font-family: var(--mono); line-height: 1.75;
+  font-size: clamp(.72rem, 2.9vw, 1rem); color: var(--gruen);
+  text-shadow: 0 0 14px rgba(43, 212, 125, .28);
 }
-
-.ds-badge.live { background: rgba(34, 228, 212, 0.16); color: var(--ds-cyan); }
-.ds-badge.bald { background: rgba(167, 155, 196, 0.14); color: var(--ds-muted); }
-
-.ds-go { font-weight: 700; color: var(--ds-pink); }
-
-.ds-footer {
-  margin-top: 52px;
-  padding-top: 22px;
-  border-top: 1px solid var(--ds-line);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 18px;
-  justify-content: center;
-  color: var(--ds-muted);
-  font-size: 0.88rem;
+.ausgabe .z {
+  display: block; white-space: pre; overflow: hidden;
+  width: auto;
 }
+.ausgabe .ok { color: var(--gruen); }
+.ausgabe .warn { color: var(--bernstein); }
+.ausgabe .fehl { color: var(--pink); }
+.ausgabe .matt { color: var(--gruen-matt); }
 
-:focus-visible { outline: 2px solid var(--ds-cyan); outline-offset: 3px; }
+/* Tippen: die Breite waechst in Zeichenschritten. Nur wenn JS die
+   Zeichenzahl und die Verzoegerung gesetzt hat - sonst steht alles sofort. */
+.tippt .ausgabe .z {
+  width: 0; animation: tippen calc(var(--n) * 14ms) steps(var(--n)) var(--d, 0ms) forwards;
+}
+@keyframes tippen { to { width: calc(var(--n) * 1ch); } }
+/* Uebersprungen: sofort alles zeigen. */
+.tippt.fertig .ausgabe .z { width: auto; animation: none; }
+
+/* Eingabezeile: der Cursor steht hinter dem Prompt, nicht darunter. */
+.eingabe { display: block; }
+.eingabe .z { display: inline-block; vertical-align: baseline; }
+
+.cursor {
+  display: inline-block; width: 1ch; height: 1.1em; vertical-align: -.18em;
+  background: var(--gruen); animation: blinken 1.05s steps(1) infinite;
+}
+@keyframes blinken { 50% { opacity: 0; } }
+.tippt .cursor { opacity: 0; animation: none; }
+.tippt.fertig .cursor { opacity: 1; animation: blinken 1.05s steps(1) infinite; }
+
+.unterleiste {
+  margin-top: 26px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.ueberspringen {
+  padding: 0; border: 0; background: none; cursor: pointer;
+  font-family: var(--mono); font-size: .64rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--fg2);
+}
+.ueberspringen:hover, .ueberspringen:focus-visible { color: var(--gruen); }
+.fertig .ueberspringen { visibility: hidden; }
+
+.weiter {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--fg2);
+  opacity: 0; transition: opacity .5s ease .2s;
+}
+.fertig .weiter, :root:not(.tippt) .weiter { opacity: 1; }
+.weiter span { animation: sacken 1.8s ease-in-out infinite; }
+@keyframes sacken { 50% { transform: translateY(4px); } }
+
+/* ---------- 2. Hero ---------- */
+/* Die Kopfzeile liegt fest oben; ohne Abstand verdeckt sie beim
+   Ankersprung die Kapitelzeile des Ziels. */
+.hero, .projekte { scroll-margin-top: 86px; }
+.hero { padding: clamp(80px, 16vh, 170px) 0 clamp(60px, 10vh, 120px); }
+.kapitel {
+  font-family: var(--mono); font-size: .68rem; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--gruen-matt); margin: 0 0 22px;
+}
+.titan {
+  margin: 0; font-weight: 700; line-height: .88; letter-spacing: -.04em;
+  font-size: clamp(2.6rem, 13vw, 10rem); text-transform: uppercase;
+}
+.titan em { font-style: normal; color: var(--fg2); }
+.spruch {
+  margin: 26px 0 0; font-family: var(--mono); font-size: .76rem;
+  letter-spacing: .2em; text-transform: uppercase; color: var(--gruen);
+}
+.fliess {
+  margin: 40px 0 0; max-width: 54ch; color: var(--fg2);
+  font-size: clamp(1rem, 2.4vw, 1.18rem); line-height: 1.7;
+}
+.fliess strong { color: var(--fg); font-weight: 500; }
+
+/* ---------- 3. Projekte ---------- */
+.projekte { padding: 0 0 clamp(70px, 12vh, 130px); }
+.titel2 {
+  margin: 0 0 8px; font-size: clamp(1.7rem, 5.5vw, 3rem); font-weight: 700;
+  letter-spacing: -.03em;
+}
+.liste {
+  display: grid; gap: 2px; margin-top: 38px;
+  grid-template-columns: minmax(0, 1fr); min-width: 0;
+}
+.karte {
+  display: grid; gap: 10px; padding: 30px 0 28px;
+  border-top: 1px solid var(--linie); min-width: 0;
+  transition: border-color .25s ease;
+}
+a.karte:hover, a.karte:focus-visible { border-color: var(--gruen); }
+.karte h3 { margin: 0; font-size: clamp(1.3rem, 4.4vw, 1.9rem); font-weight: 700;
+  letter-spacing: -.02em; }
+.karte p { margin: 0; color: var(--fg2); font-size: 1rem; line-height: 1.6; }
+.hin {
+  font-family: var(--mono); font-size: .66rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--gruen);
+}
+.hin.aus { color: var(--fg2); }
+a.karte:hover .hin { letter-spacing: .22em; }
+.hin { transition: letter-spacing .25s ease; }
+
+/* ---------- Fuss ---------- */
+.fuss {
+  border-top: 1px solid var(--linie); padding: 26px 0 40px;
+  display: flex; flex-wrap: wrap; gap: 8px 22px;
+  font-family: var(--mono); font-size: .66rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--fg2);
+}
+.fuss a:hover, .fuss a:focus-visible { color: var(--gruen); }
+.fuss span:last-child { margin-left: auto; }
+
+:focus-visible { outline: 2px solid var(--gruen); outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ds-card { transition: none; }
+  html { scroll-behavior: auto; }
+  .tippt .ausgabe .z { width: calc(var(--n) * 1ch); animation: none; }
+  .cursor, .weiter span { animation: none; }
+  .weiter { opacity: 1; }
 }
