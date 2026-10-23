@@ -186,14 +186,18 @@ function baueWelt() {
   const STEIGUNG = 5.4;
   const SCHRITT = 0.95;
   const ANZAHL = TAFELN.length;
+  const hochkant = innerWidth / innerHeight < 0.85;
   const spirale = new THREE.Group();
   const tafeln = [];
 
   for (let i = 0; i < ANZAHL; i++) {
     const e = TAFELN[i];
     const w = i * SCHRITT;
-    const bb = e.quer ? 8.6 : 5.6;
-    const hh = e.quer ? 5.1 : 7.6;
+    // Auf einem Hochkantschirm wird jede Tafel hochkant: ein Querformat
+    // passt in einen so schmalen Rahmen nicht, ohne angeschnitten zu werden.
+    const quer = e.quer && !hochkant;
+    const bb = quer ? 8.6 : 5.6;
+    const hh = quer ? 5.1 : 7.6;
 
     const form = rundesRechteck(bb, hh, Math.min(bb, hh) * 0.075);
     // Echtes Milchglas: man sieht die Szene hindurch, verschwommen und
@@ -211,7 +215,7 @@ function baueWelt() {
     kante.position.z = 0.012;
 
     const schrift = new THREE.Mesh(new THREE.PlaneGeometry(bb * 0.92, hh * 0.92),
-      new THREE.MeshBasicMaterial({ map: schriftTextur(e, e.quer), transparent: true, toneMapped: false, depthWrite: false }));
+      new THREE.MeshBasicMaterial({ map: schriftTextur(e, quer), transparent: true, toneMapped: false, depthWrite: false }));
     schrift.position.z = 0.02;
 
     const tafel = new THREE.Group();
@@ -229,7 +233,9 @@ function baueWelt() {
   const SP_HOCH = STEIGUNG * (ANZAHL - 1) * SCHRITT;
   // Die Spirale liegt vollstaendig UNTER der Skulptur, sonst steht die Kamera
   // schon in der Eroeffnung mittendrin.
-  spirale.position.y = -SP_HOCH - 26;
+  // Hochkant ist das Sichtfeld deutlich weiter (bis 72 statt 50 Grad),
+  // dadurch ragt die oberste Tafel sonst in die Eroeffnung hinein.
+  spirale.position.y = -SP_HOCH - (hochkant ? 40 : 26);
   scene.add(spirale);
 
   /* ---- 3. Staub ---- */
@@ -308,6 +314,18 @@ function baueWelt() {
     composer.setSize(w, h);
     bloom.resolution.set(w, h);
     camera.aspect = w / h;
+    // Bei festem senkrechtem Blickwinkel schneidet ein hochkantes Handy die
+    // Tafeln seitlich ab -- das waagerechte Sichtfeld ist dort viel enger.
+    // Also das waagerechte festhalten und das senkrechte daraus ableiten,
+    // gedeckelt, sonst wird daraus ein Fischauge.
+    const REF_ASPECT = 16 / 9, REF_FOV = 50, MAX_FOV = 72;
+    if (camera.aspect < REF_ASPECT) {
+      const halbWaage = Math.atan(Math.tan((REF_FOV * Math.PI) / 360) * REF_ASPECT);
+      const fov = (2 * Math.atan(Math.tan(halbWaage) / camera.aspect) * 180) / Math.PI;
+      camera.fov = Math.min(MAX_FOV, fov);
+    } else {
+      camera.fov = REF_FOV;
+    }
     camera.updateProjectionMatrix();
   }
 
