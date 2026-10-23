@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="DeepScheitern baut Browser-Spiele und kleine Werkzeuge. Think Deep. Build Different." />
     <meta name="theme-color" content="#050507" />
-    <link rel="stylesheet" href="../assets/css/deepscheitern-landing.css?v=1" />
+    <link rel="stylesheet" href="../assets/css/deepscheitern-landing.css?v=2" />
     <title>DeepScheitern</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
   </head>
@@ -100,6 +100,14 @@
             <h3>DeepSecurity</h3>
             <p>Bisher ein Sicherheitscheck für die eigene Seite. Kein Produkt, nur Sorgfalt.</p>
           </div>
+          <div class="d-card d-card-geheim reveal" id="geheimkarte" hidden>
+            <span class="d-badge geheim">Geheim</span>
+            <h3>DeepNichts</h3>
+            <p>
+              Tut nichts, kann nichts, kostet nichts. Das einzige Produkt, das
+              exakt haelt, was sein Name verspricht.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -136,9 +144,11 @@
       <a href="/datenschutz.html">Datenschutz</a>
     </footer>
 
-    <script src="../assets/vendor/three-0.149.0.min.js" defer></script>
     <script src="../assets/vendor/gsap-3.12.5.min.js" defer></script>
     <script src="../assets/vendor/scrolltrigger-3.12.5.min.js" defer></script>
-    <script src="../assets/js/deepscheitern-landing.js?v=1" defer></script>
+    <script type="importmap">
+      { "imports": { "three": "../assets/vendor/three.module.js" } }
+    </script>
+    <script type="module" src="../assets/js/deepscheitern-landing.js?v=2"></script>
   </body>
 </html>

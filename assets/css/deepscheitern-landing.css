@@ -52,11 +52,19 @@ a { color: inherit; text-decoration: none; }
   opacity: 0; visibility: hidden; transition: opacity .45s ease; }
 .stage-mode .d-stage.is-on { opacity: 1; visibility: visible; }
 #d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-/* Leseschleier: ohne ihn laeuft die Spirale quer durch die Ueberschrift. */
+/* Statt eines schwarzen Flecks ueber der Mitte bekommt die Schrift selbst
+   einen weichen Schein. So bleibt die Spirale sichtbar und der Text lesbar. */
 .d-hero::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background:
-    radial-gradient(ellipse 58% 46% at 50% 44%, rgba(5,5,7,.92) 0%, rgba(5,5,7,.78) 42%, rgba(5,5,7,0) 78%),
-    linear-gradient(to bottom, rgba(5,5,7,0) 62%, rgba(5,5,7,.75) 86%, var(--d-bg) 100%); }
+  background: linear-gradient(to bottom, rgba(5,5,7,0) 58%, rgba(5,5,7,.7) 84%, var(--d-bg) 100%); }
+/* Ein leichter, weit auslaufender Schleier. Backdrop-Filter waere eleganter,
+   zeichnet aber an der Maskenkante sichtbare Stufen. Weiss auf Dunkel hat
+   ohnehin genug Kontrast -- es braucht keine 90 Prozent Schwarz, die die
+   Spirale mit ausloeschen. */
+.d-stage .d-shell::before { content: ""; position: absolute; inset: -14% -10%; z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 50% 56% at 50% 50%, rgba(5,5,7,.6) 0%, rgba(5,5,7,.34) 45%, rgba(5,5,7,0) 78%); }
+.d-sub { text-shadow: 0 1px 12px rgba(5,5,7,.9); }
+.d-hero-text { position: relative; }
 .d-hero-text { position: relative; z-index: 2; display: grid; gap: 20px; justify-items: center;
   pointer-events: none; }
 .d-hero-text > * { pointer-events: auto; }
@@ -123,3 +131,45 @@ a { color: inherit; text-decoration: none; }
 /* Ohne Buehnenmodus gibt es nichts zu scrollen -- der Hinweis waere gelogen. */
 :root:not(.stage-mode) .d-scrollhint { display: none; }
 @media (prefers-reduced-motion: reduce) { .stage-mode .d-stage { transition: none; } }
+
+/* ---------- Feinschliff ---------- */
+/* Filmkorn: eine Winzigkeit Rauschen nimmt Farbverlaeufen das Plastikhafte
+   und verdeckt die Streifenbildung, die auf dunklen Flaechen sonst sichtbar
+   wird. Als data-URI, damit keine Datei dafuer geladen werden muss. */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 25; pointer-events: none;
+  opacity: .035; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* Vignette: zieht den Blick zur Mitte, ohne dass man sie bemerkt. */
+.d-hero::before {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 92% 86% at 50% 50%, transparent 62%, rgba(0,0,0,.42) 100%);
+}
+.d-nav-links a.is-here { color: var(--d-ink); }
+.d-nav-links a.is-here::after { right: 0; }
+
+.d-badge.geheim { background: rgba(139,92,246,.2); color: #c4b5fd; }
+.d-card-geheim { border-color: var(--d-violet); }
+
+/* Dreifachklick auf die Ueberschrift: kurze Farbkanaltrennung. */
+.is-glitching .d-title {
+  animation: dsGlitch .9s steps(2, end);
+}
+@keyframes dsGlitch {
+  0%, 100% { text-shadow: none; transform: none; }
+  20% { text-shadow: -4px 0 var(--d-pink), 4px 0 var(--d-cyan); transform: translateX(2px); }
+  45% { text-shadow: 5px 0 var(--d-cyan), -5px 0 var(--d-pink); transform: translateX(-3px); }
+  70% { text-shadow: -2px 0 var(--d-violet), 2px 0 var(--d-cyan); transform: translateX(1px); }
+}
+
+.d-egg {
+  animation: dsEgg .35s ease-out;
+  box-shadow: 0 10px 40px rgba(0,0,0,.6);
+}
+@keyframes dsEgg { from { opacity: 0; transform: translate(-50%, 14px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { display: none; }
+  .is-glitching .d-title, .d-egg { animation: none; }
+}
