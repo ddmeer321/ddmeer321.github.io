@@ -6,24 +6,16 @@
   var wurzel = document.documentElement;
   var ausgabe = document.getElementById("ausgabe");
   var knopf = document.getElementById("ueberspringen");
+  var neustart = document.getElementById("neustart");
   if (!ausgabe) return;
 
-  // Neu laden soll oben anfangen. Ohne das stellt der Browser die alte
-  // Scrollposition wieder her und der Start waere gar nicht zu sehen.
+  // Ein Neuladen von Hand soll ebenfalls oben anfangen.
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-  var neustart = document.getElementById("neustart");
-  if (neustart) neustart.addEventListener("click", function () {
-    // Nicht reload(): steht ein Anker in der Adresse (#ueber, #projekte --
-    // etwa weil vorher "Weiterlesen" oder die Navigation benutzt wurde),
-    // springt der Browser beim Neuladen genau dorthin. Dagegen hilft
-    // scrollRestoration nicht, das ist Ankernavigation. Also ohne Anker neu
-    // laden.
-    location.replace(location.pathname + location.search);
-  });
 
   var sparsam = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var zeilen = ausgabe.querySelectorAll(".z");
   var MS_ZEICHEN = 9, PAUSE = 45;
+  var uhr = null;
 
   var summe = 0;
   for (var i = 0; i < zeilen.length; i++) {
@@ -32,11 +24,6 @@
     zeilen[i].style.setProperty("--d", summe + "ms");
     summe += n * MS_ZEICHEN + PAUSE;
   }
-
-  if (sparsam) { wurzel.classList.add("tippt", "fertig"); return; }
-
-  wurzel.classList.add("tippt");
-  var uhr = setTimeout(fertig, summe + 150);
 
   function fertig() {
     clearTimeout(uhr);
@@ -47,15 +34,51 @@
     // Tabulator nicht abfangen: sonst kommt man per Tastatur nicht weiter.
     if (ev.key !== "Tab") fertig();
   }
+  function setzeHorcher() {
+    addEventListener("keydown", beiTaste);
+    addEventListener("wheel", fertig, { passive: true });
+    addEventListener("touchstart", fertig, { passive: true });
+    addEventListener("pointerdown", fertig);
+  }
   function entferneHorcher() {
     removeEventListener("keydown", beiTaste);
     removeEventListener("wheel", fertig);
     removeEventListener("touchstart", fertig);
     removeEventListener("pointerdown", fertig);
   }
-  addEventListener("keydown", beiTaste);
-  addEventListener("wheel", fertig, { passive: true, once: true });
-  addEventListener("touchstart", fertig, { passive: true, once: true });
-  addEventListener("pointerdown", fertig, { once: true });
+
+  function starteTippen() {
+    if (sparsam) { wurzel.classList.add("tippt", "fertig"); return; }
+    wurzel.classList.remove("tippt", "fertig");
+    // Reflow erzwingen: ohne das laeuft eine bereits abgespielte
+    // CSS-Animation beim erneuten Setzen der Klasse nicht noch einmal an.
+    void ausgabe.offsetWidth;
+    wurzel.classList.add("tippt");
+    clearTimeout(uhr);
+    uhr = setTimeout(fertig, summe + 150);
+    setzeHorcher();
+  }
+
+  starteTippen();
   if (knopf) knopf.addEventListener("click", fertig);
+
+  // Der Neustart laedt die Seite NICHT neu -- das gibt nur ein kurzes
+  // Weissblitzen und man sieht den Wechsel gar nicht. Stattdessen faehrt
+  // die Seite sichtbar nach oben, und erst wenn sie oben angekommen ist,
+  // laeuft der Start noch einmal.
+  if (neustart) neustart.addEventListener("click", function () {
+    try {
+      scrollTo({ top: 0, behavior: sparsam ? "auto" : "smooth" });
+    } catch (e) {
+      scrollTo(0, 0);
+    }
+    if (sparsam) { starteTippen(); return; }
+    var frist = Date.now() + 1800;
+    (function warte() {
+      // Nicht nach fester Zeit tippen: wie lange das Hochfahren dauert,
+      // haengt an Seitenlaenge und Browser. Also warten, bis es oben ist.
+      if (pageYOffset <= 2 || Date.now() > frist) starteTippen();
+      else requestAnimationFrame(warte);
+    })();
+  });
 })();
