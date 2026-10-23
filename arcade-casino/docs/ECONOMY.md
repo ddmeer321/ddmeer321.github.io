@@ -345,7 +345,7 @@ Tests: exakte Fallzahlen jeder Klasse, Summe der Wahrscheinlichkeiten = 1, RTP a
 Monte-Carlo (300.000 Ziehungen je Lotto) gegen die Klassenhäufigkeiten, Neonzahl gleichverteilt.
 
 **Wie spektakulär darf der Hauptgewinn sein?** 10 Millionen Credits sind ≈ 700-mal alles, was
-es zu kaufen gibt (Jukebox + alle Songs = 15.500 C) – ein echtes Lebensereignis im Palast. Für
+es zu kaufen gibt (Jukebox + alle Songs = 17.000 C) – ein echtes Lebensereignis im Palast. Für
 die Wirtschaft ist er trotzdem bedeutungslos: Er trägt 0,07 C je Schein zum Erwartungswert bei,
 und selbst mit 20 Scheinen bei jeder Ziehung (alle 3 Tage) liegt die erwartete Wartezeit bei
 ≈ 57.000 Jahren. Es gibt nichts Handelbares und keine Rangliste nach Guthaben, die ein
@@ -451,8 +451,8 @@ Zusatz-Paare, Kauf/Limit/Pause, Einfordern einmal, Neuladen, Bereinigung).
 | jedes weitere Stück | **1.500 C** (alle gleich) | ≈ 2–4 Tage; Musikgeschmack ist subjektiv |
 | besondere Stücke | nicht käuflich | Level 10, alle 12 Automaten gespielt bzw. 10 Erfolge (V1.5) |
 
-Gesamtsenke: 5.000 + 7 × 1.500 = **15.500 C** (V1.5: + „Pullover-Nacht“; die Simulation unten stammt
-noch aus V1.2 mit 6 Stücken – ein Stück mehr verschiebt die volle Bibliothek für Sammler um ≈ 2–4 Tage). Käufe zählen in der Statistik als „Ausgegeben“,
+Gesamtsenke: 5.000 + 8 × 1.500 = **17.000 C** (V1.5/1.6: + „Pullover-Nacht“, „Spiegelparkett“; die Simulation
+unten stammt noch aus V1.2 mit 6 Stücken – jedes Stück mehr verschiebt die volle Bibliothek für Sammler um ≈ 2–4 Tage). Käufe zählen in der Statistik als „Ausgegeben“,
 nicht als Einsatz: Guthaben = Start − Einsätze + Auszahlungen + Boni − Ausgaben.
 V1.2 hat den Jukebox-Preis nach der Simulation von 6.000 auf 5.000 gesenkt (bei 6.000 kam ein
 normaler Spieler erst nach ≈ 6 Wochen dazu).

@@ -181,7 +181,7 @@ test("Musik-Engine: jedes Stück spielt alle Takte fehlerfrei durch (inkl. Schle
 test("Studio-Aufnahmen: Datei vorhanden, Takte passen zur Länge, Abschnitte, Freischaltung", async () => {
   const fs = await import("node:fs");
   const studio = TRACKS.filter((t) => t.audio);
-  assert.deepEqual(studio.map((t) => t.id), ["pullover", "countdown"]);
+  assert.deepEqual(studio.map((t) => t.id), ["pullover", "spiegelparkett", "countdown"]);
   for (const tr of studio) {
     const file = new URL(`../${tr.audio}`, import.meta.url);
     const size = fs.statSync(file).size;
@@ -200,6 +200,7 @@ test("Studio-Aufnahmen: Datei vorhanden, Takte passen zur Länge, Abschnitte, Fr
   assert.equal(cd.kind, "special", "Countdown ist ein besonderes Stück");
   assert.equal(priceOf("countdown"), null, "nicht käuflich");
   assert.equal(priceOf("pullover"), SONG_PRICE, "Pullover-Nacht zum Einheitspreis");
+  assert.equal(priceOf("spiegelparkett"), SONG_PRICE, "Spiegelparkett zum Einheitspreis");
   assert.equal(specialUnlocked(cd, { achievements: 9 }), false);
   assert.equal(specialUnlocked(cd, { achievements: 10 }), true);
   const { jb, p } = setup(20000, { level: 1, gamesPlayed: 0, achievements: 9 });

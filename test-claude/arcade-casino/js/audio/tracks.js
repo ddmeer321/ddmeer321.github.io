@@ -386,6 +386,14 @@ const pullover = {
   section: sectionsAt([[0, "Intro"], [4, "Strophe"], [12, "Aufbau"], [16, "Refrain"], [24, "Break"], [28, "Refrain"], [36, "Outro"]]),
 };
 
+const spiegelparkett = {
+  id: "spiegelparkett", title: "Spiegelparkett", style: "80er Dance-Pop · Funk", kind: "shop", color: "#7df9ff",
+  bpm: 124, key: "g-Moll", prog: "Gm9 – Cm7 – Gm9 – D7 · Gm9 – E♭ – Cm7 – D7", form: "Intro → Strophe → Aufbau → Refrain → Break → Finale",
+  desc: "Studio-Aufnahme: trockener Drumcomputer, federnde Ostinato-Basslinie, Synth-Stabs, Funk-Gitarre, Bläser-Stöße.",
+  audio: `${MUSIC_BASE}spiegelparkett.mp3`, duration: 127.9, bars: 64, loopFrom: 0, gain: 0.85,
+  section: sectionsAt([[0, "Intro"], [4, "Strophe"], [12, "Aufbau"], [16, "Refrain"], [24, "Strophe"], [32, "Aufbau"], [36, "Refrain"], [44, "Break"], [52, "Finale"], [60, "Schluss"]]),
+};
+
 const countdown = {
   id: "countdown", title: "Countdown", style: "Electro · Cinematic", kind: "special", color: "#ff2e63",
   unlock: { type: "achievements", value: 10, text: "Sammle 10 Erfolge" },
@@ -395,6 +403,6 @@ const countdown = {
   section: sectionsAt([[0, "Intro"], [8, "Aufbau"], [16, "Spannung"], [24, "Drop"], [40, "Atempause"], [44, "Aufbau"], [48, "Finale"], [64, "Schluss"]]),
 };
 
-export const TRACKS = [drive, lounge, pixel, house, bossa, rain, swing, turbo, pullover, sunset, hymn, countdown];
+export const TRACKS = [drive, lounge, pixel, house, bossa, rain, swing, turbo, pullover, spiegelparkett, sunset, hymn, countdown];
 export const TRACK_IDS = TRACKS.map((t) => t.id);
 export const trackById = (id) => TRACKS.find((t) => t.id === id) || null;
