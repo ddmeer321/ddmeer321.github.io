@@ -204,7 +204,7 @@
     logoutBtn.addEventListener("click", async function () {
       logoutBtn.disabled = true;
       await sb.auth.signOut();
-      window.location.href = "index.html";
+      window.location.href = "/deepplay/";
     });
   }
 

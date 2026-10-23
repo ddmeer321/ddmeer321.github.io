@@ -3,7 +3,7 @@
   "name": "DeepPlay",
   "short_name": "DeepPlay",
   "description": "Kleine Browserspiele von ddmeer321 — auch ohne Netz.",
-  "start_url": "/",
+  "start_url": "/deepplay/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://deepscheitern.de/</loc></url>
+  <url><loc>https://deepscheitern.de/deepplay/</loc></url>
+  <url><loc>https://deepscheitern.de/musik.html</loc></url>
   <url><loc>https://deepscheitern.de/neon-bot-arena.html</loc></url>
   <url><loc>https://deepscheitern.de/snake.html</loc></url>
   <url><loc>https://deepscheitern.de/tic-tac-toe/</loc></url>
