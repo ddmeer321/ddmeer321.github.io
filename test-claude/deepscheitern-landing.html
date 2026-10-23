@@ -3,133 +3,107 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="DeepScheitern baut Browser-Spiele und kleine Werkzeuge. Eine Reise durch das, was laeuft und das, was nicht." />
-    <meta name="theme-color" content="#050507" />
+    <meta name="description" content="DeepScheitern — Wir scheitern tief. Professionell. Ein kreatives Experimentierfeld für Spiele, Software und digitale Ideen." />
+    <meta name="theme-color" content="#050505" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
-    <link rel="stylesheet" href="../assets/css/deepscheitern-landing.css?v=4" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="../assets/css/deepscheitern-landing.css?v=5" />
     <title>DeepScheitern</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
   </head>
   <body>
     <script src="../assets/js/test-gate.js?v=1"></script>
 
-    <canvas id="d-canvas" aria-hidden="true"></canvas>
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <div class="fortschritt" id="fortschritt" aria-hidden="true"></div>
+    <div class="zeiger" id="zeiger" aria-hidden="true"></div>
 
-    <div class="d-rahmen" aria-hidden="true"></div>
-
-    <a href="#start" aria-label="Startseite"><img id="d-logo" class="d-logo"
-       src="../assets/img/deepscheitern-logo-dunkel.webp?v=1" width="720" height="554" alt="DeepScheitern" /></a>
-
-    <div class="d-steuer">
-      <nav class="d-pille" aria-label="Hauptnavigation">
-        <a href="#deepplay">Produkte</a>
-        <span class="trenn" aria-hidden="true"></span>
-        <a href="#kontakt">Kontakt</a>
+    <header class="nav">
+      <a href="#" id="marke"><b>DeepScheitern®</b></a>
+      <nav class="nav-rechts" aria-label="Hauptnavigation">
+        <a href="#projekte" data-zu="0.70">Projekte</a>
+        <a href="#ueber" data-zu="0.88">Über</a>
+        <a href="#kontakt" data-zu="0.99">Kontakt</a>
       </nav>
-      <div class="d-blaetter" id="d-blaetter" hidden>
-        <button type="button" data-schritt="-1" aria-label="Vorherige Station">&lt;&lt;</button>
-        <span class="wo" id="d-wo" aria-live="polite">01 · Start</span>
-        <button type="button" data-schritt="1" aria-label="Nächste Station">&gt;&gt;</button>
-      </div>
+    </header>
+
+    <div class="buehne" id="buehne">
+      <!-- 1 — Eroeffnung -->
+      <section class="szene an" data-von="0" data-bis="0.14" id="start">
+        <h1 class="titan">
+          <span class="zeile"><span>Deep</span></span>
+          <span class="zeile"><span>Scheitern.</span></span>
+        </h1>
+        <p class="unter">Wir scheitern tief. Professionell.</p>
+      </section>
+
+      <!-- 2 — Einleitung zur Spirale -->
+      <section class="szene" data-von="0.16" data-bis="0.26">
+        <p class="marke">Kapitel 01</p>
+        <h2 class="gross">Alles, was<br /><em class="akzent">nicht</em> fertig ist.</h2>
+        <p class="fliess">Eine Spirale aus schwebenden Tafeln. Jede zeigt etwas, das gebaut wurde — oder gebaut werden sollte.</p>
+      </section>
+
+      <!-- 3 — Projekte -->
+      <section class="szene" data-von="0.68" data-bis="0.84" id="projekte">
+        <p class="marke">Kapitel 02 — Projekte</p>
+        <h2 class="gross">Play. Fail.<br />Repeat.</h2>
+        <div class="projekte">
+          <a class="projekt" href="../index.html">
+            <h3>DeepPlay</h3>
+            <p>Spielen. Scheitern. Wiederholen.</p>
+            <span class="hin">Browser-Spiele →</span>
+          </a>
+          <div class="projekt">
+            <h3>DeepService</h3>
+            <p>Support, der garantiert nichts garantiert.</p>
+            <span class="hin">Noch nicht öffentlich</span>
+          </div>
+          <a class="projekt" href="../neon-bot-arena.html">
+            <h3>Neon Bot Arena</h3>
+            <p>Chaos ist kein Bug. Es ist ein Feature.</p>
+            <span class="hin">Spielen →</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- 4 — Ueber -->
+      <section class="szene" data-von="0.86" data-bis="0.94" id="ueber">
+        <h2 class="titan">
+          <span class="zeile"><span>We make</span></span>
+          <span class="zeile"><span><em>things.</em></span></span>
+        </h2>
+        <p class="fliess">Sometimes they even work. DeepScheitern ist ein kreatives Experimentierfeld für Spiele, Software, künstliche Intelligenz und digitale Ideen. Nicht alles funktioniert. Aber genau das macht es interessant.</p>
+      </section>
+
+      <!-- 5 — Schluss -->
+      <section class="szene" data-von="0.955" data-bis="1" id="kontakt">
+        <h2 class="gross">Scheitern war<br />noch nie so schön.</h2>
+        <p class="unter">Wir scheitern tief. Professionell.</p>
+        <button class="knopf" id="nochmal" type="button">Nochmal scheitern <span aria-hidden="true">→</span></button>
+      </section>
     </div>
 
-    <nav class="d-index" id="d-index" aria-label="Stationen">
-      <span class="d-index-titel">Wo willst du hin?</span>
-    </nav>
-
-    <main>
-      <section class="d-station" id="start" data-label="Start" data-ring="0" data-farbe="#8b5cf6">
-        <div class="d-inner">
-          <h1 class="d-h1">Think Deep.<br /><span class="grad">Build Different.</span></h1>
-          <p class="d-text">Browser-Spiele und kleine Werkzeuge. Scroll dich durch.</p>
-        </div>
-      </section>
-
-      <section class="d-station" id="deepplay" data-label="DeepPlay" data-ring="1" data-farbe="#22e4d4">
-        <div class="d-inner">
-          <p class="d-meta"><b class="s-online">Online</b></p>
-          <h2 class="d-h2">DeepPlay</h2>
-          <p class="d-text">Neon Bot Arena, Snake, Tic-Tac-Toe, Cursor Clicker und Reaction. Ohne Installation, direkt im Browser.</p>
-          <a class="d-link" href="../index.html">Zu den Spielen</a>
-        </div>
-      </section>
-
-      <section class="d-station" id="deepservice" data-label="DeepService" data-ring="2" data-farbe="#ff2d95">
-        <div class="d-inner">
-          <p class="d-meta"><b class="s-arbeit">In Arbeit</b></p>
-          <h2 class="d-h2">DeepService</h2>
-          <p class="d-text">Ein Satire-Kundendienst mit 100 Trillionen Möglichkeiten, dir nicht zu helfen. Läuft bisher nur lokal.</p>
-        </div>
-      </section>
-
-      <section class="d-station" id="deepai" data-label="DeepAI" data-ring="3" data-farbe="#8b5cf6">
-        <div class="d-inner">
-          <p class="d-meta"><b class="s-konzept">Konzept</b></p>
-          <h2 class="d-h2">DeepAI</h2>
-          <p class="d-text">Noch nichts gebaut. Steht hier, weil der Name zu gut ist, um ihn jemand anderem zu überlassen.</p>
-        </div>
-      </section>
-
-      <section class="d-station" id="deepdev" data-label="DeepDev" data-ring="4" data-farbe="#8b5cf6">
-        <div class="d-inner">
-          <p class="d-meta"><b class="s-konzept">Konzept</b></p>
-          <h2 class="d-h2">DeepDev</h2>
-          <p class="d-text">Werkzeuge, die beim Bauen der anderen Sachen abfallen. Bisher liegen sie verstreut herum.</p>
-        </div>
-      </section>
-
-      <section class="d-station" id="deepcloud" data-label="DeepCloud" data-ring="5" data-farbe="#8b5cf6">
-        <div class="d-inner">
-          <p class="d-meta"><b class="s-konzept">Konzept</b></p>
-          <h2 class="d-h2">DeepCloud</h2>
-          <p class="d-text">Alles läuft auf GitHub Pages und einem kostenlosen Dienst. Das als Cloud zu bezeichnen wäre gelogen.</p>
-        </div>
-      </section>
-
-      <section class="d-station" id="deepsecurity" data-label="DeepSecurity" data-ring="6" data-farbe="#8b5cf6">
-        <div class="d-inner">
-          <p class="d-meta"><b class="s-konzept">Konzept</b></p>
-          <h2 class="d-h2">DeepSecurity</h2>
-          <p class="d-text">Bisher ein Sicherheitscheck für die eigene Seite. Kein Produkt, nur Sorgfalt.</p>
-        </div>
-      </section>
-
-      <section class="d-station" id="geheim" data-label="DeepNichts" data-ring="7" data-farbe="#c4b5fd" hidden>
-        <div class="d-inner">
-          <p class="d-meta"><b class="s-geheim">Geheim</b></p>
-          <h2 class="d-h2">DeepNichts</h2>
-          <p class="d-text">Tut nichts, kann nichts, kostet nichts. Das einzige Produkt, das exakt hält, was sein Name verspricht.</p>
-        </div>
-      </section>
-
-      <section class="d-station" id="ueber" data-label="Über uns" data-ring="8" data-farbe="#22e4d4">
-        <div class="d-inner">
-          <p class="d-meta">Über uns</p>
-          <h2 class="d-h2">Ein Mensch,<br /><span class="grad">viele Fehlversuche.</span></h2>
-          <p class="d-text">DeepScheitern ist kein Unternehmen, sondern ein Name für die Sachen, die ich baue. Der Name ist die ehrlichste Produktbeschreibung, die mir eingefallen ist.</p>
-        </div>
-      </section>
-
-      <section class="d-station" id="kontakt" data-label="Kontakt" data-ring="9" data-farbe="#ff2d95">
-        <div class="d-inner">
-          <p class="d-meta">Kontakt</p>
-          <h2 class="d-h2">Ende des Korridors.</h2>
-          <p class="d-text">Die Kontaktdaten stehen im Impressum.</p>
-        </div>
-      </section>
-    </main>
-
-    <div class="d-foot">
+    <div class="hinweis" id="hinweis" aria-hidden="true">Scrollen</div>
+    <div class="fuss">
       <a href="/impressum.html">Impressum</a>
       <a href="/datenschutz.html">Datenschutz</a>
       <span>© 2026</span>
     </div>
 
+    <!-- Die Scrollstrecke treibt die Kamera; sie enthaelt selbst nichts. -->
+    <div class="strecke" aria-hidden="true">
+      <div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div>
+    </div>
+
+    <script src="../assets/vendor/gsap-3.12.5.min.js"></script>
+    <script src="../assets/vendor/scrolltrigger-3.12.5.min.js"></script>
+    <script src="../assets/vendor/lenis-1.1.18.min.js"></script>
     <script type="importmap">
       { "imports": { "three": "../assets/vendor/three.module.js" } }
     </script>
-    <script type="module" src="../assets/js/deepscheitern-landing.js?v=4"></script>
+    <script type="module" src="../assets/js/deepscheitern-landing.js?v=5"></script>
   </body>
 </html>
