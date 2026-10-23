@@ -1,6 +1,9 @@
-/* DeepScheitern Landing: gepinnte 3D-Buehne, Scrollszenen, Easter Eggs.
-   Alles Bewegte ist optional. Faellt WebGL oder eine Bibliothek aus, bleibt
-   die Seite vollstaendig lesbar -- die Inhalte stehen im HTML. */
+/* DeepScheitern: ein Korridor aus Neonringen, durch den das Scrollen faehrt.
+   Die Produkte sind Stationen darin. Der Text steht in der Ringoeffnung --
+   deshalb braucht es keinen Schleier ueber dem Hintergrund, die Komposition
+   laesst die Mitte frei.
+
+   Ohne WebGL oder ohne Skript bleibt eine normale, lesbare Seite uebrig. */
 import * as THREE from "three";
 import { EffectComposer } from "../vendor/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "../vendor/jsm/postprocessing/RenderPass.js";
@@ -8,277 +11,213 @@ import { UnrealBloomPass } from "../vendor/jsm/postprocessing/UnrealBloomPass.js
 import { ShaderPass } from "../vendor/jsm/postprocessing/ShaderPass.js";
 import { GammaCorrectionShader } from "../vendor/jsm/shaders/GammaCorrectionShader.js";
 
-const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const root = document.documentElement;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
-const ease = (t) => t * t * (3 - 2 * t);
 const mix = (a, b, t) => a + (b - a) * t;
 
-let stageProgress = 0;   // 0..1 ueber die gesamte gepinnte Buehne
-let stages = [];
-let hero = null;         // Steuerung der 3D-Szene, von den Eggs benutzt
+const ABSTAND = 14;        // Abstand zwischen zwei Stationsringen
+const ZWISCHEN = 3;        // Fuellringe zwischen den Stationen
 
-/* ====================== Scrollsteuerung ====================== */
-function showStage(i) {
-  stages.forEach((el, k) => el.classList.toggle("is-on", k === i));
-}
+let welt = null;
 
-function initScroll() {
-  if (reduce || !window.gsap || !window.ScrollTrigger) {
-    root.classList.add("no-anim");
-    return;
-  }
-  gsap.registerPlugin(ScrollTrigger);
-  root.classList.add("anim-ready");
-
-  stages = Array.from(document.querySelectorAll(".d-stage"));
-  const buehne = document.getElementById("buehne");
-  if (buehne && stages.length) {
-    root.classList.add("stage-mode");
-    showStage(0);
-    ScrollTrigger.create({
-      trigger: buehne,
-      start: "top top",
-      end: "+=" + stages.length * 110 + "%",
-      pin: true,
-      pinSpacing: true,
-      scrub: 0.6,
-      onUpdate: (self) => {
-        stageProgress = self.progress;
-        showStage(Math.min(stages.length - 1, Math.floor(self.progress * stages.length)));
-      },
-    });
-  }
-
-  gsap.utils.toArray(".reveal").forEach((el, i) => {
-    gsap.fromTo(el, { opacity: 0, y: 26 }, {
-      opacity: 1, y: 0, duration: 0.7, ease: "power2.out", delay: (i % 3) * 0.07,
-      scrollTrigger: { trigger: el, start: "top 86%", once: true },
-    });
-  });
-
-  // Navigation hebt den Abschnitt hervor, in dem man gerade ist.
-  document.querySelectorAll(".d-nav-links a[href^='#']").forEach((link) => {
-    const target = document.querySelector(link.getAttribute("href"));
-    if (!target) return;
-    ScrollTrigger.create({
-      trigger: target, start: "top 55%", end: "bottom 45%",
-      onToggle: (self) => link.classList.toggle("is-here", self.isActive),
-    });
-  });
-}
-
-/* ====================== Produktkarten ====================== */
-function initCards() {
-  if (reduce || window.matchMedia("(hover: none)").matches) return;
-  document.querySelectorAll(".d-card").forEach((card) => {
-    card.addEventListener("pointermove", (e) => {
-      const r = card.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width;
-      const py = (e.clientY - r.top) / r.height;
-      card.style.setProperty("--mx", px * 100 + "%");
-      card.style.setProperty("--my", py * 100 + "%");
-      card.style.transform =
-        `perspective(900px) rotateX(${(py - 0.5) * -5}deg) rotateY(${(px - 0.5) * 6}deg) translateY(-3px)`;
-    });
-    card.addEventListener("pointerleave", () => { card.style.transform = ""; });
-  });
-}
-
-/* ====================== 3D-Buehne ====================== */
-// Eine kleine Szene aus farbigen Flaechen wird zur Umgebungskarte gerechnet.
-// Genau das laesst Metall wie Metall aussehen: ohne etwas zum Spiegeln
-// bleibt die beste Metalloberflaeche eine graue Flaeche.
-function buildEnvironment(renderer) {
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const s = new THREE.Scene();
-  s.background = new THREE.Color(0x05050a);
-  const panel = (hex, pos, scale) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshBasicMaterial({ color: hex }));
-    m.position.set(...pos);
-    m.scale.set(...scale);
-    s.add(m);
-  };
-  panel(0x3dfff0, [-9, 2, -3], [1, 14, 18]);
-  panel(0xff57ab, [9, -2, -1], [1, 14, 18]);
-  panel(0xa78bfa, [0, 9, -2], [20, 1, 18]);
-  panel(0x1a2440, [0, 3, -12], [22, 16, 1]);
-  panel(0x120d20, [0, -8, 0], [20, 1, 20]);
-  const tex = pmrem.fromScene(s, 0.05).texture;
-  pmrem.dispose();
-  s.traverse((o) => { if (o.geometry) { o.geometry.dispose(); o.material.dispose(); } });
-  return tex;
-}
-
-function initHero() {
+/* ====================== Die Welt ====================== */
+function baueWelt(stationen) {
   const canvas = document.getElementById("d-canvas");
-  if (!canvas || reduce) return null;
+  if (!canvas) return null;
   let gl;
   try { gl = canvas.getContext("webgl2") || canvas.getContext("webgl"); } catch { gl = null; }
   if (!gl) return null;
 
-  const weak = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
-  const narrow = window.innerWidth < 760;
-  const COUNT = narrow ? 36 : weak ? 48 : 68;
-  const maxDpr = narrow || weak ? 1.5 : 2;
+  const schwach = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+  const schmal = innerWidth < 760;
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !weak, alpha: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
-  // Filmische Tonwertkurve statt harter Abschnitt: Lichter laufen weich aus,
-  // statt bei Weiss abzuschneiden. Macht mehr aus als jede zusaetzliche Lampe.
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !schwach, alpha: false, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, schmal || schwach ? 1.5 : 2));
+  renderer.setClearColor(0x050507, 1);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
-  renderer.outputEncoding = THREE.sRGBEncoding;
 
   const scene = new THREE.Scene();
-  scene.environment = buildEnvironment(renderer);
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 120);
-  camera.position.set(0, 1.1, 13);
+  scene.fog = new THREE.Fog(0x050507, 10, 62);
+  const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 140);
 
-  // Eine Geometrie, ein Material, viele Instanzen: 68 Ringe kosten dadurch
-  // nicht 68-mal Arbeit.
-  const ring = new THREE.TorusGeometry(1, 0.052, 12, 90);
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0x1b1730, metalness: .9, roughness: 0.2, envMapIntensity: 3.2,
-    emissive: 0x1d1530, emissiveIntensity: .45,
+  // Ein Ring je Station, dazwischen schmalere Fuellringe. Zusammen ergibt das
+  // einen Gang mit Fluchtpunkt -- und die Mitte bleibt von selbst leer.
+  const ringGeo = new THREE.TorusGeometry(4.2, 0.075, 10, 120);
+  const fuellGeo = new THREE.TorusGeometry(4.2, 0.03, 8, 90);
+  const ringe = [];
+
+  stationen.forEach((st, i) => {
+    const z = -i * ABSTAND;
+    const farbe = new THREE.Color(st.farbe || 0x3b3358);
+    const mat = new THREE.MeshBasicMaterial({ color: farbe.clone().multiplyScalar(0.28) });
+    const ring = new THREE.Mesh(ringGeo, mat);
+    ring.position.z = z;
+    scene.add(ring);
+    ringe.push({ mesh: ring, mat, z, farbe, index: i });
+
+    if (i < stationen.length - 1) {
+      for (let k = 1; k <= ZWISCHEN; k++) {
+        const f = new THREE.Mesh(fuellGeo, new THREE.MeshBasicMaterial({ color: 0x15122a }));
+        f.position.z = z - (ABSTAND / (ZWISCHEN + 1)) * k;
+        f.rotation.z = k * 0.3;
+        scene.add(f);
+      }
+    }
   });
-  const mesh = new THREE.InstancedMesh(ring, mat, COUNT);
-  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  scene.add(mesh);
 
-  scene.add(new THREE.AmbientLight(0x30304a, 0.5));
-  const l1 = new THREE.PointLight(0x22e4d4, 46, 34); l1.position.set(-6, 3, 4);
-  const l2 = new THREE.PointLight(0xff2d95, 46, 34); l2.position.set(6, -2, 2);
-  const l3 = new THREE.PointLight(0x8b5cf6, 34, 40); l3.position.set(0, 2, -14);
-  scene.add(l1, l2, l3);
+  // Boden: eine ruhige Flaeche, die das Neon auffaengt, kein Spiegelkabinett.
+  const bodenGeo = new THREE.PlaneGeometry(60, stationen.length * ABSTAND + 60);
+  const boden = new THREE.Mesh(bodenGeo, new THREE.MeshBasicMaterial({ color: 0x06050b, fog: true }));
+  boden.rotation.x = -Math.PI / 2;
+  boden.position.set(0, -4.3, -(stationen.length * ABSTAND) / 2);
+  scene.add(boden);
 
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 48),
-    new THREE.MeshStandardMaterial({ color: 0x040408, metalness: 0.35, roughness: 0.88 }));
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -7.4;
-  scene.add(floor);
+  // Staubkoerner geben der Bewegung Tiefe, ohne Rechenzeit zu kosten.
+  const anzahl = schwach ? 350 : 900;
+  const pos = new Float32Array(anzahl * 3);
+  const laenge = stationen.length * ABSTAND + 40;
+  for (let i = 0; i < anzahl; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * 26;
+    pos[i * 3 + 1] = (Math.random() - 0.5) * 16;
+    pos[i * 3 + 2] = -Math.random() * laenge + 10;
+  }
+  const staubGeo = new THREE.BufferGeometry();
+  staubGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const staub = new THREE.Points(staubGeo,
+    new THREE.PointsMaterial({ color: 0x6b5f9c, size: 0.055, sizeAttenuation: true, transparent: true, opacity: 0.75 }));
+  scene.add(staub);
 
-  // Bloom: Neon ohne Ueberstrahlen sieht aus wie bunter Lack. Schwelle hoch
-  // genug, damit nur die Lichtkanten gluehen und nicht die ganze Szene.
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), weak ? 0.55 : 0.8, 0.55, 0.58);
+  // Zurueckhaltend: das Leuchten soll die Ringe betonen, nicht das Bild fluten.
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), schwach ? 0.3 : 0.45, 0.75, 0.42);
   composer.addPass(bloom);
-  // Der Composer rechnet linear. Ohne Rueckrechnung nach sRGB am Ende kommt
-  // ein sichtbar zu dunkles Bild heraus -- gemessen 16 % statt 65 % helle
-  // Flaeche. Diese three-Fassung hat dafuer noch keinen OutputPass.
+  // Der Composer rechnet linear; ohne Rueckrechnung nach sRGB wird das Bild
+  // sichtbar zu dunkel. Diese three-Fassung hat dafuer noch keinen OutputPass.
   composer.addPass(new ShaderPass(GammaCorrectionShader));
 
-  const dummy = new THREE.Object3D();
-  const mouse = { x: 0, y: 0 }, aim = { x: 0, y: 0 };
-  let t = 0, visible = true, running = true;
-  let scatter = 0;      // Konami
-  let glitch = 0;       // "scheitern" getippt
-  let slow = false;     // Umschalttaste
-  let intro = 0;        // Aufbau beim Laden
+  let fortschritt = 0, ziel = 0, sichtbar = true, laeuft = true, t = 0, zuletzt = 0;
+  let stoerung = 0, zeitlupe = false;
+  const maus = { x: 0, y: 0 }, soll = { x: 0, y: 0 };
 
-  function layout(time) {
-    const morph = ease(clamp01((stageProgress - 0.08) / 0.5));
-    const build = ease(clamp01(intro));
-    for (let i = 0; i < COUNT; i++) {
-      const f = i / (COUNT - 1);
-      // Welle quer ueber den Schirm
-      const wx = (f - 0.5) * 22;
-      const wy = Math.sin(f * Math.PI * 2 + time * 0.35) * 1.5;
-      const wz = Math.cos(f * Math.PI * 2.2 + time * 0.28) * 1.6;
-      // Tunnel, durch den die Kamera fliegt
-      const a = f * Math.PI * 6 + time * 0.3;
-      const tx = Math.cos(a) * 2.3, ty = Math.sin(a) * 2.3, tz = -f * 54 + 6;
-      let x = mix(wx, tx, morph), y = mix(wy, ty, morph), z = mix(wz, tz, morph);
-
-      // Aufbau: die Ringe kommen aus der Tiefe herein.
-      z -= (1 - build) * 40 * (0.4 + f);
-
-      if (scatter > 0 || glitch > 0) {
-        const amount = Math.max(scatter, glitch * 0.45);
-        let n = Math.sin(i * 12.9898 + 78.233) * 43758.5453; n -= Math.floor(n);
-        x += (n - 0.5) * 9 * amount;
-        y += Math.sin(i * 3.7 + time * 9 * glitch) * 4 * amount;
-        z += Math.cos(i * 5.1) * 4 * amount;
-      }
-      dummy.position.set(x, y, z);
-      dummy.rotation.set(
-        mix(f * Math.PI * 1.6 + time * 0.22, 0, morph),
-        mix(Math.PI / 2, 0, morph),
-        f * Math.PI * 2.4 + time * 0.16);
-      dummy.scale.setScalar(mix(0.85 + Math.sin(f * Math.PI) * 0.5, 1.5, morph) * mix(0.2, 1, build));
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-  }
-
-  function resize() {
-    const r = canvas.getBoundingClientRect();
-    if (!r.width || !r.height) return;
-    renderer.setSize(r.width, r.height, false);
-    composer.setSize(r.width, r.height);
-    bloom.resolution.set(r.width, r.height);
-    camera.aspect = r.width / r.height;
+  function groesse() {
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false);
+    composer.setSize(w, h);
+    bloom.resolution.set(w, h);
+    camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
 
-  function frame() {
-    if (!running) return;
-    requestAnimationFrame(frame);
-    if (!visible) return;
-    t += (slow ? 0.0012 : 0.0068);
-    if (intro < 1) intro = Math.min(1, intro + 0.012);
-    mouse.x += (aim.x - mouse.x) * 0.045;
-    mouse.y += (aim.y - mouse.y) * 0.045;
-    if (scatter > 0) scatter = Math.max(0, scatter - 0.012);
-    if (glitch > 0) glitch = Math.max(0, glitch - 0.02);
-    layout(t);
+  function bild(jetzt) {
+    if (!laeuft) return;
+    requestAnimationFrame(bild);
+    if (!sichtbar) return;
+    // Zeitbasiert statt bildbasiert: ein fester Faktor pro Bild laeuft auf
+    // 144 Hz doppelt so schnell wie auf 72 Hz und auf einem langsamen Geraet
+    // gar nicht. Auf 100 ms gedeckelt, damit es nach einem Tabwechsel nicht
+    // springt.
+    const dt = Math.min(0.1, zuletzt ? (jetzt - zuletzt) / 1000 : 0.016);
+    zuletzt = jetzt;
+    const zieh = 1 - Math.pow(0.0001, dt);   // entspricht ~0.075 bei 60 Hz
 
-    const pm = clamp01((stageProgress - 0.08) / 0.5);
-    const fly = clamp01((stageProgress - 0.45) / 0.55);
-    mesh.rotation.z = stageProgress * 0.8;
-    camera.position.x = mouse.x * 1.5 * (1 - pm);
-    camera.position.y = (1.1 + mouse.y * 0.9) * (1 - pm * 0.7);
-    camera.position.z = 13 - pm * 7 - fly * 26;
-    camera.lookAt(0, 0, camera.position.z - 10);
-    // Die Lichter reisen mit der Kamera, sonst bleiben sie am Tunneleingang
-    // zurueck und alles weiter hinten versinkt im Dunkeln.
-    l1.position.z = 4 + (camera.position.z - 13) * 0.9;
-    l2.position.z = 2 + (camera.position.z - 13) * 0.9;
-    l3.position.z = -14 + (camera.position.z - 13) * 0.9;
-    bloom.strength = (weak ? 0.55 : 0.8) + glitch * 0.9;
+    t += (zeitlupe ? 0.09 : 0.48) * dt;
+    fortschritt += (ziel - fortschritt) * zieh;
+    if (stoerung > 0) stoerung = Math.max(0, stoerung - dt * 0.95);
+    maus.x += (soll.x - maus.x) * (1 - Math.pow(0.08, dt));
+    maus.y += (soll.y - maus.y) * (1 - Math.pow(0.08, dt));
+
+    const weg = fortschritt * ABSTAND;
+    camera.position.set(maus.x * 1.1, mix(0.3, 0.6, Math.sin(t * 0.6) * 0.5 + 0.5) + maus.y * 0.7, 9 - weg);
+    camera.rotation.z = Math.sin(t * 0.35) * 0.012 + stoerung * Math.sin(t * 40) * 0.05;
+    camera.lookAt(maus.x * 0.6, maus.y * 0.4, camera.position.z - 12);
+
+    // Der Ring, an dem man gerade ist, leuchtet auf; die anderen treten zurueck.
+    for (const r of ringe) {
+      // Abstand mit Vorzeichen: positiv heisst, der Ring liegt voraus.
+      const d = camera.position.z - r.z;
+      // Das Maximum liegt bewusst NICHT bei d = 0. Dort steckt die Kamera im
+      // Ring, und er fuellt den ganzen Schirm -- genau dann darf er nicht
+      // leuchten. Hell wird der Ring, auf den man zufaehrt.
+      const naehe = clamp01(1 - Math.abs(d - 9) / 13);
+      const hinten = d < 2 ? clamp01((d + 6) / 8) : 1;
+      const kraft = (0.2 + naehe * naehe * 1.15) * hinten;
+      r.mat.color.copy(r.farbe).multiplyScalar(kraft);
+      r.mesh.rotation.z = r.index * 0.4 + t * 0.12 + stoerung * Math.sin(r.index * 3.3 + t * 30) * 0.6;
+      r.mesh.scale.setScalar(1 + stoerung * Math.sin(r.index * 1.7) * 0.12);
+    }
+    staub.rotation.z = t * 0.015;
+    bloom.strength = (schwach ? 0.3 : 0.45) + stoerung * 0.7;
     composer.render();
   }
 
+  addEventListener("resize", groesse);
   addEventListener("pointermove", (e) => {
-    aim.x = (e.clientX / innerWidth) * 2 - 1;
-    aim.y = -((e.clientY / innerHeight) * 2 - 1);
+    soll.x = (e.clientX / innerWidth) * 2 - 1;
+    soll.y = -((e.clientY / innerHeight) * 2 - 1);
   }, { passive: true });
-  addEventListener("resize", resize);
-  document.addEventListener("visibilitychange", () => { visible = !document.hidden; });
-  if (window.IntersectionObserver) {
-    new IntersectionObserver((entries) => {
-      const e = entries[entries.length - 1];
-      // Ein noch nicht ausgelegtes Element ist 0x0 gross und meldet faelschlich
-      // "nicht sichtbar". Uebernaehme man das, bliebe die Schleife fuer immer
-      // stehen, weil danach keine Schwelle mehr gekreuzt wird.
-      if (!e.boundingClientRect.width && !e.boundingClientRect.height) return;
-      visible = e.isIntersecting && !document.hidden;
-    }, { threshold: 0 }).observe(canvas);
-  }
+  document.addEventListener("visibilitychange", () => { sichtbar = !document.hidden; });
 
-  resize(); layout(0); frame();
+  groesse(); requestAnimationFrame(bild);
   return {
-    scatter: () => { scatter = 1; },
-    glitch: () => { glitch = 1; },
-    slow: (on) => { slow = on; },
+    // Erwartet die Stationsnummer als Kommazahl (2.4 = kurz hinter Station 2),
+    // nicht einen Prozentwert. Nur so stehen Text und Ring an derselben Stelle.
+    setze: (n) => { ziel = Math.max(0, Math.min(stationen.length - 1, n)); },
+    stoere: () => { stoerung = 1; },
+    zeitlupe: (an) => { zeitlupe = an; },
+    springe: (n) => { ziel = fortschritt = Math.max(0, Math.min(stationen.length - 1, n)); },
   };
 }
 
+/* ====================== Scrollen ====================== */
+function initScroll(stationen) {
+  const hinweis = document.getElementById("d-hint");
+  // Die Mitte des Bildschirms entscheidet, zwischen welchen Stationen man
+  // steht. Daraus wird eine Kommazahl, die exakt der Ringposition entspricht.
+  function stationsZahl() {
+    const mitte = scrollY + innerHeight / 2;
+    const m = stationen.map((st) => st.el.offsetTop + st.el.offsetHeight / 2);
+    if (mitte <= m[0]) return 0;
+    if (mitte >= m[m.length - 1]) return m.length - 1;
+    for (let i = 0; i < m.length - 1; i++) {
+      if (mitte >= m[i] && mitte < m[i + 1]) {
+        return i + (mitte - m[i]) / (m[i + 1] - m[i]);
+      }
+    }
+    return 0;
+  }
+
+  function auf() {
+    welt?.setze(stationsZahl());
+    hinweis?.classList.toggle("weg", scrollY > innerHeight * 0.4);
+    // Navigation hebt hervor, wo man ist.
+    const mitte = scrollY + innerHeight / 2;
+    stationen.forEach((st) => {
+      const el = st.el;
+      const drin = el.offsetTop <= mitte && el.offsetTop + el.offsetHeight > mitte;
+      document.querySelector(`.d-nav-links a[href="#${el.id}"]`)?.classList.toggle("is-here", drin);
+    });
+  }
+  addEventListener("scroll", auf, { passive: true });
+  addEventListener("resize", auf);
+  auf();
+}
+
 /* ====================== Easter Eggs ====================== */
-const FUNDE = ["konami", "logo", "scheitern", "titel", "zeitlupe", "geduld", "konsole"];
+const EGGS = ["konami", "logo", "scheitern", "zeitlupe", "geduld", "ende", "konsole"];
+
+function melde(text) {
+  document.querySelectorAll(".d-egg").forEach((e) => e.remove());
+  if (!text) return;
+  const el = document.createElement("div");
+  el.className = "d-egg";
+  el.setAttribute("role", "status");
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4300);
+}
 
 function gefunden(id, text) {
   let liste = [];
@@ -288,65 +227,50 @@ function gefunden(id, text) {
     liste.push(id);
     try { localStorage.setItem("ds-funde", JSON.stringify(liste)); } catch { /* egal */ }
   }
-  melde(text + (neu ? `  ·  ${liste.length}/${FUNDE.length}` : ""));
-  if (liste.length === FUNDE.length) setTimeout(() => melde("Alle sieben gefunden. Mehr gibt es wirklich nicht."), 4600);
-  return liste.length;
-}
-
-function melde(text) {
-  document.querySelectorAll(".d-egg").forEach((e) => e.remove());
-  const el = document.createElement("div");
-  el.className = "d-egg";
-  el.setAttribute("role", "status");
-  el.textContent = text;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 4300);
+  if (text) melde(`${text}  ·  ${liste.length}/${EGGS.length}`);
+  if (liste.length === EGGS.length && neu) {
+    setTimeout(() => melde("Alle sieben gefunden. Mehr gibt es wirklich nicht."), 4500);
+  }
 }
 
 function initEggs() {
-  /* 1. Konami-Code: die Struktur zerfaellt und sammelt sich wieder. */
   const code = ["arrowup","arrowup","arrowdown","arrowdown","arrowleft","arrowright","arrowleft","arrowright","b","a"];
-  let pos = 0;
-  /* 3. "scheitern" irgendwo tippen: alles glitcht, und eine siebte Karte
-        taucht auf, die sonst nirgends steht. */
-  let getippt = "";
+  let pos = 0, getippt = "";
 
   addEventListener("keydown", (e) => {
     const k = (e.key || "").toLowerCase();
-
     pos = k === code[pos] ? pos + 1 : (k === code[0] ? 1 : 0);
     if (pos === code.length) {
       pos = 0;
-      hero?.scatter();
-      gefunden("konami", "Alles auseinandergefallen. Wie geplant.");
+      welt?.stoere();
+      gefunden("konami", "Der Korridor hat kurz den Halt verloren.");
     }
-
     if (k.length === 1) {
       getippt = (getippt + k).slice(-9);
       if (getippt === "scheitern") {
         getippt = "";
-        hero?.glitch();
-        document.getElementById("geheimkarte")?.removeAttribute("hidden");
-        gefunden("scheitern", "Siebtes Produkt freigeschaltet. Es ist nicht gut.");
+        const geheim = document.getElementById("geheim");
+        if (geheim?.hasAttribute("hidden")) {
+          geheim.removeAttribute("hidden");
+          welt?.stoere();
+          gefunden("scheitern", "Eine achte Station ist aufgetaucht.");
+          setTimeout(() => geheim.scrollIntoView({ behavior: reduce ? "auto" : "smooth" }), 700);
+        }
       }
     }
-
-    /* 5. Umschalttaste gedrueckt halten: Zeitlupe. */
     if (e.key === "Shift" && !e.repeat) {
-      hero?.slow(true);
-      gefunden("zeitlupe", "Zeitlupe. Zum Nachdenken.");
+      welt?.zeitlupe(true);
+      gefunden("zeitlupe", "Zeitlupe.");
     }
   });
-  addEventListener("keyup", (e) => { if (e.key === "Shift") hero?.slow(false); });
+  addEventListener("keyup", (e) => { if (e.key === "Shift") welt?.zeitlupe(false); });
 
-  /* 2. Fuenf Klicks aufs Logo: der Fehlversuchszaehler. */
   let klicks = 0, timer = null;
   document.getElementById("d-logo")?.addEventListener("click", (e) => {
     e.preventDefault();
-    klicks++;
     clearTimeout(timer);
     timer = setTimeout(() => { klicks = 0; }, 1600);
-    if (klicks === 5) {
+    if (++klicks === 5) {
       klicks = 0;
       let n = 1;
       try {
@@ -357,41 +281,41 @@ function initEggs() {
     }
   });
 
-  /* 4. Dreifachklick auf die Ueberschrift: kurzer Glitch. */
-  document.querySelector(".d-title")?.addEventListener("click", (e) => {
-    if (e.detail !== 3) return;
-    hero?.glitch();
-    root.classList.add("is-glitching");
-    setTimeout(() => root.classList.remove("is-glitching"), 900);
-    gefunden("titel", "Du hast die Ueberschrift kaputtgemacht.");
-  });
-
-  /* 6. Einfach 45 Sekunden nichts tun. */
   let ruhe = null;
-  const aufwachen = () => {
+  const wach = () => {
     clearTimeout(ruhe);
-    ruhe = setTimeout(() => gefunden("geduld", "45 Sekunden nichts getan. Das ist hier die Kernkompetenz."), 45000);
+    ruhe = setTimeout(() => gefunden("geduld", "45 Sekunden nichts getan. Kernkompetenz."), 45000);
   };
-  ["pointermove", "keydown", "scroll", "pointerdown"].forEach((ev) =>
-    addEventListener(ev, aufwachen, { passive: true }));
-  aufwachen();
+  ["pointermove", "keydown", "scroll", "pointerdown"].forEach((ev) => addEventListener(ev, wach, { passive: true }));
+  wach();
 
-  /* 7. Wer in die Konsole schaut. */
+  // Wer bis ans Ende des Korridors faehrt.
+  addEventListener("scroll", () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    if (max > 0 && scrollY / max > 0.985) gefunden("ende", "Ende des Korridors erreicht.");
+  }, { passive: true });
+
   try {
     console.log("%cDeepScheitern",
       "font-size:30px;font-weight:800;background:linear-gradient(90deg,#ff2d95,#22e4d4);-webkit-background-clip:text;color:transparent");
     console.log("Sieben Dinge sind hier versteckt. Dies ist eins davon.");
-    console.log("Tipp: der Konami-Code, das Logo, ein getipptes Wort, die Ueberschrift, eine Taste zum Halten und schlicht Geduld.");
+    console.log("Tipp: Konami-Code, das Logo, ein getipptes Wort, eine Taste zum Halten, Geduld und das Ende des Gangs.");
     gefunden("konsole", "");
-    document.querySelectorAll(".d-egg").forEach((e) => e.remove());  // nur zaehlen, nicht melden
   } catch { /* egal */ }
 }
 
 /* ====================== Start ====================== */
 function start() {
-  try { hero = initHero(); } catch (e) { console.warn("3D-Buehne nicht gestartet:", e?.message); }
-  try { initScroll(); } catch { root.classList.add("no-anim"); }
-  try { initCards(); } catch { /* Deko */ }
+  const stationen = Array.from(document.querySelectorAll(".d-station")).map((el) => ({
+    el, farbe: el.dataset.farbe || null,
+  }));
+
+  if (!reduce) {
+    try { welt = baueWelt(stationen); } catch (e) { console.warn("Welt nicht gebaut:", e?.message); }
+  }
+  if (!welt) root.classList.add("no-3d");
+  else { try { initScroll(stationen); } catch { /* Scrollen ist Zugabe */ } }
+
   try { initEggs(); } catch { /* Deko */ }
 }
 

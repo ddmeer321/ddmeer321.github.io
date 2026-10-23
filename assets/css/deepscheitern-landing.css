@@ -1,175 +1,91 @@
-/* DeepScheitern Landing. Eigene Datei; library.css bleibt unberuehrt. */
+/* DeepScheitern: Reise durch einen Korridor. Der Canvas steht fest, die
+   Inhalte scrollen darueber. Ohne Skript bleibt eine normale, lesbare
+   Seite uebrig -- das ist die Vorgabe, nicht der Notfall. */
 :root {
   --d-bg: #050507;
-  --d-surface: #0d0d14;
-  --d-line: #1d1b2b;
-  --d-ink: #f2f0f8;
-  --d-muted: #9b93b5;
+  --d-ink: #f4f2fa;
+  --d-muted: #a79bc4;
+  --d-line: #221d33;
   --d-cyan: #22e4d4;
   --d-pink: #ff2d95;
   --d-violet: #8b5cf6;
-  --d-nav: 64px;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
 body {
   margin: 0; min-width: 280px; background: var(--d-bg); color: var(--d-ink);
   font-family: "Baloo 2", Poppins, ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  line-height: 1.6; overflow-x: hidden;
+  line-height: 1.55; overflow-x: hidden;
 }
 a { color: inherit; text-decoration: none; }
-.d-shell { max-width: 1180px; margin: 0 auto;
+
+/* Die Welt liegt hinter allem und bewegt sich nicht mit. */
+#d-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+
+.d-nav {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 20;
+  height: 60px; display: flex; align-items: center;
   padding-left: max(20px, env(safe-area-inset-left, 0px));
-  padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+.d-logo { height: 26px; width: auto; cursor: pointer; }
+.d-nav-links { margin-left: auto; display: flex; gap: 20px; font-size: .88rem; color: var(--d-muted); }
+.d-nav-links a:hover, .d-nav-links a.is-here { color: var(--d-ink); }
+@media (max-width: 680px) { .d-nav-links { display: none; } }
 
-/* Navigation */
-.d-nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; height: var(--d-nav);
-  display: flex; align-items: center; gap: 24px;
-  background: rgba(5,5,7,.72); backdrop-filter: blur(14px); border-bottom: 1px solid var(--d-line); }
-.d-nav-inner { display: flex; align-items: center; gap: 24px; width: 100%; }
-.d-logo { height: 30px; width: auto; cursor: pointer; }
-.d-nav-links { margin-left: auto; display: flex; gap: 22px; font-size: .92rem; color: var(--d-muted); }
-.d-nav-links a { position: relative; padding: 4px 0; transition: color .2s ease; }
-.d-nav-links a:hover, .d-nav-links a:focus-visible { color: var(--d-ink); }
-.d-nav-links a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 1px;
-  background: linear-gradient(90deg, var(--d-cyan), var(--d-pink)); transition: right .25s ease; }
-.d-nav-links a:hover::after { right: 0; }
-@media (max-width: 720px) { .d-nav-links { display: none; } }
+main { position: relative; z-index: 2; }
 
-/* Hero */
-.d-hero { position: relative; display: grid; place-items: center; text-align: center; }
-.d-stages { position: relative; z-index: 2; }
-.d-stage { display: grid; place-items: center; padding-block: 56px; }
+/* Eine Station je Bildschirmhoehe. Der Text sitzt in der Ringoeffnung,
+   deshalb braucht es hier keinen Schleier ueber dem Hintergrund. */
+.d-station {
+  min-height: 100svh; display: grid; place-items: center; text-align: center;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+  padding-block: 96px 64px;
+}
+.d-inner { max-width: 34rem; display: grid; gap: 16px; justify-items: center; }
 
-/* Buehnenmodus: erst wenn das Skript laeuft, liegen die Szenen uebereinander
-   und das Scrollen blendet zwischen ihnen um. Ohne Skript stehen sie
-   untereinander und sind alle lesbar -- das ist die Vorgabe, nicht der
-   Sonderfall. */
-.stage-mode .d-hero { height: calc(100svh - var(--d-nav)); overflow: hidden; }
-.stage-mode .d-stages { position: absolute; inset: 0; display: grid; }
-.stage-mode .d-stage { grid-area: 1 / 1; padding-block: 0;
-  opacity: 0; visibility: hidden; transition: opacity .45s ease; }
-.stage-mode .d-stage.is-on { opacity: 1; visibility: visible; }
-#d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-/* Statt eines schwarzen Flecks ueber der Mitte bekommt die Schrift selbst
-   einen weichen Schein. So bleibt die Spirale sichtbar und der Text lesbar. */
-.d-hero::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(to bottom, rgba(5,5,7,0) 58%, rgba(5,5,7,.7) 84%, var(--d-bg) 100%); }
-/* Ein leichter, weit auslaufender Schleier. Backdrop-Filter waere eleganter,
-   zeichnet aber an der Maskenkante sichtbare Stufen. Weiss auf Dunkel hat
-   ohnehin genug Kontrast -- es braucht keine 90 Prozent Schwarz, die die
-   Spirale mit ausloeschen. */
-.d-stage .d-shell::before { content: ""; position: absolute; inset: -14% -10%; z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(ellipse 50% 56% at 50% 50%, rgba(5,5,7,.6) 0%, rgba(5,5,7,.34) 45%, rgba(5,5,7,0) 78%); }
-.d-sub { text-shadow: 0 1px 12px rgba(5,5,7,.9); }
-.d-hero-text { position: relative; }
-.d-hero-text { position: relative; z-index: 2; display: grid; gap: 20px; justify-items: center;
-  pointer-events: none; }
-.d-hero-text > * { pointer-events: auto; }
-.d-title { margin: 0; font-size: clamp(2.1rem, 7vw, 4.4rem); font-weight: 800;
-  letter-spacing: -.03em; line-height: 1.04; text-wrap: balance; }
-.d-title .grad { background: linear-gradient(100deg, var(--d-pink), var(--d-cyan));
+.d-kicker {
+  font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--d-muted);
+}
+.d-h1 { margin: 0; font-size: clamp(2.1rem, 6.4vw, 4rem); font-weight: 800;
+  letter-spacing: -.035em; line-height: 1; text-wrap: balance; }
+.d-h2 { margin: 0; font-size: clamp(1.9rem, 6vw, 3.1rem); font-weight: 800;
+  letter-spacing: -.03em; line-height: 1.05; }
+.grad { background: linear-gradient(100deg, var(--d-pink), var(--d-cyan));
   -webkit-background-clip: text; background-clip: text; color: transparent; }
-.d-sub { margin: 0; max-width: 52ch; color: var(--d-muted); font-size: clamp(.98rem, 2vw, 1.1rem); }
-.d-cta { display: inline-flex; align-items: center; gap: 10px; padding: 13px 26px; border-radius: 999px;
-  border: 1px solid var(--d-line); background: var(--d-surface); font-weight: 700; font-size: .98rem;
-  position: relative; transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
-.d-cta:hover, .d-cta:focus-visible { transform: translateY(-2px); border-color: transparent;
-  box-shadow: 0 0 0 1px var(--d-violet), 0 10px 34px rgba(139,92,246,.3); }
-.d-scrollhint { position: absolute; bottom: 20px; left: 50%; translate: -50% 0; z-index: 2;
-  color: var(--d-muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+.d-text { margin: 0; color: var(--d-muted); font-size: 1rem; max-width: 32ch; }
+.d-status { font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  padding: 5px 13px; border-radius: 999px; border: 1px solid currentColor; }
+.s-online  { color: var(--d-cyan); }
+.s-arbeit  { color: var(--d-pink); }
+.s-konzept { color: var(--d-muted); }
+.s-geheim  { color: #c4b5fd; }
 
-/* Abschnitte */
-.d-section { padding-block: clamp(64px, 11vw, 120px); position: relative; z-index: 2; }
-.d-eyebrow { font-size: .74rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--d-cyan); margin: 0 0 10px; }
-.d-h2 { margin: 0 0 14px; font-size: clamp(1.6rem, 4vw, 2.5rem); font-weight: 800;
-  letter-spacing: -.02em; text-wrap: balance; }
-.d-lead { margin: 0 0 40px; max-width: 58ch; color: var(--d-muted); }
+.d-link { margin-top: 4px; font-weight: 700; color: var(--d-cyan);
+  border-bottom: 1px solid currentColor; padding-bottom: 2px; }
+.d-link:hover { color: var(--d-ink); }
 
-/* Produktkarten */
-.d-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
-.d-card { position: relative; display: grid; gap: 10px; align-content: start; padding: 26px;
-  border-radius: 20px; border: 1px solid var(--d-line); background: var(--d-surface);
-  transform-style: preserve-3d; will-change: transform;
-  transition: border-color .25s ease, box-shadow .25s ease; }
-.d-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: 0;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(139,92,246,.17), transparent 60%);
-  transition: opacity .25s ease; pointer-events: none; }
-.d-card:hover { border-color: #332c4d; box-shadow: 0 18px 46px rgba(0,0,0,.5); }
-.d-card:hover::before { opacity: 1; }
-.d-card h3 { margin: 0; font-size: 1.28rem; letter-spacing: -.01em; }
-.d-card p { margin: 0; color: var(--d-muted); font-size: .94rem; }
-.d-card .d-go { font-weight: 700; color: var(--d-pink); font-size: .94rem; }
-.d-badge { justify-self: start; font-size: .68rem; font-weight: 800; letter-spacing: .1em;
-  text-transform: uppercase; padding: 5px 11px; border-radius: 999px; }
-.d-badge.online { background: rgba(34,228,212,.15); color: var(--d-cyan); }
-.d-badge.arbeit { background: rgba(255,45,149,.14); color: var(--d-pink); }
-.d-badge.konzept { background: rgba(155,147,181,.13); color: var(--d-muted); }
+.d-hint { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 50%;
+  translate: -50% 0; z-index: 20; font-size: .72rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--d-muted); transition: opacity .4s ease; }
+.d-hint.weg { opacity: 0; }
 
-/* Fuss */
-.d-footer { border-top: 1px solid var(--d-line); padding-block: 30px 44px;
-  display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center;
-  color: var(--d-muted); font-size: .88rem; position: relative; z-index: 2; }
-.d-footer a:hover { color: var(--d-ink); }
-.d-egg { position: fixed; left: 50%; bottom: 26px; translate: -50% 0; z-index: 40;
+.d-foot { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px 18px;
+  justify-content: center; padding-block: 28px 44px; color: var(--d-muted); font-size: .85rem; }
+.d-foot a:hover { color: var(--d-ink); }
+
+.d-egg { position: fixed; left: 50%; bottom: 64px; translate: -50% 0; z-index: 40;
   padding: 11px 20px; border-radius: 999px; border: 1px solid var(--d-violet);
-  background: rgba(13,13,20,.94); font-size: .9rem; font-weight: 700; }
+  background: rgba(8,7,14,.95); font-size: .88rem; font-weight: 700;
+  box-shadow: 0 12px 44px rgba(0,0,0,.65); }
+
 :focus-visible { outline: 2px solid var(--d-cyan); outline-offset: 3px; }
 
-/* Ohne JS und bei reduzierter Bewegung muss alles trotzdem lesbar sein. */
-.reveal { opacity: 0; transform: translateY(26px); }
-.no-anim .reveal, .anim-ready .reveal { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .reveal { opacity: 1 !important; transform: none !important; }
-  .d-card, .d-cta, .d-nav-links a::after { transition: none; }
+/* Ohne 3D traegt der Text allein -- dann braucht er eine ruhige Flaeche. */
+.no-3d .d-station .d-inner {
+  background: rgba(14,12,22,.72); border: 1px solid var(--d-line);
+  border-radius: 20px; padding: 34px 28px;
 }
-
-/* Ohne Buehnenmodus gibt es nichts zu scrollen -- der Hinweis waere gelogen. */
-:root:not(.stage-mode) .d-scrollhint { display: none; }
-@media (prefers-reduced-motion: reduce) { .stage-mode .d-stage { transition: none; } }
-
-/* ---------- Feinschliff ---------- */
-/* Filmkorn: eine Winzigkeit Rauschen nimmt Farbverlaeufen das Plastikhafte
-   und verdeckt die Streifenbildung, die auf dunklen Flaechen sonst sichtbar
-   wird. Als data-URI, damit keine Datei dafuer geladen werden muss. */
-body::after {
-  content: ""; position: fixed; inset: 0; z-index: 25; pointer-events: none;
-  opacity: .035; mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-/* Vignette: zieht den Blick zur Mitte, ohne dass man sie bemerkt. */
-.d-hero::before {
-  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(ellipse 92% 86% at 50% 50%, transparent 62%, rgba(0,0,0,.42) 100%);
-}
-.d-nav-links a.is-here { color: var(--d-ink); }
-.d-nav-links a.is-here::after { right: 0; }
-
-.d-badge.geheim { background: rgba(139,92,246,.2); color: #c4b5fd; }
-.d-card-geheim { border-color: var(--d-violet); }
-
-/* Dreifachklick auf die Ueberschrift: kurze Farbkanaltrennung. */
-.is-glitching .d-title {
-  animation: dsGlitch .9s steps(2, end);
-}
-@keyframes dsGlitch {
-  0%, 100% { text-shadow: none; transform: none; }
-  20% { text-shadow: -4px 0 var(--d-pink), 4px 0 var(--d-cyan); transform: translateX(2px); }
-  45% { text-shadow: 5px 0 var(--d-cyan), -5px 0 var(--d-pink); transform: translateX(-3px); }
-  70% { text-shadow: -2px 0 var(--d-violet), 2px 0 var(--d-cyan); transform: translateX(1px); }
-}
-
-.d-egg {
-  animation: dsEgg .35s ease-out;
-  box-shadow: 0 10px 40px rgba(0,0,0,.6);
-}
-@keyframes dsEgg { from { opacity: 0; transform: translate(-50%, 14px); } }
-
-@media (prefers-reduced-motion: reduce) {
-  body::after { display: none; }
-  .is-glitching .d-title, .d-egg { animation: none; }
-}
+.no-3d .d-hint { display: none; }

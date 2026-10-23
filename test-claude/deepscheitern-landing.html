@@ -3,152 +3,122 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="DeepScheitern baut Browser-Spiele und kleine Werkzeuge. Think Deep. Build Different." />
+    <meta name="description" content="DeepScheitern baut Browser-Spiele und kleine Werkzeuge. Eine Reise durch das, was laeuft und das, was nicht." />
     <meta name="theme-color" content="#050507" />
-    <link rel="stylesheet" href="../assets/css/deepscheitern-landing.css?v=2" />
+    <link rel="stylesheet" href="../assets/css/deepscheitern-landing.css?v=3" />
     <title>DeepScheitern</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
   </head>
   <body>
     <script src="../assets/js/test-gate.js?v=1"></script>
 
+    <canvas id="d-canvas" aria-hidden="true"></canvas>
+
     <header class="d-nav">
-      <div class="d-shell d-nav-inner">
-        <a href="#top" aria-label="Startseite">
-          <img id="d-logo" class="d-logo" src="../assets/img/deepscheitern-logo-dunkel.webp?v=1"
-               width="720" height="554" alt="DeepScheitern" />
-        </a>
-        <nav class="d-nav-links" aria-label="Hauptnavigation">
-          <a href="#top">Home</a>
-          <a href="#produkte">Produkte</a>
-          <a href="#projekte">Projekte</a>
-          <a href="#ueber">Über uns</a>
-          <a href="#kontakt">Kontakt</a>
-        </nav>
-      </div>
+      <a href="#start" aria-label="Startseite">
+        <img id="d-logo" class="d-logo" src="../assets/img/deepscheitern-logo-dunkel.webp?v=1"
+             width="720" height="554" alt="DeepScheitern" />
+      </a>
+      <nav class="d-nav-links" aria-label="Hauptnavigation">
+        <a href="#deepplay">Produkte</a>
+        <a href="#ueber">Über uns</a>
+        <a href="#kontakt">Kontakt</a>
+      </nav>
     </header>
 
-    <main id="top">
-      <section class="d-hero" id="buehne">
-        <canvas id="d-canvas" aria-hidden="true"></canvas>
-        <div class="d-stages">
-          <div class="d-stage is-on" data-stage="0">
-            <div class="d-shell d-hero-text">
-              <h1 class="d-title">Think Deep.<br /><span class="grad">Build Different.</span></h1>
-              <p class="d-sub">
-                Browser-Spiele und kleine Werkzeuge, gebaut aus Neugier statt aus
-                einem Businessplan.
-              </p>
-              <a class="d-cta" href="#produkte">Projekte entdecken <span aria-hidden="true">→</span></a>
-            </div>
-          </div>
-          <div class="d-stage" data-stage="1">
-            <div class="d-shell d-hero-text">
-              <h2 class="d-title">Sechs Namen.<br /><span class="grad">Zwei davon echt.</span></h2>
-              <p class="d-sub">
-                Der Rest ist eine Idee und ein guter Domainname. Steht trotzdem da,
-                aber ehrlich beschriftet.
-              </p>
-            </div>
-          </div>
-          <div class="d-stage" data-stage="2">
-            <div class="d-shell d-hero-text">
-              <h2 class="d-title">Manches läuft.<br /><span class="grad">Manches nicht.</span></h2>
-              <p class="d-sub">Der Name war von Anfang an die ehrlichste Produktbeschreibung.</p>
-            </div>
-          </div>
-        </div>
-        <span class="d-scrollhint" aria-hidden="true">Scrollen</span>
-      </section>
-
-      <section id="produkte" class="d-section d-shell">
-        <p class="d-eyebrow reveal">Produkte</p>
-        <h2 class="d-h2 reveal">Was hier entsteht</h2>
-        <p class="d-lead reveal">
-          Ehrlich beschriftet: online heißt spielbar, in Arbeit heißt es läuft noch
-          nicht öffentlich, Konzept heißt bisher nur eine Idee.
-        </p>
-        <div class="d-grid">
-          <a class="d-card reveal" href="../index.html">
-            <span class="d-badge online">Online</span>
-            <h3>DeepPlay</h3>
-            <p>Kostenlose Browser-Spiele: Neon Bot Arena, Snake, Tic-Tac-Toe, Cursor Clicker und Reaction. Ohne Installation.</p>
-            <span class="d-go">Zu den Spielen →</span>
-          </a>
-          <div class="d-card reveal">
-            <span class="d-badge arbeit">In Arbeit</span>
-            <h3>DeepService</h3>
-            <p>Ein Satire-Kundendienst mit 100 Trillionen Möglichkeiten, dir nicht zu helfen. Läuft bisher nur lokal.</p>
-          </div>
-          <div class="d-card reveal">
-            <span class="d-badge konzept">Konzept</span>
-            <h3>DeepAI</h3>
-            <p>Noch nichts gebaut. Steht hier, weil der Name zu gut ist, um ihn jemand anderem zu überlassen.</p>
-          </div>
-          <div class="d-card reveal">
-            <span class="d-badge konzept">Konzept</span>
-            <h3>DeepDev</h3>
-            <p>Werkzeuge, die beim Bauen der anderen Sachen abfallen. Bisher liegen sie verstreut herum.</p>
-          </div>
-          <div class="d-card reveal">
-            <span class="d-badge konzept">Konzept</span>
-            <h3>DeepCloud</h3>
-            <p>Alles läuft auf GitHub Pages und einem kostenlosen Render-Dienst. Das als Cloud zu bezeichnen wäre gelogen.</p>
-          </div>
-          <div class="d-card reveal">
-            <span class="d-badge konzept">Konzept</span>
-            <h3>DeepSecurity</h3>
-            <p>Bisher ein Sicherheitscheck für die eigene Seite. Kein Produkt, nur Sorgfalt.</p>
-          </div>
-          <div class="d-card d-card-geheim reveal" id="geheimkarte" hidden>
-            <span class="d-badge geheim">Geheim</span>
-            <h3>DeepNichts</h3>
-            <p>
-              Tut nichts, kann nichts, kostet nichts. Das einzige Produkt, das
-              exakt haelt, was sein Name verspricht.
-            </p>
-          </div>
+    <main>
+      <section class="d-station" id="start" data-ring="0" data-farbe="#8b5cf6">
+        <div class="d-inner">
+          <h1 class="d-h1">Think Deep.<br /><span class="grad">Build Different.</span></h1>
+          <p class="d-text">Browser-Spiele und kleine Werkzeuge. Scroll dich durch.</p>
         </div>
       </section>
 
-      <section id="projekte" class="d-section d-shell">
-        <p class="d-eyebrow reveal">Projekte</p>
-        <h2 class="d-h2 reveal">DeepLabs</h2>
-        <p class="d-lead reveal">
-          Der Platz für Sachen ohne Produktstatus: ein Bot, der eine Serie retten sollte
-          und daran scheiterte, ein Logo, das als weißer Kasten geliefert wurde, und
-          Experimente, die genau einmal liefen.
-        </p>
+      <section class="d-station" id="deepplay" data-ring="1" data-farbe="#22e4d4">
+        <div class="d-inner">
+          <span class="d-status s-online">Online</span>
+          <h2 class="d-h2">DeepPlay</h2>
+          <p class="d-text">Neon Bot Arena, Snake, Tic-Tac-Toe, Cursor Clicker und Reaction. Ohne Installation, direkt im Browser.</p>
+          <a class="d-link" href="../index.html">Zu den Spielen</a>
+        </div>
       </section>
 
-      <section id="ueber" class="d-section d-shell">
-        <p class="d-eyebrow reveal">Über uns</p>
-        <h2 class="d-h2 reveal">Ein Mensch, viele Fehlversuche</h2>
-        <p class="d-lead reveal">
-          DeepScheitern ist kein Unternehmen, sondern ein Name für die Sachen, die ich
-          baue. Der Name ist Programm und gleichzeitig die ehrlichste Produktbeschreibung,
-          die mir eingefallen ist.
-        </p>
+      <section class="d-station" id="deepservice" data-ring="2" data-farbe="#ff2d95">
+        <div class="d-inner">
+          <span class="d-status s-arbeit">In Arbeit</span>
+          <h2 class="d-h2">DeepService</h2>
+          <p class="d-text">Ein Satire-Kundendienst mit 100 Trillionen Möglichkeiten, dir nicht zu helfen. Läuft bisher nur lokal.</p>
+        </div>
       </section>
 
-      <section id="kontakt" class="d-section d-shell">
-        <p class="d-eyebrow reveal">Kontakt</p>
-        <h2 class="d-h2 reveal">Erreichbar</h2>
-        <p class="d-lead reveal">Die Kontaktdaten stehen im Impressum.</p>
+      <section class="d-station" id="deepai" data-ring="3" data-farbe="#8b5cf6">
+        <div class="d-inner">
+          <span class="d-status s-konzept">Konzept</span>
+          <h2 class="d-h2">DeepAI</h2>
+          <p class="d-text">Noch nichts gebaut. Steht hier, weil der Name zu gut ist, um ihn jemand anderem zu überlassen.</p>
+        </div>
+      </section>
+
+      <section class="d-station" id="deepdev" data-ring="4" data-farbe="#8b5cf6">
+        <div class="d-inner">
+          <span class="d-status s-konzept">Konzept</span>
+          <h2 class="d-h2">DeepDev</h2>
+          <p class="d-text">Werkzeuge, die beim Bauen der anderen Sachen abfallen. Bisher liegen sie verstreut herum.</p>
+        </div>
+      </section>
+
+      <section class="d-station" id="deepcloud" data-ring="5" data-farbe="#8b5cf6">
+        <div class="d-inner">
+          <span class="d-status s-konzept">Konzept</span>
+          <h2 class="d-h2">DeepCloud</h2>
+          <p class="d-text">Alles läuft auf GitHub Pages und einem kostenlosen Dienst. Das als Cloud zu bezeichnen wäre gelogen.</p>
+        </div>
+      </section>
+
+      <section class="d-station" id="deepsecurity" data-ring="6" data-farbe="#8b5cf6">
+        <div class="d-inner">
+          <span class="d-status s-konzept">Konzept</span>
+          <h2 class="d-h2">DeepSecurity</h2>
+          <p class="d-text">Bisher ein Sicherheitscheck für die eigene Seite. Kein Produkt, nur Sorgfalt.</p>
+        </div>
+      </section>
+
+      <section class="d-station" id="geheim" data-ring="7" data-farbe="#c4b5fd" hidden>
+        <div class="d-inner">
+          <span class="d-status s-geheim">Geheim</span>
+          <h2 class="d-h2">DeepNichts</h2>
+          <p class="d-text">Tut nichts, kann nichts, kostet nichts. Das einzige Produkt, das exakt hält, was sein Name verspricht.</p>
+        </div>
+      </section>
+
+      <section class="d-station" id="ueber" data-ring="8" data-farbe="#22e4d4">
+        <div class="d-inner">
+          <span class="d-kicker">Über uns</span>
+          <h2 class="d-h2">Ein Mensch,<br /><span class="grad">viele Fehlversuche.</span></h2>
+          <p class="d-text">DeepScheitern ist kein Unternehmen, sondern ein Name für die Sachen, die ich baue. Der Name ist die ehrlichste Produktbeschreibung, die mir eingefallen ist.</p>
+        </div>
+      </section>
+
+      <section class="d-station" id="kontakt" data-ring="9" data-farbe="#ff2d95">
+        <div class="d-inner">
+          <span class="d-kicker">Kontakt</span>
+          <h2 class="d-h2">Ende des Korridors.</h2>
+          <p class="d-text">Die Kontaktdaten stehen im Impressum.</p>
+        </div>
       </section>
     </main>
 
-    <footer class="d-footer">
+    <div class="d-hint" id="d-hint" aria-hidden="true">Scrollen</div>
+
+    <footer class="d-foot">
       <span>© DeepScheitern 2026</span>
       <a href="/impressum.html">Impressum</a>
       <a href="/datenschutz.html">Datenschutz</a>
     </footer>
 
-    <script src="../assets/vendor/gsap-3.12.5.min.js" defer></script>
-    <script src="../assets/vendor/scrolltrigger-3.12.5.min.js" defer></script>
     <script type="importmap">
       { "imports": { "three": "../assets/vendor/three.module.js" } }
     </script>
-    <script type="module" src="../assets/js/deepscheitern-landing.js?v=2"></script>
+    <script type="module" src="../assets/js/deepscheitern-landing.js?v=3"></script>
   </body>
 </html>
