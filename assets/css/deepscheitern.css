@@ -147,7 +147,15 @@ a { color: inherit; text-decoration: none; }
 /* ---------- 2. Hero ---------- */
 /* Die Kopfzeile liegt fest oben; ohne Abstand verdeckt sie beim
    Ankersprung die Kapitelzeile des Ziels. */
-.hero, .projekte { scroll-margin-top: 86px; }
+.hero, .projekte, .weise { scroll-margin-top: 86px; }
+/* Zwei Spalten, sobald Platz ist: vorher lebte die ganze Seite in der
+   linken Bildhaelfte und die rechte blieb leer. */
+.hero-raster {
+  display: grid; align-items: center;
+  gap: clamp(26px, 4vw, 60px);
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+}
+.hero-raster .fliess:first-child { margin-top: 0; }
 .hero { padding: clamp(80px, 16vh, 170px) 0 clamp(60px, 10vh, 120px); }
 .kapitel {
   font-family: var(--mono); font-size: .68rem; letter-spacing: .22em;
@@ -174,15 +182,45 @@ a { color: inherit; text-decoration: none; }
 }
 .fliess strong { color: var(--fg); font-weight: 500; }
 
+/* ---------- Zahlen ---------- */
+.zahlen {
+  display: grid; gap: 26px 34px;
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  padding: clamp(40px, 7vh, 70px) 0;
+  border-top: 1px solid var(--linie); border-bottom: 1px solid var(--linie);
+}
+.zahl b {
+  display: block; font-size: clamp(2.2rem, 6vw, 3.4rem); font-weight: 700;
+  letter-spacing: -.04em; line-height: 1; color: var(--gruen);
+}
+.zahl span {
+  display: block; margin-top: 10px; font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--fg2);
+}
+
+/* ---------- Arbeitsweise ---------- */
+.weise { padding: clamp(60px, 11vh, 120px) 0 clamp(20px, 4vh, 44px); }
+.punkte {
+  display: grid; gap: 34px;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  margin-top: 40px;
+}
+.punkt { display: grid; gap: 10px; align-content: start; }
+.punkt h3 { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; }
+.punkt p { margin: 0; color: var(--fg2); font-size: .96rem; line-height: 1.65; }
+
 /* ---------- 3. Projekte ---------- */
-.projekte { padding: 0 0 clamp(70px, 12vh, 130px); }
+.projekte { padding: clamp(54px, 9vh, 100px) 0 clamp(70px, 12vh, 130px); }
 .titel2 {
   margin: 0 0 8px; font-size: clamp(1.7rem, 5.5vw, 3rem); font-weight: 700;
   letter-spacing: -.03em;
 }
 .liste {
-  display: grid; gap: 2px; margin-top: 38px;
-  grid-template-columns: minmax(0, 1fr); min-width: 0;
+  display: grid; gap: 2px 30px; margin-top: 38px; min-width: 0;
+  /* min(..., 100%) statt nur 240px: sonst sieht auto-fit bei schmalen
+     Schirmen Platz fuer Spalten, den es nicht gibt. */
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
 }
 .karte {
   display: grid; gap: 10px; padding: 30px 0 28px;
