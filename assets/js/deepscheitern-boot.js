@@ -8,6 +8,15 @@
   var knopf = document.getElementById("ueberspringen");
   if (!ausgabe) return;
 
+  // Neu laden soll oben anfangen. Ohne das stellt der Browser die alte
+  // Scrollposition wieder her und der Start waere gar nicht zu sehen.
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  var neustart = document.getElementById("neustart");
+  if (neustart) neustart.addEventListener("click", function () {
+    scrollTo(0, 0);
+    location.reload();
+  });
+
   var sparsam = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var zeilen = ausgabe.querySelectorAll(".z");
   var MS_ZEICHEN = 14, PAUSE = 70;

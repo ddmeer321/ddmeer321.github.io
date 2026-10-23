@@ -175,6 +175,27 @@ a.karte:hover, a.karte:focus-visible { border-color: var(--gruen); }
 a.karte:hover .hin { letter-spacing: .22em; }
 .hin { transition: letter-spacing .25s ease; }
 
+/* ---------- 4. Schluss ---------- */
+.schluss {
+  border-top: 1px solid var(--linie);
+  padding: clamp(58px, 10vh, 110px) 0 clamp(66px, 12vh, 120px);
+}
+/* Der Knopf zitiert die erste Zeile des Terminals: das Ende zeigt auf den
+   Anfang zurueck. */
+.neustart {
+  margin-top: 36px; display: inline-flex; align-items: center; gap: .7ch;
+  padding: 15px 24px; border: 1px solid rgba(43, 212, 125, .32);
+  border-radius: 8px; background: var(--flaeche); color: var(--gruen);
+  cursor: pointer; font-family: var(--mono);
+  font-size: clamp(.72rem, 2.7vw, .9rem); letter-spacing: .04em;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.neustart span { color: var(--gruen-matt); }
+.neustart:hover, .neustart:focus-visible {
+  border-color: var(--gruen);
+  box-shadow: 0 0 0 1px rgba(43, 212, 125, .22), 0 14px 46px -20px rgba(43, 212, 125, .7);
+}
+
 /* ---------- Fuss ---------- */
 .fuss {
   border-top: 1px solid var(--linie); padding: 26px 0 40px;
