@@ -13,13 +13,17 @@
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   var neustart = document.getElementById("neustart");
   if (neustart) neustart.addEventListener("click", function () {
-    scrollTo(0, 0);
-    location.reload();
+    // Nicht reload(): steht ein Anker in der Adresse (#ueber, #projekte --
+    // etwa weil vorher "Weiterlesen" oder die Navigation benutzt wurde),
+    // springt der Browser beim Neuladen genau dorthin. Dagegen hilft
+    // scrollRestoration nicht, das ist Ankernavigation. Also ohne Anker neu
+    // laden.
+    location.replace(location.pathname + location.search);
   });
 
   var sparsam = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var zeilen = ausgabe.querySelectorAll(".z");
-  var MS_ZEICHEN = 14, PAUSE = 70;
+  var MS_ZEICHEN = 9, PAUSE = 45;
 
   var summe = 0;
   for (var i = 0; i < zeilen.length; i++) {

@@ -45,7 +45,7 @@ a { color: inherit; text-decoration: none; }
 }
 .schirm {
   background: var(--flaeche); border: 1px solid rgba(43, 212, 125, .22);
-  border-radius: 10px; padding: clamp(16px, 3.5vw, 30px);
+  border-radius: 12px; padding: clamp(18px, 3.6vw, 36px);
   box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 30px 90px -40px rgba(43, 212, 125, .35);
   position: relative; overflow: hidden;
 }
@@ -70,7 +70,7 @@ a { color: inherit; text-decoration: none; }
    Elementen als echte Leerzeilen. Die Zeilen selbst haben white-space: pre. */
 .ausgabe {
   margin: 0; font-family: var(--mono); line-height: 1.75;
-  font-size: clamp(.72rem, 2.9vw, 1rem); color: var(--gruen);
+  font-size: clamp(.8rem, 3.6vw, 1.15rem); color: var(--gruen);
   text-shadow: 0 0 14px rgba(43, 212, 125, .28);
 }
 .ausgabe .z {
@@ -80,7 +80,7 @@ a { color: inherit; text-decoration: none; }
 .ausgabe .ok { color: var(--gruen); }
 .ausgabe .warn { color: var(--bernstein); }
 .ausgabe .fehl { color: var(--pink); }
-.ausgabe .matt { color: var(--gruen-matt); }
+.ausgabe .matt, .ausgabe .info { color: var(--gruen-matt); }
 
 /* Tippen: die Breite waechst in Zeichenschritten. Nur wenn JS die
    Zeichenzahl und die Verzoegerung gesetzt hat - sonst steht alles sofort. */
