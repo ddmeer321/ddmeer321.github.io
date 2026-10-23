@@ -299,7 +299,9 @@ a.karte:hover .hin, a.karte:focus-visible .hin { letter-spacing: .22em; }
 }
 .release img {
   width: 100%; max-width: 440px; height: auto; display: block; border-radius: 10px;
-  box-shadow: 0 0 0 1px var(--linie), 0 40px 90px -50px rgba(224, 163, 60, .55);
+  /* Kraeftiger als --linie: ein dunkles Cover (Nachtaufnahme) verliert
+     sonst seinen Rahmen und wirkt wie ein leerer Kasten. */
+  box-shadow: 0 0 0 1px rgba(242, 244, 245, .22), 0 40px 90px -50px rgba(224, 163, 60, .55);
 }
 .release .fliess { margin-top: 18px; }
 .release + .release { margin-top: clamp(50px, 8vh, 90px); }
