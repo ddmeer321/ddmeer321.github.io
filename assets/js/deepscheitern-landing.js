@@ -11,10 +11,38 @@
   function revealAll() { root.classList.add("no-anim"); }
 
   /* ---------- Scrollanimationen ---------- */
+  var stageProgress = 0;          // 0..1 ueber die gesamte gepinnte Buehne
+  var stages = [];
+
+  function showStage(i) {
+    for (var k = 0; k < stages.length; k++) stages[k].classList.toggle("is-on", k === i);
+  }
+
   function initScroll() {
     if (reduce || !window.gsap || !window.ScrollTrigger) { revealAll(); return; }
     gsap.registerPlugin(ScrollTrigger);
     root.classList.add("anim-ready");
+
+    // Die Buehne bleibt stehen, das Scrollen treibt die Animation darin an.
+    stages = Array.prototype.slice.call(document.querySelectorAll(".d-stage"));
+    var hero = document.getElementById("buehne");
+    if (hero && stages.length) {
+      root.classList.add("stage-mode");
+      showStage(0);
+      ScrollTrigger.create({
+        trigger: hero,
+        start: "top top",
+        end: "+=" + (stages.length * 110) + "%",
+        pin: true,
+        pinSpacing: true,
+        scrub: 0.6,
+        onUpdate: function (self) {
+          stageProgress = self.progress;
+          var i = Math.min(stages.length - 1, Math.floor(self.progress * stages.length));
+          showStage(i);
+        },
+      });
+    }
     gsap.utils.toArray(".reveal").forEach(function (el, i) {
       gsap.fromTo(el, { opacity: 0, y: 26 }, {
         opacity: 1, y: 0, duration: .7, ease: "power2.out", delay: (i % 3) * .07,
@@ -90,14 +118,28 @@
     var mouse = { x: 0, y: 0 }, aim = { x: 0, y: 0 };
     var scroll = 0, t = 0, running = true, visible = true;
 
+    // Weiche Blende zwischen zwei Formen, damit nichts ruckartig umspringt.
+    function ease(t) { return t * t * (3 - 2 * t); }
+    function mix(a, b, t) { return a + (b - a) * t; }
+
     function layout(time) {
+      // 0 = Welle quer ueber den Schirm, 1 = Tunnel, durch den die Kamera fliegt.
+      var morph = ease(Math.min(1, Math.max(0, (stageProgress - 0.08) / 0.5)));
       for (var i = 0; i < COUNT; i++) {
         var f = i / (COUNT - 1);
-        var x = (f - 0.5) * 22;
         // Wellenform: die Ringe sitzen auf einer Sinuskurve und sind
         // zueinander versetzt verdreht -- daraus entsteht die Spirale.
-        var y = Math.sin(f * Math.PI * 2 + time * 0.35) * 1.5;
-        var z = Math.cos(f * Math.PI * 2.2 + time * 0.28) * 1.6;
+        var wx = (f - 0.5) * 22;
+        var wy = Math.sin(f * Math.PI * 2 + time * 0.35) * 1.5;
+        var wz = Math.cos(f * Math.PI * 2.2 + time * 0.28) * 1.6;
+        // Tunnelform: dieselben Ringe auf einer Achse, die von der Kamera wegfuehrt.
+        var a = f * Math.PI * 6 + time * 0.3;
+        var tx = Math.cos(a) * 2.3;
+        var ty = Math.sin(a) * 2.3;
+        var tz = -f * 54 + 6;
+        var x = mix(wx, tx, morph);
+        var y = mix(wy, ty, morph);
+        var z = mix(wz, tz, morph);
         if (scatter > 0) {
           var n = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
           n = n - Math.floor(n);
@@ -106,8 +148,12 @@
           z += (Math.cos(i * 5.1) ) * 4 * scatter;
         }
         dummy.position.set(x, y, z);
-        dummy.rotation.set(f * Math.PI * 1.6 + time * 0.22, Math.PI / 2, f * Math.PI * 2.4 + time * 0.16);
-        var s = 0.85 + Math.sin(f * Math.PI) * 0.5;
+        // Im Tunnel stehen die Ringe quer zur Flugrichtung statt laengs.
+        dummy.rotation.set(
+          mix(f * Math.PI * 1.6 + time * 0.22, 0, morph),
+          mix(Math.PI / 2, 0, morph),
+          f * Math.PI * 2.4 + time * 0.16);
+        var s = mix(0.85 + Math.sin(f * Math.PI) * 0.5, 1.5, morph);
         dummy.scale.setScalar(s);
         dummy.updateMatrix();
         mesh.setMatrixAt(i, dummy.matrix);
@@ -132,12 +178,14 @@
       mouse.y += (aim.y - mouse.y) * 0.045;
       if (scatter > 0) scatter = Math.max(0, scatter - 0.012);
       layout(t);
-      // Scrollen schiebt die Struktur nach oben aus dem Bild und kippt die Kamera.
-      mesh.position.y = scroll * 7;
-      mesh.rotation.z = scroll * 0.4;
-      camera.position.x = mouse.x * 1.5;
-      camera.position.y = 1.1 + mouse.y * 0.9 + scroll * 2.2;
-      camera.lookAt(0, scroll * 2.4, 0);
+      // Die Buehne bleibt stehen; der Fortschritt fliegt die Kamera in den Tunnel.
+      var pm = Math.min(1, Math.max(0, (stageProgress - 0.08) / 0.5));
+      var fly = Math.min(1, Math.max(0, (stageProgress - 0.45) / 0.55));
+      mesh.rotation.z = stageProgress * 0.8;
+      camera.position.x = mouse.x * 1.5 * (1 - pm);
+      camera.position.y = (1.1 + mouse.y * 0.9) * (1 - pm * 0.7);
+      camera.position.z = 13 - pm * 7 - fly * 26;
+      camera.lookAt(0, 0, camera.position.z - 10);
       renderer.render(scene, camera);
     }
 
@@ -155,8 +203,16 @@
     // Im Hintergrundtab und ausserhalb des Sichtfelds wird nicht gerechnet.
     document.addEventListener("visibilitychange", function () { visible = !document.hidden; });
     if (window.IntersectionObserver) {
-      new IntersectionObserver(function (entries) { visible = entries[0].isIntersecting && !document.hidden; },
-        { threshold: 0 }).observe(canvas);
+      new IntersectionObserver(function (entries) {
+        var e = entries[entries.length - 1];
+        // Ein noch nicht ausgelegtes Element ist 0x0 gross und meldet
+        // faelschlich "nicht sichtbar". Wuerde man das uebernehmen, bliebe
+        // die Schleife fuer immer stehen -- der Beobachter feuert danach nie
+        // wieder, weil keine Schwelle mehr gekreuzt wird.
+        var r = e.boundingClientRect;
+        if (!r.width && !r.height) return;
+        visible = e.isIntersecting && !document.hidden;
+      }, { threshold: 0 }).observe(canvas);
     }
 
     resize(); layout(0); frame();

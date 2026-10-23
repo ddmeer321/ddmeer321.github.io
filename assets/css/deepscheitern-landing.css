@@ -38,8 +38,19 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 720px) { .d-nav-links { display: none; } }
 
 /* Hero */
-.d-hero { position: relative; min-height: min(760px, calc(100svh - var(--d-nav)));
-  display: grid; place-items: center; text-align: center; }
+.d-hero { position: relative; display: grid; place-items: center; text-align: center; }
+.d-stages { position: relative; z-index: 2; }
+.d-stage { display: grid; place-items: center; padding-block: 56px; }
+
+/* Buehnenmodus: erst wenn das Skript laeuft, liegen die Szenen uebereinander
+   und das Scrollen blendet zwischen ihnen um. Ohne Skript stehen sie
+   untereinander und sind alle lesbar -- das ist die Vorgabe, nicht der
+   Sonderfall. */
+.stage-mode .d-hero { height: calc(100svh - var(--d-nav)); overflow: hidden; }
+.stage-mode .d-stages { position: absolute; inset: 0; display: grid; }
+.stage-mode .d-stage { grid-area: 1 / 1; padding-block: 0;
+  opacity: 0; visibility: hidden; transition: opacity .45s ease; }
+.stage-mode .d-stage.is-on { opacity: 1; visibility: visible; }
 #d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 /* Leseschleier: ohne ihn laeuft die Spirale quer durch die Ueberschrift. */
 .d-hero::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -47,7 +58,7 @@ a { color: inherit; text-decoration: none; }
     radial-gradient(ellipse 58% 46% at 50% 44%, rgba(5,5,7,.92) 0%, rgba(5,5,7,.78) 42%, rgba(5,5,7,0) 78%),
     linear-gradient(to bottom, rgba(5,5,7,0) 62%, rgba(5,5,7,.75) 86%, var(--d-bg) 100%); }
 .d-hero-text { position: relative; z-index: 2; display: grid; gap: 20px; justify-items: center;
-  padding-block: 56px; pointer-events: none; }
+  pointer-events: none; }
 .d-hero-text > * { pointer-events: auto; }
 .d-title { margin: 0; font-size: clamp(2.1rem, 7vw, 4.4rem); font-weight: 800;
   letter-spacing: -.03em; line-height: 1.04; text-wrap: balance; }
@@ -108,3 +119,7 @@ a { color: inherit; text-decoration: none; }
   .reveal { opacity: 1 !important; transform: none !important; }
   .d-card, .d-cta, .d-nav-links a::after { transition: none; }
 }
+
+/* Ohne Buehnenmodus gibt es nichts zu scrollen -- der Hinweis waere gelogen. */
+:root:not(.stage-mode) .d-scrollhint { display: none; }
+@media (prefers-reduced-motion: reduce) { .stage-mode .d-stage { transition: none; } }
