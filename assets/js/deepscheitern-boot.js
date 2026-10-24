@@ -1,114 +1,62 @@
-/* Ladebildschirm. Der Text steht vollstaendig im Dokument; hier wird nur
-   je Zeile die Zeichenzahl und die Startverzoegerung gesetzt, die
-   CSS-Animation legt sie dann schrittweise frei.
-   Die Klasse .laedt setzt ein winziges Skript im Kopf, damit die Seite
-   nicht kurz ohne Ladebildschirm aufblitzt. Ohne JS wird sie nie gesetzt
-   und der Schirm erscheint gar nicht -- er darf niemandem die Seite
-   versperren, nur weil das Skript nicht laeuft. */
+/* Optional terminal intro with session persistence and a bounded fallback. */
 (function () {
-  var wurzel = document.documentElement;
-  var ausgabe = document.getElementById("ausgabe");
-  var neustart = document.getElementById("neustart");
-  if (!ausgabe) { wurzel.classList.remove("laedt"); return; }
-
-  // Ein Neuladen von Hand soll ebenfalls oben anfangen.
-  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-
-  var sparsam = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var zeilen = ausgabe.querySelectorAll(".z");
-  var MS_ZEICHEN = 9, PAUSE = 45, NACHLAUF = 850;
-  // Dieselbe Zahl treibt die CSS-Dauer, sonst laufen Dauer und
-  // Startverzoegerung auseinander und die Zeilen ueberlappen sich.
-  wurzel.style.setProperty("--ms", MS_ZEICHEN + "ms");
-  var uhr = null, wegUhr = null;
-
-  var summe = 0;
-  for (var i = 0; i < zeilen.length; i++) {
-    var n = zeilen[i].textContent.length;
-    zeilen[i].style.setProperty("--n", n);
-    zeilen[i].style.setProperty("--d", summe + "ms");
-    summe += n * MS_ZEICHEN + PAUSE;
+  var root = document.documentElement;
+  var output = document.getElementById('ausgabe');
+  var restart = document.getElementById('neustart');
+  var overlay = document.getElementById('lade');
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  var timer, safety, previousFocus;
+  var seen = false;
+  try { seen = sessionStorage.getItem('deep-boot-seen') === '1'; } catch (_) {}
+  function finish() {
+    clearTimeout(timer); clearTimeout(safety); clearTimeout(window.deepBootSafety);
+    root.classList.remove('laedt'); root.classList.add('fertig');
+    removeEventListener('keydown', onKey); removeEventListener('wheel', finish);
+    if (overlay && overlay.contains(document.activeElement) && previousFocus) previousFocus.focus({preventScroll:true});
+    try { sessionStorage.setItem('deep-boot-seen', '1'); } catch (_) {}
   }
-
-  function verstecke() {
-    clearTimeout(wegUhr);
-    wurzel.classList.remove("laedt");
+  function onKey(event) {
+    if (event.key === 'Escape' || event.key === 'Tab') finish();
   }
-  function fertig() {
-    clearTimeout(uhr);
-    wurzel.classList.add("fertig");
-    entferneHorcher();
-    clearTimeout(wegUhr);
-    // Kurz stehen lassen, damit die letzte Zeile noch zu lesen ist.
-    wegUhr = setTimeout(verstecke, NACHLAUF);
+  function start() {
+    if (!output || reduced.matches) { finish(); return; }
+    clearTimeout(timer); clearTimeout(safety);
+    previousFocus = document.activeElement;
+    root.classList.remove('tippt', 'fertig');
+    var elapsed = 0;
+    output.querySelectorAll('.z').forEach(function (line) {
+      var count = line.textContent.length;
+      line.style.setProperty('--n', count);
+      line.style.setProperty('--d', elapsed + 'ms');
+      elapsed += count * 3 + 16;
+    });
+    root.style.setProperty('--ms', '3ms');
+    void output.offsetWidth;
+    root.classList.add('laedt', 'tippt');
+    addEventListener('keydown', onKey);
+    addEventListener('wheel', finish, {passive:true});
+    var skip = overlay && overlay.querySelector('button');
+    if (skip) skip.focus({preventScroll:true});
+    timer = setTimeout(finish, Math.min(elapsed + 200, 2400));
+    safety = setTimeout(finish, 3000);
   }
-  function beiTaste(ev) {
-    // Tabulator nicht abfangen: sonst kommt man per Tastatur nicht weiter.
-    if (ev.key !== "Tab") fertig();
-  }
-  function setzeHorcher() {
-    addEventListener("keydown", beiTaste);
-    addEventListener("wheel", fertig, { passive: true });
-    addEventListener("touchstart", fertig, { passive: true });
-    addEventListener("pointerdown", fertig);
-  }
-  function entferneHorcher() {
-    removeEventListener("keydown", beiTaste);
-    removeEventListener("wheel", fertig);
-    removeEventListener("touchstart", fertig);
-    removeEventListener("pointerdown", fertig);
-  }
-
-  function starteTippen() {
-    clearTimeout(uhr); clearTimeout(wegUhr);
-    wurzel.classList.add("laedt");
-    wurzel.classList.remove("tippt", "fertig");
-    // Reflow erzwingen: ohne das laeuft eine bereits abgespielte
-    // CSS-Animation beim erneuten Setzen der Klasse nicht noch einmal an.
-    void ausgabe.offsetWidth;
-    if (sparsam) {
-      wurzel.classList.add("tippt", "fertig");
-      wegUhr = setTimeout(verstecke, 900);
-      return;
-    }
-    wurzel.classList.add("tippt");
-    uhr = setTimeout(fertig, summe + 150);
-    setzeHorcher();
-  }
-
-  starteTippen();
-
-  // Abschnitte blenden beim Scrollen ein. .jsan erst hier setzen: faellt
-  // das Skript aus, bleibt alles sichtbar statt dauerhaft unsichtbar.
-  var teile = document.querySelectorAll(".anim");
-  if (teile.length && "IntersectionObserver" in window) {
-    wurzel.classList.add("jsan");
-    var auge = new IntersectionObserver(function (eintraege) {
-      for (var k = 0; k < eintraege.length; k++) {
-        if (eintraege[k].isIntersecting) {
-          eintraege[k].target.classList.add("sichtbar");
-          auge.unobserve(eintraege[k].target);
-        }
-      }
-    }, { rootMargin: "0px 0px -12% 0px" });
-    for (var m = 0; m < teile.length; m++) auge.observe(teile[m]);
-  }
-
-  // Neustart: erst sichtbar nach oben fahren, dann faellt der
-  // Ladebildschirm wieder davor und der Start laeuft noch einmal.
-  if (neustart) neustart.addEventListener("click", function () {
-    try {
-      scrollTo({ top: 0, behavior: sparsam ? "auto" : "smooth" });
-    } catch (e) {
-      scrollTo(0, 0);
-    }
-    if (sparsam) { starteTippen(); return; }
-    var frist = Date.now() + 1800;
-    (function warte() {
-      // Nicht nach fester Zeit: wie lange das Hochfahren dauert, haengt an
-      // Seitenlaenge und Browser. Also warten, bis es oben angekommen ist.
-      if (pageYOffset <= 2 || Date.now() > frist) starteTippen();
-      else requestAnimationFrame(warte);
-    })();
+  if (overlay) overlay.addEventListener('click', finish);
+  if (seen || reduced.matches || !root.classList.contains('laedt')) finish();
+  else start();
+  if (restart) restart.addEventListener('click', function () {
+    scrollTo({top:0, behavior:'auto'}); start();
   });
+  reduced.addEventListener('change', function () { if (reduced.matches) finish(); });
+  var sections = document.querySelectorAll('.anim');
+  if ('IntersectionObserver' in window && !reduced.matches) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('sichtbar'); observer.unobserve(entry.target);
+        }
+      });
+    }, {rootMargin:'0px 0px -6% 0px'});
+    sections.forEach(function (section) { observer.observe(section); });
+    root.classList.add('jsan');
+  }
 })();
