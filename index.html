@@ -8,17 +8,37 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" />
-    <link rel="stylesheet" href="/assets/css/deepscheitern.css?v=1" />
+    <link rel="stylesheet" href="/assets/css/deepscheitern.css?v=5" />
     <link rel="canonical" href="https://deepscheitern.de/" />
-    <title>DeepScheitern</title>
+    <title>DeepScheitern — Spiele, Software &amp; digitale Experimente</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="DeepScheitern — Play. Fail. Repeat." />
+    <meta property="og:description" content="Browserspiele, Musik und digitale Experimente. Entdecken, ausprobieren, weitermachen." />
+    <meta property="og:url" content="https://deepscheitern.de/" />
+    <meta property="og:image" content="https://deepscheitern.de/assets/img/neon-bot-arena-keyart-v2.png" />
+    <meta property="og:image:alt" content="Neon Bot Arena — ein Spiel von DeepScheitern" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="/assets/css/home.css?v=1" />
     <!-- Sofort, damit die Seite nicht kurz ohne Ladebildschirm aufblitzt.
          Ohne JS wird die Klasse nie gesetzt und der Schirm bleibt weg. -->
-    <script>document.documentElement.classList.add("laedt");</script>
+    <script>
+      (function () {
+        var seen = false;
+        try { seen = sessionStorage.getItem('deep-boot-seen') === '1'; } catch (_) {}
+        if (!seen && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.documentElement.classList.add('laedt');
+          window.deepBootSafety = setTimeout(function () {
+            document.documentElement.classList.remove('laedt');
+          }, 3500);
+        }
+      })();
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
   </head>
-  <body>
-    <div class="ladebildschirm" id="lade" aria-hidden="true">
-      <div class="schirm">
+  <body class="home">
+    <a class="skip-link" href="#oben">Zum Inhalt</a>
+    <div class="ladebildschirm" id="lade">
+      <div class="schirm" aria-hidden="true">
             <div class="leiste"><i></i><i></i><i></i><span>deepscheitern — bash</span></div>
             <div class="ausgabe" id="ausgabe"><span class="z"><span class="matt">$</span> ./deepscheitern --start</span>
             <span class="z"><span class="ok">[  OK  ] Schriftarten geladen</span></span>
@@ -27,17 +47,17 @@
             <span class="z"><span class="warn">[ WARN ] Zeitplan nicht gefunden</span></span>
             <span class="z"><span class="info">[ INFO ] nehme "irgendwann"</span></span>
             <span class="z"><span class="ok">[  OK  ] 3 Projekte geladen</span></span>
-            <span class="z"><span class="warn">[ WARN ] davon 1 wirklich fertig</span></span>
+            <span class="z"><span class="warn">[ INFO ] 1 weiteres im Bau</span></span>
             <span class="z"><span class="fehl">[ FEHL ] &#39;selbstzweifel&#39; läuft noch</span></span>
             <span class="z"><span class="info">[ INFO ] Beenden nicht möglich</span></span>
             <span class="z"><span class="ok">[  OK  ] Trotzdem weitergemacht</span></span>
             <span class="z"><span class="warn">[ WARN ] Doku nicht auffindbar</span></span>
             <span class="z"><span class="info">[ INFO ] Der Code ist die Doku</span></span>
-            <span class="z"><span class="fehl">[ FEHL ] Zu wenig geschlafen</span></span>
+            <span class="z"><span class="fehl">[  OK  ] Neugier noch vorhanden</span></span>
             <span class="z"><span class="ok">[  OK  ] Bereit. Mehr oder weniger.</span></span>
             <span class="eingabe"><span class="z"><span class="matt">$</span></span><span class="cursor" aria-hidden="true"></span></span></div>
           </div>
-      <p class="lade-hinweis">Klicken zum Überspringen</p>
+      <button class="lade-hinweis" type="button" onclick="document.documentElement.classList.remove('laedt')">Intro überspringen →</button>
     </div>
 
     <header class="nav">
@@ -61,22 +81,23 @@
             <p class="spruch">Wir scheitern tief. Professionell.</p>
           </div>
           <div>
-            <p class="fliess">DeepScheitern ist ein <strong>Experimentierfeld</strong> für Spiele,
-              Software und digitale Ideen. Hier landet, was gebaut wurde, weil es
-              interessant war — nicht, weil jemand dafür bezahlt hat.</p>
-            <p class="fliess">Manches davon läuft. Manches ist auf halbem Weg stehen geblieben,
-              weil unterwegs etwas Spannenderes dazwischenkam. <strong>Beides bleibt
-              stehen</strong>, auch das Halbfertige — denn ein Projekt, das nie
-              scheitert, ist meistens eins, bei dem nichts riskiert wurde.</p>
+            <p class="kapitel">Ein unabhängiges digitales Labor</p>
+            <h2 class="hero-title">Aus Neugier gebaut.<br /><em>Zum Ausprobieren da.</em></h2>
+            <p class="fliess">Spiele für den Browser, Musik aus Code und digitale Ideen, die nicht in der Schublade bleiben.</p>
+            <div class="knoepfe">
+              <a class="knopf primary" href="#projekte">Projekte entdecken ↘</a>
+              <a class="knopf" href="/deepplay/">Direkt spielen →</a>
+            </div>
+            <p class="hero-note">Wir scheitern tief. Und bauen weiter.</p>
           </div>
         </div>
       </section>
 
       <!-- 2b — Zahlen -->
       <section class="zahlen huelle anim" aria-label="In Zahlen">
-        <div class="zahl"><b>3</b><span>Projekte</span></div>
-        <div class="zahl"><b>1</b><span>davon wirklich fertig</span></div>
-        <div class="zahl"><b>0</b><span>eingehaltene Deadlines</span></div>
+        <div class="zahl"><b>3</b><span>öffentlich zugänglich</span></div>
+        <div class="zahl"><b>1</b><span>in Entwicklung</span></div>
+        <div class="zahl"><b>100%</b><span>Neugier als Antrieb</span></div>
         <div class="zahl"><b>∞</b><span>Neuanfänge</span></div>
       </section>
 
@@ -94,14 +115,12 @@
           <div class="punkt">
             <span class="nr">02</span>
             <h3>Scheitern</h3>
-            <p>Die meisten Versuche landen nie hier. Und die, die es tun, sehen
-              selten so aus wie geplant.</p>
+            <p>Ausprobieren, beobachten, verbessern. Was funktioniert, wird ausgebaut. Was nicht funktioniert, liefert die nächste Idee.</p>
           </div>
           <div class="punkt">
             <span class="nr">03</span>
             <h3>Stehen lassen</h3>
-            <p>Halbfertiges wird nicht gelöscht. Es ist meistens der ehrlichste
-              Teil der Sammlung.</p>
+            <p>Spielbare Projekte werden veröffentlicht. Experimente bleiben als solche erkennbar — auch wenn noch nicht alles fertig ist.</p>
           </div>
         </div>
       </section>
@@ -111,28 +130,28 @@
         <p class="kapitel">Kapitel 03 — Projekte</p>
         <h2 class="titel2">Play. Fail. Repeat.</h2>
         <div class="liste">
-          <a class="karte" href="/deepplay/">
+          <a class="karte" href="/deepplay/"><div class="project-visual collage" aria-hidden="true"><img src="/assets/img/snake-keyart.webp" alt="" loading="lazy" decoding="async" /><img src="/assets/img/reaction-keyart.webp" alt="" loading="lazy" decoding="async" /></div><span class="project-status">Spielesammlung · Verfügbar</span>
             <span class="nr">01</span>
             <h3>DeepPlay</h3>
-            <p>Eine Sammlung kleiner Browserspiele. Ohne Installation, ohne Konto, ohne Netz spielbar.</p>
+            <p>Kleine Browserspiele für die nächste Pause. Direkt loslegen, ohne Installation.</p>
             <span class="hin">Browser-Spiele →</span>
           </a>
-          <a class="karte" href="/neon-bot-arena.html">
+          <a class="karte" href="/neon-bot-arena.html"><div class="project-visual"><img src="/assets/img/neon-bot-arena-keyart-v2.webp" alt="Neon Bot Arena: Spielgrafik" loading="lazy" decoding="async" /></div><span class="project-status">Arena · Spielbereit</span>
             <span class="nr">02</span>
             <h3>Neon Bot Arena</h3>
             <p>Bots prügeln sich in einer Arena. Chaos ist kein Bug, es ist ein Feature.</p>
             <span class="hin">Spielen →</span>
           </a>
-          <a class="karte" href="/musik.html">
+          <a class="karte" href="/musik.html"><div class="project-visual music"><img src="/assets/img/just-near.webp" alt="Cover der Single Just Near" loading="lazy" decoding="async" /><span aria-hidden="true">DEEP<br />FREQUENCIES.</span></div><span class="project-status">Musik · Veröffentlichungen</span>
             <span class="nr">03</span>
             <h3>DeepScheitern Musik</h3>
             <p>Der Teil, der nicht gespielt, sondern gehört wird. Scheitern, aber mit Takt.</p>
             <span class="hin">Reinhören →</span>
           </a>
-          <div class="karte">
+          <div class="karte in-progress"><div class="project-visual service" aria-hidden="true"><span>deepservice<span class="service-prompt">$ build --next<br /><b>In Entwicklung_</b></span></span></div><span class="project-status">Werkzeug · In Entwicklung</span>
             <span class="nr">04</span>
             <h3>DeepService</h3>
-            <p>Support-Werkzeug, das garantiert nichts garantiert. Noch im Bau.</p>
+            <p>Ein Support-Werkzeug in Entwicklung. Hier entsteht das nächste Experiment — noch nicht öffentlich verfügbar.</p>
             <span class="hin aus">Noch nicht öffentlich</span>
           </div>
         </div>
@@ -141,9 +160,9 @@
       <!-- 4 — Schluss -->
       <section class="schluss huelle anim">
         <p class="kapitel">Kapitel 04 — Ende</p>
-        <h2 class="titel2">Immer noch da?</h2>
-        <p class="fliess">Dann schau dir das Ganze gerne nochmal an. Es ändert sich
-          nichts — aber das hat hier noch nie jemanden aufgehalten.</p>
+        <h2 class="titel2">Neugierig geworden?</h2>
+        <p class="fliess">Spiel eine Runde, entdecke die Musik oder schau auf GitHub hinter die Kulissen. Die nächste Idee beginnt mit einem Versuch.</p>
+        <div class="knoepfe"><a class="knopf primary" href="/deepplay/">Eine Runde spielen →</a><a class="knopf" href="https://github.com/ddmeer321/ddmeer321.github.io">Code auf GitHub ↗</a></div>
         <button class="neustart" id="neustart" type="button">
           <span aria-hidden="true">$</span> ./deepscheitern --restart
         </button>
@@ -156,6 +175,6 @@
       </footer>
     </main>
 
-    <script src="/assets/js/deepscheitern-boot.js?v=1"></script>
+    <script src="/assets/js/deepscheitern-boot.js?v=5"></script>
   </body>
 </html>
