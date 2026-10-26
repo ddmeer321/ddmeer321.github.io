@@ -9,6 +9,10 @@
   --fg2: #8b9499;
   --gruen: #2bd47d;
   --gruen-matt: #1d8f58;
+  /* Fuer kleine Grossbuchstaben-Beschriftungen: #1d8f58 liegt bei 11px nur
+     bei 4,93:1 und ist dort schwer lesbar. Dieses Gruen schafft 7,25:1 und
+     bleibt trotzdem dunkler als --gruen, damit die Abstufung erhalten bleibt. */
+  --gruen-label: #2bb06f;
   --bernstein: #e0a33c;
   --pink: #ff2d95;
   --linie: rgba(242, 244, 245, .13);
@@ -166,8 +170,8 @@ a { color: inherit; text-decoration: none; }
 .hero-raster .fliess:first-child { margin-top: 0; }
 .hero { padding: clamp(80px, 16vh, 170px) 0 clamp(60px, 10vh, 120px); }
 .kapitel {
-  font-family: var(--mono); font-size: .68rem; letter-spacing: .22em;
-  text-transform: uppercase; color: var(--gruen-matt); margin: 0 0 22px;
+  font-family: var(--mono); font-size: .74rem; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--gruen-label); margin: 0 0 22px;
 }
 /* Das Logo traegt den Schriftzug bereits; eine zweite getippte
    Schlagzeile daneben waere derselbe Name zweimal. Breite in vw statt
@@ -180,9 +184,13 @@ a { color: inherit; text-decoration: none; }
   font-size: clamp(2.6rem, 13vw, 10rem); text-transform: uppercase;
 }
 .titan em { font-style: normal; color: var(--fg2); }
+/* Der Satz fasst die ganze Seite zusammen und stand vorher bei .76rem, also
+   kleiner als der Fliesstext daneben. Jetzt traegt er. Die Sperrung geht
+   zurueck, sonst zerfaellt er bei dieser Groesse in Einzelbuchstaben. */
 .spruch {
-  margin: 26px 0 0; font-family: var(--mono); font-size: .76rem;
-  letter-spacing: .2em; text-transform: uppercase; color: var(--gruen);
+  margin: 28px 0 0; font-family: var(--mono); font-size: clamp(1rem, 2.6vw, 1.32rem);
+  letter-spacing: .12em; text-transform: uppercase; color: var(--gruen);
+  line-height: 1.45; text-wrap: balance;
 }
 .fliess {
   margin: 40px 0 0; max-width: 54ch; color: var(--fg2);
@@ -191,30 +199,49 @@ a { color: inherit; text-decoration: none; }
 .fliess strong { color: var(--fg); font-weight: 500; }
 
 /* ---------- Zahlen ---------- */
+/* Vorher schwebten die vier Zahlen zwischen zwei Haarlinien auf Schwarz.
+   Als Karten bekommen sie eine Flaeche und damit ueberhaupt eine Praesenz. */
 .zahlen {
-  display: grid; gap: 26px 34px;
-  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
-  padding: clamp(40px, 7vh, 70px) 0;
-  border-top: 1px solid var(--linie); border-bottom: 1px solid var(--linie);
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  padding: clamp(34px, 5vh, 56px) 0;
 }
+.zahl {
+  background: var(--flaeche); border: 1px solid var(--linie);
+  border-radius: 16px; padding: 24px 22px 20px;
+  transition: border-color .25s ease, transform .25s ease;
+}
+.zahl:hover { transform: translateY(-2px); }
+/* Dieselbe Logik wie im Bootablauf: OK gruen, WARN bernstein, FEHL pink. */
 .zahl b {
   display: block; font-size: clamp(2.2rem, 6vw, 3.4rem); font-weight: 700;
   letter-spacing: -.04em; line-height: 1; color: var(--gruen);
 }
+.zahl.warn b { color: var(--bernstein); }
+.zahl.fehl b { color: var(--pink); }
+.zahl.warn:hover { border-color: rgba(224, 163, 60, .45); }
+.zahl.fehl:hover { border-color: rgba(255, 45, 149, .45); }
+.zahl:hover { border-color: rgba(43, 212, 125, .45); }
 .zahl span {
   display: block; margin-top: 10px; font-family: var(--mono);
-  font-size: .68rem; letter-spacing: .16em; text-transform: uppercase;
+  font-size: .74rem; letter-spacing: .16em; text-transform: uppercase;
   color: var(--fg2);
 }
 
 /* ---------- Arbeitsweise ---------- */
 .weise { padding: clamp(60px, 11vh, 120px) 0 clamp(20px, 4vh, 44px); }
 .punkte {
-  display: grid; gap: 34px;
+  display: grid; gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   margin-top: 40px;
 }
-.punkt { display: grid; gap: 10px; align-content: start; }
+/* Bewusst leichter als .karte: Flaeche, aber kein Rand. Rand bedeutet auf
+   dieser Seite anklickbar - die drei Schritte sind nur Inhalt. */
+.punkt {
+  display: grid; gap: 10px; align-content: start;
+  background: var(--flaeche); border-radius: 16px; padding: 24px 22px;
+}
+.punkt .nr { font-size: .9rem; }
 .punkt h3 { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; }
 .punkt p { margin: 0; color: var(--fg2); font-size: .96rem; line-height: 1.65; }
 
@@ -225,20 +252,26 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -.03em;
 }
 .liste {
-  display: grid; gap: 2px 30px; margin-top: 38px; min-width: 0;
+  display: grid; gap: 16px; margin-top: 38px; min-width: 0;
   /* min(..., 100%) statt nur 240px: sonst sieht auto-fit bei schmalen
      Schirmen Platz fuer Spalten, den es nicht gibt. */
   grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
 }
 .karte {
-  display: grid; gap: 10px; padding: 30px 0 28px;
-  border-top: 1px solid var(--linie); min-width: 0;
-  transition: border-color .25s ease;
+  display: grid; gap: 10px; padding: 26px 24px 24px;
+  background: var(--flaeche); border: 1px solid var(--linie);
+  border-radius: 18px; min-width: 0; align-content: start;
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+/* Der Schein existierte schon auf dem Neustart-Knopf - hier dieselbe Sprache. */
+a.karte:hover, a.karte:focus-visible {
+  transform: translateY(-3px); border-color: rgba(43, 212, 125, .4);
+  box-shadow: 0 0 0 1px rgba(43, 212, 125, .14), 0 22px 50px -30px rgba(43, 212, 125, .55);
 }
 a.karte:hover, a.karte:focus-visible { border-color: var(--gruen); }
 .nr {
-  font-family: var(--mono); font-size: .68rem; letter-spacing: .18em;
-  color: var(--gruen-matt);
+  font-family: var(--mono); font-size: .74rem; letter-spacing: .18em;
+  color: var(--gruen-label);
 }
 .karte h3 { margin: 0; font-size: clamp(1.3rem, 4.4vw, 1.9rem); font-weight: 700;
   letter-spacing: -.02em; }
@@ -266,7 +299,7 @@ a.karte:hover .hin, a.karte:focus-visible .hin { letter-spacing: .22em; }
   font-size: clamp(.72rem, 2.7vw, .9rem); letter-spacing: .04em;
   transition: border-color .2s ease, box-shadow .2s ease;
 }
-.neustart span { color: var(--gruen-matt); }
+.neustart span { color: var(--gruen-label); }
 .neustart:hover, .neustart:focus-visible {
   border-color: var(--gruen);
   box-shadow: 0 0 0 1px rgba(43, 212, 125, .22), 0 14px 46px -20px rgba(43, 212, 125, .7);
@@ -306,8 +339,8 @@ a.karte:hover .hin, a.karte:focus-visible .hin { letter-spacing: .22em; }
 .release .fliess { margin-top: 18px; }
 .release + .release { margin-top: clamp(50px, 8vh, 90px); }
 .meta {
-  margin: 0; font-family: var(--mono); font-size: .66rem; letter-spacing: .18em;
-  text-transform: uppercase; color: var(--gruen-matt);
+  margin: 0; font-family: var(--mono); font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--gruen-label);
 }
 .release-titel {
   margin: 12px 0 0; font-size: clamp(1.8rem, 6vw, 3.2rem); font-weight: 700;
