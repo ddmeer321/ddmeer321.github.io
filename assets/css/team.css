@@ -1,0 +1,103 @@
+/* Teamseite. Kopf, Fusszeile und Grundtypografie kommen aus home.css;
+   hier steht nur, was es dort nicht schon gibt. */
+
+.team-main {
+  padding: clamp(60px, 11vh, 120px) 0 clamp(70px, 13vh, 140px);
+}
+
+.team-intro {
+  max-width: 620px;
+  margin: 0 0 clamp(40px, 6vh, 64px);
+}
+.team-intro h1 {
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+}
+.team-intro p {
+  font-size: 16px;
+  line-height: 1.85;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Beide Mitglieder bekommen bewusst dieselbe Karte, dieselbe Groesse und
+   dieselbe Schrift. Sobald eines der beiden eine Sonderbehandlung bekaeme,
+   waere es ein Gag statt einer Aussage. */
+.team-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+
+.member {
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+  padding: 28px 26px 26px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+.member-role {
+  font: 500 8px/1.5 var(--mono);
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+  color: #a9a4ce;
+  margin: 0 0 18px;
+}
+.member h2 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.member p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: 14px 0 0;
+}
+/* Haelt die Commit-Zeile unten buendig, auch wenn eine Karte keinen Text hat. */
+.member-count {
+  margin-top: auto;
+  padding-top: 24px;
+  font: 9px/1.5 var(--mono);
+  letter-spacing: 1.2px;
+  color: #959db0;
+}
+.member-count b {
+  display: block;
+  font: 700 1.6rem/1.1 var(--font);
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.team-note {
+  margin: clamp(34px, 5vh, 52px) 0 0;
+  font-size: clamp(1rem, 2.4vw, 1.25rem);
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+.team-note span {
+  color: var(--mint);
+}
+
+.team-fineprint {
+  margin: 22px 0 0;
+  font: 9px/1.7 var(--mono);
+  letter-spacing: 0.6px;
+  color: #959db0;
+  max-width: 640px;
+}
+
+/* min-height bleibt auch auf dem Handy stehen: der leere Platz unter dem
+   zweiten Namen ist die Aussage, nicht ein Layoutfehler. */
+@media (max-width: 720px) {
+  .member-count {
+    padding-top: 20px;
+  }
+}
