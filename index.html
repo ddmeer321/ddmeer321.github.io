@@ -1,155 +1,121 @@
 <!doctype html>
 <html lang="de">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="DeepScheitern — Wir scheitern tief. Professionell. Ein Experimentierfeld für Spiele, Software und digitale Ideen." />
-    <meta name="theme-color" content="#04070a" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" />
-    <link rel="stylesheet" href="/assets/css/deepscheitern.css?v=5" />
-    <link rel="canonical" href="https://deepscheitern.de/" />
-    <title>DeepScheitern</title>
-    <!-- Sofort, damit die Seite nicht kurz ohne Ladebildschirm aufblitzt.
-         Ohne JS wird die Klasse nie gesetzt und der Schirm bleibt weg. -->
-    <script>document.documentElement.classList.add("laedt");</script>
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
-  </head>
-  <body>
-    <div class="ladebildschirm" id="lade" aria-hidden="true">
-      <div class="schirm">
-            <div class="leiste"><i></i><i></i><i></i><span>deepscheitern — bash</span></div>
-            <div class="ausgabe" id="ausgabe"><span class="z"><span class="matt">$</span> ./deepscheitern --start</span>
-            <span class="z"><span class="ok">[  OK  ] Schriftarten geladen</span></span>
-            <span class="z"><span class="ok">[  OK  ] Dunkelmodus erkannt</span></span>
-            <span class="z"><span class="ok">[  OK  ] Kaffee gefunden</span></span>
-            <span class="z"><span class="warn">[ WARN ] Zeitplan nicht gefunden</span></span>
-            <span class="z"><span class="info">[ INFO ] nehme "irgendwann"</span></span>
-            <span class="z"><span class="ok">[  OK  ] 3 Projekte geladen</span></span>
-            <span class="z"><span class="warn">[ WARN ] davon 1 wirklich fertig</span></span>
-            <span class="z"><span class="fehl">[ FEHL ] &#39;selbstzweifel&#39; läuft noch</span></span>
-            <span class="z"><span class="info">[ INFO ] Beenden nicht möglich</span></span>
-            <span class="z"><span class="ok">[  OK  ] Trotzdem weitergemacht</span></span>
-            <span class="z"><span class="warn">[ WARN ] Doku nicht auffindbar</span></span>
-            <span class="z"><span class="info">[ INFO ] Der Code ist die Doku</span></span>
-            <span class="z"><span class="fehl">[ FEHL ] Zu wenig geschlafen</span></span>
-            <span class="z"><span class="ok">[  OK  ] Bereit. Mehr oder weniger.</span></span>
-            <span class="eingabe"><span class="z"><span class="matt">$</span></span><span class="cursor" aria-hidden="true"></span></span></div>
-          </div>
-      <p class="lade-hinweis">Klicken zum Überspringen</p>
+<head>
+  <meta charset="utf-8" />
+  <!-- viewport-fit=cover ist noetig, damit env(safe-area-inset-*) ueberhaupt
+       einen Wert liefert: home.css setzt den linken Rand auf
+       max(22px, env(safe-area-inset-left, 0px)). Ohne das Attribut bleibt der
+       Wert auf iOS 0 und am Notch klebt der Inhalt quer am Rand. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="DeepScheitern: ein unabhängiges Experimentierfeld für Browser-Spiele, Musik und digitale Ideen. Entdecke DeepPlay, hör rein und probier etwas aus." />
+  <meta name="theme-color" content="#080b14" />
+  <link rel="canonical" href="https://deepscheitern.de/" />
+  <link rel="icon" type="image/png" href="/assets/img/favicon-32.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/home.css" />
+  <script src="/assets/js/home.js" defer></script>
+  <title>DeepScheitern — Gute Ideen. Offenes Ende.</title>
+</head>
+<body>
+  <dialog class="boot-dialog" aria-labelledby="boot-title" aria-describedby="boot-description">
+    <div class="boot-window">
+      <div class="boot-titlebar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><h2 id="boot-title">deepscheitern — bash</h2></div>
+      <p id="boot-description" class="sr-only">Kurze Terminal-Introanimation. Schließt automatisch nach etwa drei Sekunden. Mit Escape oder Überspringen direkt zur Seite.</p>
+      <div class="boot-output" aria-hidden="true">
+        <p class="boot-command"><span>$</span> ./deepscheitern --start</p>
+        <p class="boot-line"><span class="boot-ok">[ OK ]</span> Neugier vorhanden.</p>
+        <p class="boot-line"><span class="boot-ok">[ OK ]</span> Spiele. Musik. Experimente.</p>
+        <p class="boot-line"><span class="boot-warn">[WARN]</span> Perfektion nicht gefunden.</p>
+        <p class="boot-line"><span class="boot-ok">[ OK ]</span> Trotzdem weitergemacht.</p>
+        <p class="boot-line boot-ready"><span class="boot-ok">[ OK ]</span> Bereit. Mehr oder weniger.</p>
+        <div class="boot-prompt"><span>$</span><span class="boot-cursor"></span></div>
+      </div>
     </div>
-
-    <header class="nav">
-      <a href="#oben"><b>DeepScheitern®</b></a>
-      <nav aria-label="Hauptnavigation">
-        <a href="#ueber">Über</a>
-        <a href="#projekte">Projekte</a>
+    <button type="button" class="boot-skip" autofocus>Klicken zum Überspringen</button>
+  </dialog>
+  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-diagonal" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></symbol>
+    <symbol id="i-game" viewBox="0 0 24 24"><path d="M7 7h10c2 0 3 2 3.5 4l1 6c.5 3-2 4-4 2l-3-3h-5l-3 3c-2 2-4.5 1-4-2l1-6C4 9 5 7 7 7Z"/><path d="M6 11v4m-2-2h4m8-2h.01M18 14h.01"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 17V5l11-2v12M9 9l11-2"/><ellipse cx="6" cy="18" rx="3" ry="3"/><ellipse cx="17" cy="16" rx="3" ry="3"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-16-2 20"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-5 1-5-3-7-3m14 6v-4c0-1-.3-2-1-2 4-.5 6-2 6-6 0-1.5-.5-2.5-1.5-3.5.5-1 .5-2.5 0-3.5-2 0-3 1-4 1.5a13 13 0 0 0-7 0C7.5 4 6.5 3 4.5 3c-.5 1-.5 2.5 0 3.5C3.5 7.5 3 8.5 3 10c0 4 2 5.5 6 6-.7.5-1 1-1 2v4"/></symbol>
+  </defs></svg>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#oben" aria-label="DeepScheitern Startseite"><img src="/assets/img/favicon-32.png" width="32" height="32" alt="" /><span>Deep<span class="brand-light">Scheitern</span><span class="brand-dot">.</span></span></a>
+      <button class="menu-toggle" aria-expanded="false" aria-controls="main-nav" hidden><span></span><span></span><span class="sr-only">Menü öffnen</span></button>
+      <nav class="main-nav" id="main-nav" aria-label="Hauptnavigation">
+        <a class="nav-home" href="#oben" aria-current="page">Start</a><a href="#projekte">Projekte</a><a href="#ueber">Die Idee</a>
+        <a class="nav-github" href="https://github.com/ddmeer321" aria-label="GitHub-Profil"><svg class="icon"><use href="#i-github"/></svg><span>GitHub</span></a>
+        <a class="button button-small" href="/deepplay/">Spiele entdecken <svg class="icon"><use href="#i-arrow"/></svg></a>
       </nav>
-    </header>
-
-    <main id="oben">
-      <!-- 2 — Hero -->
-      <section class="hero huelle anim" id="ueber">
-        <div class="hero-raster">
-          <div>
-            <p class="kapitel">Kapitel 01 — Worum es geht</p>
-            <h1 class="marke-gross">
-              <img src="/assets/img/deepscheitern-logo-dunkel.webp"
-                   width="720" height="535" alt="DeepScheitern" decoding="async" />
-            </h1>
-            <p class="spruch">Wir scheitern tief. Professionell.</p>
-          </div>
-          <div>
-            <p class="fliess">DeepScheitern ist ein <strong>Experimentierfeld</strong> für Spiele,
-              Software und digitale Ideen. Hier landet, was gebaut wurde, weil es
-              interessant war — nicht, weil jemand dafür bezahlt hat.</p>
-            <p class="fliess">Manches davon läuft. Manches ist auf halbem Weg stehen geblieben,
-              weil unterwegs etwas Spannenderes dazwischenkam. <strong>Beides bleibt
-              stehen</strong>, auch das Halbfertige — denn ein Projekt, das nie
-              scheitert, ist meistens eins, bei dem nichts riskiert wurde.</p>
-          </div>
+    </div>
+  </header>
+  <main id="inhalt">
+    <section class="hero container" id="oben" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="tiny-star">✳</span> SPIELE. MUSIK. EXPERIMENTE.</p>
+        <h1 id="hero-title">Gute Ideen.<br /><span>Offenes Ende.</span></h1>
+        <p class="hero-description">Ein Experimentierfeld für alles, was aus Neugier entsteht. Kleine Spiele, eigene Musik und digitale Ideen. Nicht immer fertig. Aber immer einen Versuch wert.</p>
+        <div class="hero-actions"><a class="button" href="#projekte">Projekte entdecken <svg class="icon"><use href="#i-arrow"/></svg></a><a class="text-link" href="#ueber">Was steckt dahinter? <span aria-hidden="true">↗</span></a></div>
+        <p class="hero-note"><span class="status-dot"></span> Wir scheitern tief. Professionell.</p>
+        <button class="intro-replay" type="button" hidden><span aria-hidden="true">↻</span> Terminal-Intro abspielen</button>
+      </div>
+      <div class="hero-art" aria-label="DeepScheitern Logo und Musik">
+        <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+        <div class="brand-stage">
+          <div class="brand-grid" aria-hidden="true"></div>
+          <div class="brand-aura" aria-hidden="true"></div>
+          <img class="hero-brand-logo" src="/assets/img/deepscheitern-logo-dunkel.webp" width="720" height="535" alt="DeepScheitern – originales Logo mit cyan-pinkem Glitch-Symbol" fetchpriority="high" />
+          <span class="orbit-node node-game" aria-hidden="true"><svg class="icon"><use href="#i-game"/></svg></span>
+          <span class="orbit-node node-code" aria-hidden="true"><svg class="icon"><use href="#i-code"/></svg></span>
+          <span class="orbit-node node-music" aria-hidden="true"><svg class="icon"><use href="#i-music"/></svg></span>
+          <span class="brand-coordinate" aria-hidden="true">IDEA → EXPERIMENT → REPEAT</span>
         </div>
-      </section>
-
-      <!-- 2b — Zahlen -->
-      <section class="zahlen huelle anim" aria-label="In Zahlen">
-        <div class="zahl"><b>3</b><span>Projekte</span></div>
-        <div class="zahl warn"><b>1</b><span>davon wirklich fertig</span></div>
-        <div class="zahl fehl"><b>0</b><span>eingehaltene Deadlines</span></div>
-        <div class="zahl"><b>∞</b><span>Neuanfänge</span></div>
-      </section>
-
-      <!-- 2c — Arbeitsweise -->
-      <section class="weise huelle anim" id="weise">
-        <p class="kapitel">Kapitel 02 — Wie hier gearbeitet wird</p>
-        <h2 class="titel2">Erst bauen, dann merken.</h2>
-        <div class="punkte">
-          <div class="punkt">
-            <span class="nr">01</span>
-            <h3>Anfangen</h3>
-            <p>Eine Idee muss nicht gut sein, um gebaut zu werden. Sie muss nur
-              interessant genug sein, um anzufangen.</p>
-          </div>
-          <div class="punkt">
-            <span class="nr">02</span>
-            <h3>Scheitern</h3>
-            <p>Die meisten Versuche landen nie hier. Und die, die es tun, sehen
-              selten so aus wie geplant.</p>
-          </div>
-          <div class="punkt">
-            <span class="nr">03</span>
-            <h3>Stehen lassen</h3>
-            <p>Halbfertiges wird nicht gelöscht. Es ist meistens der ehrlichste
-              Teil der Sammlung.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 3 — Projekte -->
-      <section class="projekte huelle anim" id="projekte">
-        <p class="kapitel">Kapitel 03 — Projekte</p>
-        <h2 class="titel2">Play. Fail. Repeat.</h2>
-        <div class="liste">
-          <a class="karte" href="/deepplay/">
-            <span class="nr">01</span>
-            <h3>DeepPlay</h3>
-            <p>Eine Sammlung kleiner Browserspiele. Ohne Installation, ohne Konto, ohne Netz spielbar.</p>
-            <span class="hin">Browser-Spiele →</span>
-          </a>
-          <a class="karte" href="/musik.html">
-            <span class="nr">02</span>
-            <h3>DeepScheitern Musik</h3>
-            <p>Der Teil, der nicht gespielt, sondern gehört wird. Scheitern, aber mit Takt.</p>
-            <span class="hin">Reinhören →</span>
-          </a>
-          <div class="karte">
-            <span class="nr">03</span>
-            <h3>DeepService</h3>
-            <p>Support-Werkzeug, das garantiert nichts garantiert. Noch im Bau.</p>
-            <span class="hin aus">Noch nicht öffentlich</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- 4 — Schluss -->
-      <section class="schluss huelle anim">
-        <p class="kapitel">Kapitel 04 — Ende</p>
-        <h2 class="titel2">Immer noch da?</h2>
-        <p class="fliess">Dann schau dir das Ganze gerne nochmal an. Es ändert sich
-          nichts — aber das hat hier noch nie jemanden aufgehalten.</p>
-        <button class="neustart" id="neustart" type="button">
-          <span aria-hidden="true">$</span> ./deepscheitern --restart
-        </button>
-      </section>
-
-      <footer class="fuss huelle">
-        <a href="/impressum.html">Impressum</a>
-        <a href="/datenschutz.html">Datenschutz</a>
-        <span>© 2026</span>
-      </footer>
-    </main>
-
-    <script src="/assets/js/deepscheitern-boot.js?v=1"></script>
-  </body>
+        <a class="floating-music" href="/musik.html" aria-label="Just Near und weitere Musik entdecken"><img src="/assets/img/just-near.webp" width="64" height="64" alt="Cover der Single Just Near" /><span><small>DEEPSCHEITERN MUSIK</small><strong>Just Near</strong><span class="music-description">Ein Versuch. Mit Takt.</span></span><span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span></a>
+        <div class="code-note" aria-hidden="true"><span>↳</span> build. fail. repeat.<span class="terminal-cursor">_</span></div>
+      </div>
+    </section>
+    <div class="container facts" aria-label="Das gibt es zu entdecken">
+      <div class="facts-intro"><span class="small-mark">D<span>↗</span></span><p>Aus Ideen wird etwas.<br /><strong>Hier kannst du es ausprobieren.</strong></p></div>
+      <a href="#projekte"><strong>03</strong><span>Projektbereiche <span aria-hidden="true">↗</span></span></a>
+      <a href="/deepplay/"><strong>06</strong><span>Browser-Spiele <span aria-hidden="true">↗</span></span></a>
+      <a href="/musik.html#erschienen"><strong>02</strong><span>Musik-Releases <span aria-hidden="true">↗</span></span></a>
+    </div>
+    <section class="container projects section" id="projekte" aria-labelledby="projects-title">
+      <div class="section-heading"><div><p class="eyebrow">01 / ENTDECKEN</p><h2 id="projects-title">Was hier entsteht<span class="accent">.</span></h2></div><p>Vom ersten „Was wäre, wenn?“<br /> bis zum nächsten „Noch eine Runde.“</p></div>
+      <div class="project-filters" role="group" aria-label="Projekte nach Kategorie filtern" hidden>
+        <button type="button" data-filter="all" aria-pressed="true">Alle Projekte <span>3</span></button>
+        <button type="button" data-filter="games" aria-pressed="false"><svg class="icon"><use href="#i-game"/></svg>Spiele</button>
+        <button type="button" data-filter="music" aria-pressed="false"><svg class="icon"><use href="#i-music"/></svg>Musik</button>
+        <button type="button" data-filter="tools" aria-pressed="false"><svg class="icon"><use href="#i-code"/></svg>Tools</button>
+      </div>
+      <p id="filter-status" class="sr-only" role="status" aria-live="polite"></p>
+      <div class="project-grid">
+        <article class="project-card" data-category="games">
+          <a class="project-visual games-visual library-visual" href="/deepplay/" aria-label="DeepPlay öffnen – Snake, Neon Bot Arena, Cursor Clicker und weitere Spiele"><span class="badge"><span class="status-dot"></span> 6 Browser-Spiele</span><div class="game-fan" aria-hidden="true"><div class="fan-tile fan-snake"><img src="/assets/img/snake-keyart.webp" width="400" height="400" alt="" loading="lazy" /><span>Snake</span></div><div class="fan-tile fan-arena"><img src="/assets/img/neon-bot-arena-keyart-v2.webp" width="400" height="400" alt="" loading="lazy" /><span>Neon Bot Arena</span></div><div class="fan-tile fan-cursor"><img src="/assets/img/cursor-clicker-keyart.webp" width="400" height="400" alt="" loading="lazy" /><span>Cursor Clicker</span></div></div><span class="visual-label">DEIN NÄCHSTES SPIEL<span aria-hidden="true">↗</span></span></a>
+          <div class="project-body"><p class="project-category blue"><svg class="icon"><use href="#i-game"/></svg> BROWSER-SPIELE</p><h3>DeepPlay</h3><p>Eine kleine Auszeit, eine große Runde. Entdecke sechs Browser-Spiele – von Snake bis Neon Bot Arena.</p><a class="card-link" href="/deepplay/">Ab in die Spielebibliothek <svg class="icon"><use href="#i-arrow"/></svg></a></div>
+        </article>
+        <article class="project-card" data-category="music">
+          <a class="project-visual music-visual" href="/musik.html" aria-label="DeepScheitern Musik öffnen"><div class="record" aria-hidden="true"></div><img src="/assets/img/where-the-lights-blur.webp" alt="Cover von Where the Lights Blur mit verschwommenen Stadtlichtern hinter einer regennassen Scheibe" width="800" height="800" loading="lazy" /><span class="badge"><span class="status-dot"></span> Zum Hören</span></a>
+          <div class="project-body"><p class="project-category purple"><svg class="icon"><use href="#i-music"/></svg> SOUNDS & EXPERIMENTE</p><h3>DeepScheitern Musik</h3><p>Der Teil, der gehört wird. Programmierte Instrumentals und Songs mit KI-Werkzeugen. Scheitern, aber mit Takt.</p><a class="card-link" href="/musik.html">Kopfhörer auf. Reinhören. <svg class="icon"><use href="#i-arrow"/></svg></a></div>
+        </article>
+        <article class="project-card service-card" data-category="tools">
+          <div class="project-visual service-visual"><span class="badge badge-building"><span class="status-dot"></span> In Entwicklung</span><div class="terminal-art" aria-hidden="true"><div><i></i><i></i><i></i><span>deepservice</span></div><p><span>~</span> / neuer-versuch</p><p class="terminal-bright">&gt; Idee vorhanden.</p><p>&gt; Wird noch gebaut<span class="terminal-cursor">_</span></p><small>WORK IN PROGRESS</small></div></div>
+          <div class="project-body"><p class="project-category mint"><svg class="icon"><use href="#i-code"/></svg> DIGITALE WERKZEUGE</p><h3>DeepService</h3><p>Ein Support-Werkzeug, das garantiert nichts garantiert. Hier wird noch gebaut, ausprobiert und verworfen.</p><span class="card-link unavailable">Noch nicht öffentlich <span aria-hidden="true">↗</span></span></div>
+        </article>
+      </div>
+    </section>
+    <section class="container about section" id="ueber" aria-labelledby="about-title">
+      <div class="about-intro"><p class="eyebrow">02 / DIE IDEE DAHINTER</p><h2 id="about-title">Erst bauen.<br />Dann merken.</h2><p>Kein perfekter Plan. Kein großes Versprechen. DeepScheitern ist ein Ort für Ideen, die zu interessant waren, um sie liegen zu lassen.</p><a class="text-link" href="https://github.com/ddmeer321"><svg class="icon"><use href="#i-github"/></svg> Hinter die Kulissen <span aria-hidden="true">↗</span></a></div>
+      <div class="principles"><article><span>01</span><div><h3>Neugier statt Businessplan.</h3><p>Gebaut, weil es interessant war. Nicht, weil jemand dafür bezahlt hat.</p></div></article><article><span>02</span><div><h3>Ausprobieren gehört dazu.</h3><p>Manches läuft. Manches bleibt auf halbem Weg stehen. Beides hat hier seinen Platz.</p></div></article><article><span>03</span><div><h3>Auch Halbfertiges bleibt.</h3><p>Ein Projekt, das nie scheitert, ist meistens eins, bei dem nichts riskiert wurde.</p></div></article></div>
+    </section>
+    <section class="container closing"><div><p class="eyebrow">GENUG GESCROLLT.</p><h2>Zeit für einen Versuch.</h2><p>Dein nächster Highscore wartet nicht auf den perfekten Moment.</p></div><a class="button" href="/deepplay/">Eine Runde spielen <svg class="icon"><use href="#i-arrow"/></svg></a></section>
+  </main>
+  <footer class="container footer"><div><a class="brand" href="#oben">Deep<span class="brand-light">Scheitern</span><span class="brand-dot">.</span></a><p>Wir scheitern tief. Professionell.</p></div><nav aria-label="Weitere Links"><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><a href="https://github.com/ddmeer321">GitHub ↗</a></nav><span class="copyright">© 2026 DeepScheitern</span></footer>
+</body>
 </html>
