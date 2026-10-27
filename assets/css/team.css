@@ -59,6 +59,17 @@
   color: var(--muted);
   margin: 14px 0 0;
 }
+/* Die zweite Karte traegt nur den Namen. "von Anthropic" belegt dieselbe
+   Zeile wie drueben die Rolle - sonst saesse der Name 41px hoeher als
+   nebenan und das sieht nach Fehler aus statt nach Absicht. Es steht da,
+   damit niemand Claude fuer eine erfundene Figur dieser Marke haelt. */
+.member-origin {
+  font: 500 8px/1.5 var(--mono);
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+  color: #959db0;
+  margin: 0 0 18px;
+}
 
 /* Folgt jetzt direkt auf das Kartenraster, deshalb mehr Abstand als zuvor. */
 .team-fineprint {
