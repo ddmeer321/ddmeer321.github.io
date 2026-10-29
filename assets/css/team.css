@@ -80,3 +80,40 @@
   max-width: 640px;
 }
 
+
+/* Kontaktbereich. Steht bewusst nach den Karten: erst wer dahintersteckt,
+   dann wie man denjenigen erreicht. */
+.kontakt {
+  margin: clamp(48px, 7vh, 80px) 0 0;
+  padding: clamp(28px, 4vh, 40px) clamp(24px, 4vw, 36px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  max-width: 640px;
+}
+.kontakt h2 {
+  font-size: clamp(1.4rem, 3.6vw, 1.9rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 14px;
+}
+.kontakt > p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+/* min-height 44px: Mindestgroesse, damit der Knopf auf dem Handy sicher
+   zu treffen ist. */
+.kontakt-knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.kontakt-hinweis {
+  margin: 26px 0 0;
+  font: 9px/1.7 var(--mono);
+  letter-spacing: 0.6px;
+  color: #959db0;
+}
